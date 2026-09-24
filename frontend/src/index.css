@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Sundhamata Brand Color Palette */
+  --color-brand-950: #071020;
+  --color-brand-900: #0F2042;
+  --color-brand-850: #132448;
+  --color-brand-800: #162B56;
+  --color-brand-700: #1B365D;
+  --color-brand-600: #1E40AF;
+  --color-brand-500: #2563EB;
+  --color-brand-400: #3B82F6;
+  --color-brand-100: #DBEAFE;
+  --color-brand-50: #EFF6FF;
+
+  --color-warm-amber: #D97706;
+  --color-warm-gold: #F59E0B;
+  --color-warm-accent: #FEF3C7;
+  --color-surface-ivory: #FBFBFA;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: var(--font-sans);
+  background-color: #ECEEF2;
+  color: #0F172A;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tabular figures for numbers, currency and serial codes */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Safe area padding utilities for mobile devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Hide scrollbars cleanly */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

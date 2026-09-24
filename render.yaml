@@ -1,0 +1,32 @@
+# Render Blueprint for the Sundhamata API (backend/).
+# Render → New → Blueprint → select this repository. Values marked `sync: false`
+# are entered in the Render dashboard and are never stored in git.
+services:
+  - type: web
+    name: sundhamata-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Atlas connection string, e.g. mongodb+srv://<user>:<password>@cluster0.xbk5pw4.mongodb.net/sundhamata?appName=Cluster0
+      # (Atlas → Network Access must allow Render's outbound IPs, or 0.0.0.0/0.)
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # Your Vercel URL(s), e.g. https://sundhamata.vercel.app (comma-separated for several).
+      - key: CUSTOMER_FRONTEND_URL
+        sync: false
+      - key: ADMIN_FRONTEND_URL
+        sync: false
+      # Render terminates TLS in front of the app; needed for correct client IPs in rate limiting.
+      - key: TRUST_PROXY
+        value: "1"
+      # Only "console" exists today, which refuses to send in production: customer OTP login
+      # needs a real SMS provider (see backend/src/services/sms/index.js).
+      - key: SMS_PROVIDER
+        value: console

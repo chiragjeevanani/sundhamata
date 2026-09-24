@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment files (secrets) — only the examples are committed
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+dist-ssr/
+
+# Local MongoDB data (npm run db:dev)
+.data/
+
+# Test coverage, logs, OS/editor files
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
