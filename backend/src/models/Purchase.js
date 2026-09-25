@@ -59,6 +59,16 @@ const purchaseSchema = new mongoose.Schema(
     },
 
     notes: { type: String, trim: true, maxlength: 500, default: null },
+
+    // Bill uploaded by the store (PDF / image / Word / Excel); the file itself is in GridFS.
+    bill: {
+      fileId: { type: mongoose.Schema.Types.ObjectId },
+      filename: { type: String },
+      contentType: { type: String },
+      size: { type: Number },
+      uploadedAt: { type: Date },
+      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    },
     status: {
       type: String,
       enum: Object.values(PURCHASE_STATUSES),

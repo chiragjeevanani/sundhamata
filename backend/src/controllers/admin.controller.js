@@ -1,4 +1,5 @@
 import * as analyticsService from '../services/analytics.service.js';
+import * as billService from '../services/bill.service.js';
 import * as customerService from '../services/customer.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
@@ -75,6 +76,24 @@ export const cancelPurchase = async (req, res) => {
       ? `Purchase cancelled. ${pointsReversed} points reversed; ${reversalShortfall} points had already been used.`
       : `Purchase cancelled. ${pointsReversed} points reversed.`;
   sendSuccess(res, { data, message });
+};
+
+export const uploadPurchaseBill = async (req, res) => {
+  const { id } = req.valid.params;
+  await billService.attachBill(id, req.body, req.valid.query.filename, req.admin);
+  const purchase = await purchaseService.getPurchaseForAdmin(id);
+  sendSuccess(res, { data: { purchase }, message: 'Bill uploaded' });
+};
+
+export const deletePurchaseBill = async (req, res) => {
+  const { id } = req.valid.params;
+  await billService.removeBill(id, req.admin);
+  const purchase = await purchaseService.getPurchaseForAdmin(id);
+  sendSuccess(res, { data: { purchase }, message: 'Bill removed' });
+};
+
+export const downloadPurchaseBill = async (req, res) => {
+  await billService.sendBill(res, { purchaseId: req.valid.params.id });
 };
 
 // ---- Loyalty ------------------------------------------------------------

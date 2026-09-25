@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -16,12 +16,17 @@ import {
   Check,
   X,
   ExternalLink,
+  Download,
+  Upload,
+  Trash2,
+  Paperclip,
 } from 'lucide-react';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { StatusBadge } from '../components/StatusBadge';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DetailsSkeleton } from '../components/SkeletonLoaders';
 import { formatINR, formatLongDate } from '../../../utils/formatters';
+import { BILL_ACCEPT, BILL_HINT, formatFileSize, saveBlob, validateBillFile } from '../../../utils/billFile';
 import { useToast } from '../context/ToastContext';
 
 export const PurchaseDetailPage = () => {
@@ -38,6 +43,11 @@ export const PurchaseDetailPage = () => {
   const [editPaymentMethod, setEditPaymentMethod] = useState('UPI');
   const [editNotes, setEditNotes] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
+
+  // Bill file (upload / replace / download / remove)
+  const billInputRef = useRef(null);
+  const [billBusy, setBillBusy] = useState(''); // '' | 'upload' | 'download' | 'remove'
+  const [removeBillOpen, setRemoveBillOpen] = useState(false);
 
   // Cancel Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -78,6 +88,50 @@ export const PurchaseDetailPage = () => {
       showError('Error', err.message || 'Unable to update purchase.');
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleBillPicked = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const problem = validateBillFile(file);
+    if (problem) {
+      showError('Invalid file', problem);
+      return;
+    }
+    setBillBusy('upload');
+    try {
+      setPurchase(await adminPurchaseService.uploadBill(purchase.id, file));
+      showSuccess('Bill uploaded', file.name);
+    } catch (err) {
+      showError('Upload failed', err.message || 'Unable to upload the bill.');
+    } finally {
+      setBillBusy('');
+    }
+  };
+
+  const handleBillDownload = async () => {
+    setBillBusy('download');
+    try {
+      saveBlob(await adminPurchaseService.downloadBill(purchase.id), purchase.bill.filename);
+    } catch (err) {
+      showError('Download failed', err.message || 'Unable to download the bill.');
+    } finally {
+      setBillBusy('');
+    }
+  };
+
+  const handleBillRemove = async () => {
+    setBillBusy('remove');
+    try {
+      setPurchase(await adminPurchaseService.removeBill(purchase.id));
+      setRemoveBillOpen(false);
+      showSuccess('Bill removed', 'The bill file was removed from this purchase.');
+    } catch (err) {
+      showError('Error', err.message || 'Unable to remove the bill.');
+    } finally {
+      setBillBusy('');
     }
   };
 
@@ -394,6 +448,87 @@ export const PurchaseDetailPage = () => {
             </div>
           </div>
 
+          {/* Bill file */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <Paperclip className="w-4 h-4 text-blue-600" />
+              <h3 className="text-sm font-semibold text-slate-900">Bill</h3>
+            </div>
+
+            <input
+              ref={billInputRef}
+              type="file"
+              accept={BILL_ACCEPT}
+              className="sr-only"
+              onChange={handleBillPicked}
+            />
+
+            {purchase.bill ? (
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <FileText className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900 break-words">{purchase.bill.filename}</p>
+                    <p className="text-slate-400 mt-0.5">
+                      {formatFileSize(purchase.bill.size)} • uploaded {formatLongDate(purchase.bill.uploadedAt)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={handleBillDownload}
+                    disabled={Boolean(billBusy)}
+                    className="py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{billBusy === 'download' ? 'Downloading...' : 'Download'}</span>
+                  </button>
+                  {!isCancelled && (
+                    <>
+                      <button
+                        onClick={() => billInputRef.current?.click()}
+                        disabled={Boolean(billBusy)}
+                        className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium inline-flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{billBusy === 'upload' ? 'Uploading...' : 'Replace'}</span>
+                      </button>
+                      <button
+                        onClick={() => setRemoveBillOpen(true)}
+                        disabled={Boolean(billBusy)}
+                        className="py-1.5 px-2 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
+                        title="Remove bill"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2.5 text-xs">
+                <p className="text-slate-500 font-normal">
+                  {isCancelled
+                    ? 'No bill was attached to this purchase.'
+                    : 'No bill attached yet. Once uploaded, the customer can download it from their purchase.'}
+                </p>
+                {!isCancelled && (
+                  <>
+                    <button
+                      onClick={() => billInputRef.current?.click()}
+                      disabled={Boolean(billBusy)}
+                      className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium inline-flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{billBusy === 'upload' ? 'Uploading...' : 'Upload bill'}</span>
+                    </button>
+                    <p className="text-[11px] text-slate-400">{BILL_HINT}</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Warranty Info */}
           {purchase.warranty && (
             <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-2 text-xs">
@@ -414,6 +549,17 @@ export const PurchaseDetailPage = () => {
           )}
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={removeBillOpen}
+        onClose={() => setRemoveBillOpen(false)}
+        onConfirm={handleBillRemove}
+        title="Remove This Bill?"
+        message="The uploaded bill file will be deleted and the customer will no longer be able to download it."
+        confirmText="Remove Bill"
+        type="danger"
+        isLoading={billBusy === 'remove'}
+      />
 
       {/* Cancel Purchase Confirmation Modal */}
       <ConfirmationModal

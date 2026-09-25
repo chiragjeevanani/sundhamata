@@ -28,6 +28,11 @@ export const purchaseService = {
     return toUiPurchase(data.purchase);
   },
 
+  /** @returns {Promise<Blob>} the bill the store uploaded for this purchase */
+  downloadBill(id) {
+    return customerApi.download(`/customer/purchases/${encodeURIComponent(id)}/bill`);
+  },
+
   /** Count and latest purchase for the customer home screen */
   async getPurchaseSummary() {
     const { items, total } = await listPurchases({ limit: 1 });

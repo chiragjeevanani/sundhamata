@@ -111,6 +111,15 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
         }
       : null,
     notes: p.notes ?? null,
+    // Metadata only; the file is fetched through the bill download endpoints.
+    bill: p.bill?.fileId
+      ? {
+          filename: p.bill.filename,
+          contentType: p.bill.contentType,
+          size: p.bill.size,
+          uploadedAt: p.bill.uploadedAt,
+        }
+      : null,
     status: p.status,
     cancelReason: p.cancelReason ?? null,
     cancelledAt: p.cancelledAt ?? null,

@@ -46,6 +46,12 @@ export const notFoundHandler = (req, _res, next) => {
 
 // Express identifies error handlers by their 4-argument signature.
 export const errorHandler = (err, req, res, _next) => {
+  // A download that fails mid-stream has already sent its headers: a JSON error can't follow.
+  if (res.headersSent) {
+    (req.log ?? logger).error({ err }, 'Error after response started');
+    return res.destroy();
+  }
+
   const apiError = toApiError(err);
 
   if (!apiError) {

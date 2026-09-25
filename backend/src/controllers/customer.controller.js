@@ -1,3 +1,4 @@
+import * as billService from '../services/bill.service.js';
 import * as customerService from '../services/customer.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
@@ -25,6 +26,10 @@ export const listMyPurchases = async (req, res) => {
 export const getMyPurchase = async (req, res) => {
   const purchase = await purchaseService.getPurchaseForCustomer(req.customer._id, req.valid.params.id);
   sendSuccess(res, { data: { purchase } });
+};
+
+export const downloadMyPurchaseBill = async (req, res) => {
+  await billService.sendBill(res, { purchaseId: req.valid.params.id, customerId: req.customer._id });
 };
 
 export const getMyLoyalty = async (req, res) => {

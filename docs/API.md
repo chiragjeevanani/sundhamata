@@ -314,6 +314,7 @@ Query: `page`, `limit`, `search` (product, brand, variant, invoice, IMEI, serial
         "status": "Active"
       },
       "notes": null,
+      "bill": { "filename": "Samsung S25 bill.pdf", "contentType": "application/pdf", "size": 84213, "uploadedAt": "2026-09-24T12:20:00.000Z" },
       "status": "Purchased",
       "cancelReason": null,
       "cancelledAt": null,
@@ -327,6 +328,10 @@ Query: `page`, `limit`, `search` (product, brand, variant, invoice, IMEI, serial
 ```
 
 `warranty.status` is `Active`, `Expired` or `Void` (cancelled purchase).
+
+### `GET /customer/purchases/:id/bill`
+
+Downloads the bill the store uploaded for this purchase (see [Purchase bills](#purchase-bills)). 404 when the purchase has no bill, or belongs to someone else.
 
 ### `GET /customer/loyalty`
 
@@ -435,6 +440,9 @@ Admin customer objects add:
 | POST | `/admin/purchases` | Record a purchase (below) |
 | PATCH | `/admin/purchases/:id` | `payment.method`, `payment.status`, `notes`, `category`, product details. **Pricing cannot be changed** — cancel and re-record instead. Cancelled purchases cannot be edited (409) |
 | POST | `/admin/purchases/:id/cancel` | `{ "reason": "Customer returned device" }` (optional) |
+| POST | `/admin/purchases/:id/bill?filename=...` | Attach or replace the bill (raw file body, see [Purchase bills](#purchase-bills)) |
+| GET | `/admin/purchases/:id/bill` | Download the bill |
+| DELETE | `/admin/purchases/:id/bill` | Remove the bill |
 
 #### `POST /admin/purchases`
 
@@ -487,6 +495,35 @@ Errors: 404 unknown customer, 422 inactive customer / invalid amounts / discount
 ```
 
 409 if already cancelled.
+
+### Purchase bills
+
+A purchase can carry one bill file (invoice scan, photo, PDF, ...). The admin uploads it from the Record Purchase form or later from the invoice page; the customer downloads it from their purchase.
+
+**Upload / replace** — `POST /admin/purchases/:id/bill?filename=Samsung%20bill.pdf`
+
+The request body is the raw file (not multipart). Send the file name in the `filename` query parameter.
+
+```bash
+curl -X POST "$API/admin/purchases/$ID/bill?filename=bill.pdf"   -H "Authorization: Bearer $ADMIN_TOKEN"   -H "Content-Type: application/octet-stream"   --data-binary @bill.pdf
+```
+
+```json
+// 200 — the purchase, now with bill metadata
+{ "success": true, "data": { "purchase": { "bill": { "filename": "bill.pdf", "contentType": "application/pdf", "size": 84213, "uploadedAt": "2026-09-25T09:12:00.000Z" } } }, "message": "Bill uploaded" }
+```
+
+- Accepted: PDF; images (JPG, PNG, WebP, GIF, HEIC); Word (`.doc`, `.docx`); Excel (`.xls`, `.xlsx`). Maximum **10 MB**.
+- The type is detected from the file's contents, not the name or `Content-Type`. A renamed executable, an HTML or SVG page (which can carry scripts) or any other format is refused with 422 `Unsupported file type`. The stored name gets the extension of the detected type.
+- File names are sanitised (no path parts or control characters). Over 10 MB returns 413.
+- Uploading again **replaces** the bill and deletes the previous file. Cancelled purchases cannot get, replace or lose a bill (409), but an existing bill can still be downloaded.
+- `bill` is `null` on purchases without one; `fileId` is never exposed.
+
+**Download** — `GET /admin/purchases/:id/bill` (admin) or `GET /customer/purchases/:id/bill` (the purchase's own customer). The response is the file itself with `Content-Disposition: attachment`, `Cache-Control: private, no-store` and `X-Content-Type-Options: nosniff`. Both endpoints need the bearer token, so a browser must fetch the file with the Authorization header and save the resulting blob — a plain link will not work.
+
+**Remove** — `DELETE /admin/purchases/:id/bill` returns the purchase with `bill: null`.
+
+Files are stored in MongoDB GridFS (`bills.files` / `bills.chunks`), so they survive redeploys on hosts with an ephemeral disk. On an Atlas free (M0) cluster mind the 512 MB storage cap.
 
 ### Loyalty
 

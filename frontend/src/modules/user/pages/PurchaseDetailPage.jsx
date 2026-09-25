@@ -19,6 +19,7 @@ import { ErrorState } from '../components/ErrorState';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { purchaseService } from '../../../services/purchaseService';
 import { formatINR, formatLongDate, formatDate } from '../../../utils/formatters';
+import { formatFileSize, saveBlob } from '../../../utils/billFile';
 import { useAuth } from '../context/AuthContext';
 import { useStoreInfo, formatStoreAddress } from '../hooks/useStoreInfo';
 
@@ -34,6 +35,8 @@ export const PurchaseDetailPage = () => {
   const [error, setError] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [billDownloading, setBillDownloading] = useState(false);
+  const [billError, setBillError] = useState('');
   const [imgError, setImgError] = useState(false);
 
   const fetchDetail = async () => {
@@ -52,6 +55,18 @@ export const PurchaseDetailPage = () => {
   useEffect(() => {
     fetchDetail();
   }, [id]);
+
+  const downloadBill = async () => {
+    setBillDownloading(true);
+    setBillError('');
+    try {
+      saveBlob(await purchaseService.downloadBill(purchase.id), purchase.bill.filename);
+    } catch (err) {
+      setBillError(err.message || 'Could not download the bill. Please try again.');
+    } finally {
+      setBillDownloading(false);
+    }
+  };
 
   const copyToClipboard = (text, key) => {
     navigator.clipboard?.writeText(text);
@@ -358,6 +373,24 @@ export const PurchaseDetailPage = () => {
                 </button>
               </div>
             </div>
+
+            {/* Action: Download the bill uploaded by the store */}
+            {purchase.bill && (
+              <div className="pt-0.5 space-y-1">
+                <button
+                  onClick={downloadBill}
+                  disabled={billDownloading}
+                  className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#0F2042] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-700" />
+                  <span>{billDownloading ? 'Downloading...' : 'Download Bill'}</span>
+                </button>
+                <p className="text-[10.5px] text-slate-400 text-center truncate">
+                  {purchase.bill.filename} • {formatFileSize(purchase.bill.size)}
+                </p>
+                {billError && <p className="text-[11px] text-rose-600 text-center">{billError}</p>}
+              </div>
+            )}
 
             {/* Action: Download Tax Invoice */}
             <div className="pt-0.5 pb-2">

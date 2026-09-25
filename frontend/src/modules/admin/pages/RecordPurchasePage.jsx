@@ -10,12 +10,15 @@ import {
   RotateCcw,
   Sparkles,
   X,
+  Paperclip,
+  FileText,
 } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { useToast } from '../context/ToastContext';
 import { formatINR } from '../../../utils/formatters';
+import { BILL_ACCEPT, BILL_HINT, formatFileSize, validateBillFile } from '../../../utils/billFile';
 
 export const RecordPurchasePage = () => {
   const navigate = useNavigate();
@@ -49,6 +52,18 @@ export const RecordPurchasePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [successRecord, setSuccessRecord] = useState(null);
+
+  // Optional bill (PDF / image / Word / Excel) uploaded right after the purchase is saved
+  const [billFile, setBillFile] = useState(null);
+  const [billError, setBillError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+
+  const chooseBillFile = (file) => {
+    if (!file) return;
+    const problem = validateBillFile(file);
+    setBillError(problem || '');
+    setBillFile(problem ? null : file);
+  };
 
   useEffect(() => {
     if (preselectedCustomerId) {
@@ -142,7 +157,24 @@ export const RecordPurchasePage = () => {
         },
       });
 
-      setSuccessRecord(recorded);
+      // The purchase is saved. Upload the bill separately: if that fails, the purchase must
+      // still count as recorded and the bill can be attached later from the invoice page.
+      let billStatus = null;
+      if (billFile) {
+        try {
+          const withBill = await adminPurchaseService.uploadBill(recorded.id, billFile);
+          recorded.bill = withBill.bill;
+          billStatus = { ok: true };
+        } catch (uploadErr) {
+          billStatus = { ok: false, message: uploadErr.message };
+          showError(
+            'Bill not uploaded',
+            `The purchase was recorded, but the bill could not be uploaded: ${uploadErr.message} You can attach it from the invoice page.`
+          );
+        }
+      }
+
+      setSuccessRecord({ ...recorded, billStatus });
       showSuccess('Purchase Recorded', `Invoice ${recorded.invoiceNumber} created.`);
     } catch (err) {
       showError('Error', err.message || 'Unable to record purchase.');
@@ -159,6 +191,8 @@ export const RecordPurchasePage = () => {
     setImei('');
     setPurchaseAmount('');
     setDiscount('');
+    setBillFile(null);
+    setBillError('');
   };
 
   // SUCCESS STATE
@@ -189,6 +223,20 @@ export const RecordPurchasePage = () => {
             <span>Points Credited</span>
             <span className="tabular-nums">+{successRecord.loyalty?.pointsEarned || 0} pts</span>
           </div>
+          {successRecord.billStatus && (
+            <div
+              className={`flex justify-between gap-3 pt-2 border-t border-slate-100 ${
+                successRecord.billStatus.ok ? 'text-slate-500' : 'text-rose-700'
+              }`}
+            >
+              <span>Bill</span>
+              <span className="font-medium text-right">
+                {successRecord.billStatus.ok
+                  ? successRecord.bill?.filename
+                  : 'Not uploaded — attach it from the invoice page'}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-center gap-2 pt-2">
@@ -429,6 +477,66 @@ export const RecordPurchasePage = () => {
               </div>
             </div>
           </div>
+
+          {/* Section 4: Bill / Invoice File (optional) */}
+          <div className="p-5 sm:p-6 space-y-3">
+            <div>
+              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">4. Bill / Invoice File</h3>
+              <p className="text-xs text-slate-400 font-normal">
+                Optional. The customer can download it from their purchase. {BILL_HINT}.
+              </p>
+            </div>
+
+            {billFile ? (
+              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-slate-50/80 border border-slate-200/80 text-xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="font-medium text-slate-900 block truncate">{billFile.name}</span>
+                    <span className="text-slate-400">{formatFileSize(billFile.size)}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBillFile(null)}
+                  className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                  title="Remove file"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <label
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  chooseBillFile(e.dataTransfer.files?.[0]);
+                }}
+                className={`flex flex-col items-center justify-center gap-1.5 py-6 px-4 rounded-lg border border-dashed text-center cursor-pointer transition-colors ${
+                  dragOver ? 'border-blue-500 bg-blue-50/60' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'
+                }`}
+              >
+                <Paperclip className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-medium text-slate-700">Click to choose a file, or drag it here</span>
+                <span className="text-[11px] text-slate-400">{BILL_HINT}</span>
+                <input
+                  type="file"
+                  accept={BILL_ACCEPT}
+                  className="sr-only"
+                  onChange={(e) => {
+                    chooseBillFile(e.target.files?.[0]);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+            )}
+            {billError && <p className="text-[11px] text-rose-600">{billError}</p>}
+          </div>
         </div>
 
         {/* Right (4 Cols): Sleek Order Summary Panel */}
@@ -478,7 +586,7 @@ export const RecordPurchasePage = () => {
             disabled={submitting}
             className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-all shadow-2xs active:scale-[0.99] cursor-pointer disabled:opacity-50"
           >
-            {submitting ? 'Generating Invoice...' : 'Record Purchase'}
+            {submitting ? (billFile ? 'Saving & uploading bill...' : 'Generating Invoice...') : 'Record Purchase'}
           </button>
         </div>
       </form>

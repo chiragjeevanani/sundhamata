@@ -19,6 +19,7 @@ export const createCustomerRouter = () => {
 
   router.get('/purchases', validate({ query: customerPurchasesQuerySchema }), customer.listMyPurchases);
   router.get('/purchases/:id', validate({ params: idParamsSchema }), customer.getMyPurchase);
+  router.get('/purchases/:id/bill', validate({ params: idParamsSchema }), customer.downloadMyPurchaseBill);
 
   router.get('/loyalty', customer.getMyLoyalty);
   router.get('/loyalty/summary', customer.getMyLoyaltySummary);

@@ -76,6 +76,22 @@ export const adminPurchaseService = {
     return toUiPurchase(data.purchase);
   },
 
+  /** Attach or replace the bill (PDF / image / Word / Excel) of a purchase */
+  async uploadBill(id, file) {
+    const data = await adminApi.upload(`/admin/purchases/${encodeURIComponent(id)}/bill`, file, { filename: file.name });
+    return toUiPurchase(data.purchase);
+  },
+
+  async removeBill(id) {
+    const data = await adminApi.delete(`/admin/purchases/${encodeURIComponent(id)}/bill`);
+    return toUiPurchase(data.purchase);
+  },
+
+  /** @returns {Promise<Blob>} the bill file */
+  downloadBill(id) {
+    return adminApi.download(`/admin/purchases/${encodeURIComponent(id)}/bill`);
+  },
+
   /** Cancels (never deletes) the purchase; the server reverses its loyalty points. */
   async cancelPurchase(id, reason) {
     const data = await adminApi.post(`/admin/purchases/${encodeURIComponent(id)}/cancel`, reason ? { reason } : {});

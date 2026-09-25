@@ -32,10 +32,15 @@ const messageFrom = (payload, status) => {
   return payload?.message || firstError || `Request failed (${status})`;
 };
 
-const request = async (session, path, { method = 'GET', body, query } = {}) => {
+const request = async (session, path, { method = 'GET', body, query, file, responseType = 'json' } = {}) => {
   const token = session?.getToken() ?? null;
-  const headers = { Accept: 'application/json' };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const headers = { Accept: responseType === 'blob' ? '*/*' : 'application/json' };
+  if (file !== undefined) {
+    // The server detects the real file type from the bytes, so the declared type is irrelevant.
+    headers['Content-Type'] = 'application/octet-stream';
+  } else if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let response;
@@ -43,11 +48,13 @@ const request = async (session, path, { method = 'GET', body, query } = {}) => {
     response = await fetch(buildUrl(path, query), {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: file !== undefined ? file : body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new ApiError('Unable to reach the server. Please check your connection and try again.');
   }
+
+  if (response.ok && responseType === 'blob') return response.blob();
 
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
 
@@ -69,6 +76,11 @@ const createApiClient = (session) => ({
   get: (path, query) => request(session, path, { query }),
   post: (path, body = {}) => request(session, path, { method: 'POST', body }),
   patch: (path, body = {}) => request(session, path, { method: 'PATCH', body }),
+  delete: (path) => request(session, path, { method: 'DELETE' }),
+  /** POST a File/Blob as the raw request body */
+  upload: (path, file, query) => request(session, path, { method: 'POST', file, query }),
+  /** GET a binary response as a Blob */
+  download: (path) => request(session, path, { responseType: 'blob' }),
 });
 
 /** Unauthenticated endpoints (login, OTP, public store info). */

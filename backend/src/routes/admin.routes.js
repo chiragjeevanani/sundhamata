@@ -4,6 +4,7 @@ import * as admin from '../controllers/admin.controller.js';
 import * as adminAuth from '../controllers/adminAuth.controller.js';
 import { PERMISSIONS as P } from '../config/permissions.js';
 import { requireAdminAuth, requirePermission as can } from '../middleware/auth.js';
+import { rawBillUpload } from '../middleware/uploads.js';
 import { validate } from '../middleware/validate.js';
 import { idParamsSchema } from '../validators/common.js';
 import {
@@ -21,6 +22,7 @@ import {
 import { updateSettingsSchema } from '../validators/settings.validators.js';
 
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
+const billUploadQuerySchema = z.object({ filename: z.string().trim().max(255).optional() });
 
 export const createAdminRouter = () => {
   const router = Router();
@@ -63,6 +65,16 @@ export const createAdminRouter = () => {
     validate({ params: idParamsSchema, body: updatePurchaseSchema }),
     admin.updatePurchase
   );
+  router.get('/purchases/:id/bill', can(P.PURCHASES_READ), validate({ params: idParamsSchema }), admin.downloadPurchaseBill);
+  // Upload = raw file body + ?filename=; POST both attaches and replaces.
+  router.post(
+    '/purchases/:id/bill',
+    can(P.PURCHASES_WRITE),
+    validate({ params: idParamsSchema, query: billUploadQuerySchema }),
+    rawBillUpload,
+    admin.uploadPurchaseBill
+  );
+  router.delete('/purchases/:id/bill', can(P.PURCHASES_WRITE), validate({ params: idParamsSchema }), admin.deletePurchaseBill);
   router.post(
     '/purchases/:id/cancel',
     can(P.PURCHASES_CANCEL),
