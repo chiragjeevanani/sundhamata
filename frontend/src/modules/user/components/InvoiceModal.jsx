@@ -153,6 +153,18 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
 
               {/* Tax Summary Breakdown */}
               <div className="bg-slate-50/90 p-3 border-t border-slate-200 flex flex-col items-end gap-1">
+                {purchase.pricing?.discount > 0 && (
+                  <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
+                    <span>Discount:</span>
+                    <span className="font-mono tabular-nums">−{formatINR(purchase.pricing.discount)}</span>
+                  </div>
+                )}
+                {purchase.pricing?.loyaltyDiscount > 0 && (
+                  <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
+                    <span>Points ({purchase.loyalty.pointsRedeemed}):</span>
+                    <span className="font-mono tabular-nums">−{formatINR(purchase.pricing.loyaltyDiscount)}</span>
+                  </div>
+                )}
                 <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
                   <span>Taxable Value:</span>
                   <span className="font-mono tabular-nums">{formatINR(purchase.baseAmount)}</span>

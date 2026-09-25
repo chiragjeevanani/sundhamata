@@ -56,6 +56,9 @@ export const RecordPurchasePage = () => {
 
   // Loyalty Settings
   const [loyaltyRate, setLoyaltyRate] = useState(1);
+  const [rupeeValuePerPoint, setRupeeValuePerPoint] = useState(1);
+  const [minRedeemPoints, setMinRedeemPoints] = useState(0);
+  const [redeemPoints, setRedeemPoints] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [successRecord, setSuccessRecord] = useState(null);
@@ -75,7 +78,10 @@ export const RecordPurchasePage = () => {
   useEffect(() => {
     if (preselectedCustomerId) {
       customerService.getCustomerById(preselectedCustomerId).then((c) => {
-        if (c) setSelectedCustomer(c);
+        if (c) {
+          setSelectedCustomer(c);
+          setRedeemPoints('');
+        }
       }).catch(() => {});
     }
   }, [preselectedCustomerId]);
@@ -85,6 +91,8 @@ export const RecordPurchasePage = () => {
       if (s.loyalty?.pointsPerHundred) {
         setLoyaltyRate(s.loyalty.pointsPerHundred);
       }
+      setRupeeValuePerPoint(s.loyalty?.rupeeValuePerPoint ?? 1);
+      setMinRedeemPoints(s.loyalty?.minRedeemPoints ?? 0);
     }).catch(() => {});
   }, []);
 
@@ -113,7 +121,25 @@ export const RecordPurchasePage = () => {
 
   const numericAmount = Number(purchaseAmount) || 0;
   const numericDiscount = Number(discount) || 0;
-  const finalAmount = Math.max(0, numericAmount - numericDiscount);
+  const amountAfterDiscount = Math.max(0, numericAmount - numericDiscount);
+
+  // Loyalty redemption preview (the server re-checks balance, minimum and bill limit)
+  const availablePoints = selectedCustomer?.loyaltyPoints ?? 0;
+  const pointsToRedeem = Number(redeemPoints) || 0;
+  const redemptionValue = Math.round(pointsToRedeem * rupeeValuePerPoint * 100) / 100;
+  const maxRedeemablePoints =
+    rupeeValuePerPoint > 0 ? Math.min(availablePoints, Math.floor(amountAfterDiscount / rupeeValuePerPoint)) : 0;
+  const canRedeem = rupeeValuePerPoint > 0 && availablePoints >= Math.max(minRedeemPoints, 1);
+  const redemptionError = (() => {
+    if (!redeemPoints) return '';
+    if (!Number.isInteger(pointsToRedeem) || pointsToRedeem < 0) return 'Enter whole points.';
+    if (pointsToRedeem === 0) return '';
+    if (pointsToRedeem > availablePoints) return `Customer has only ${availablePoints.toLocaleString('en-IN')} points.`;
+    if (minRedeemPoints > 0 && pointsToRedeem < minRedeemPoints) return `Redeem at least ${minRedeemPoints.toLocaleString('en-IN')} points.`;
+    if (redemptionValue > amountAfterDiscount) return `Worth ${formatINR(redemptionValue)}, more than the ${formatINR(amountAfterDiscount)} bill.`;
+    return '';
+  })();
+  const finalAmount = Math.max(0, amountAfterDiscount - (redemptionError ? 0 : redemptionValue));
   // Preview only — the server calculates the points actually credited.
   const estimatedPoints = adminSettingsService.calculatePoints(finalAmount, {
     loyalty: { pointsPerHundred: loyaltyRate },
@@ -155,6 +181,9 @@ export const RecordPurchasePage = () => {
     } else if (purchaseDate > today) {
       errors.purchaseDate = 'Purchase date cannot be in the future.';
     }
+    if (redemptionError) {
+      errors.redeemPoints = redemptionError;
+    }
     if (!warrantyValid) {
       errors.warranty = `Enter whole ${warrantyUnit} from 0 to ${warrantyUnit === 'years' ? MAX_WARRANTY_MONTHS / 12 : MAX_WARRANTY_MONTHS}.`;
     }
@@ -183,6 +212,7 @@ export const RecordPurchasePage = () => {
           purchaseAmount: numericAmount,
           discount: numericDiscount,
         },
+        pointsToRedeem,
       });
 
       // The purchase is saved. Upload the bill separately: if that fails, the purchase must
@@ -225,6 +255,7 @@ export const RecordPurchasePage = () => {
     setPurchaseDate(toDateInputValue());
     setWarrantyDuration('1');
     setWarrantyUnit('years');
+    setRedeemPoints('');
     setFormErrors({});
   };
 
@@ -260,10 +291,26 @@ export const RecordPurchasePage = () => {
                 : 'No warranty'}
             </span>
           </div>
+          {successRecord.loyalty?.pointsRedeemed > 0 && (
+            <div className="flex justify-between text-amber-800 font-medium pt-2 border-t border-slate-100">
+              <span>Points Redeemed</span>
+              <span className="tabular-nums">
+                −{successRecord.loyalty.pointsRedeemed.toLocaleString('en-IN')} pts ({formatINR(successRecord.pricing.loyaltyDiscount)} off)
+              </span>
+            </div>
+          )}
           <div className="flex justify-between text-emerald-700 font-medium pt-2 border-t border-slate-100">
             <span>Points Credited</span>
             <span className="tabular-nums">+{successRecord.loyalty?.pointsEarned || 0} pts</span>
           </div>
+          {successRecord.customerLoyaltyBalance !== undefined && (
+            <div className="flex justify-between text-slate-500">
+              <span>New Points Balance</span>
+              <span className="font-medium text-slate-900 tabular-nums">
+                {successRecord.customerLoyaltyBalance.toLocaleString('en-IN')} pts
+              </span>
+            </div>
+          )}
           {successRecord.billStatus && (
             <div
               className={`flex justify-between gap-3 pt-2 border-t border-slate-100 ${
@@ -360,6 +407,7 @@ export const RecordPurchasePage = () => {
                         key={c.id}
                         onClick={() => {
                           setSelectedCustomer(c);
+                          setRedeemPoints('');
                           setSearchResults([]);
                           setSearchQuery('');
                           setFormErrors((prev) => ({ ...prev, customer: '' }));
@@ -601,6 +649,77 @@ export const RecordPurchasePage = () => {
                 </select>
               </div>
             </div>
+
+            {/* Loyalty points redemption */}
+            <div className="rounded-lg border border-amber-200/70 bg-amber-50/50 p-3.5 space-y-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="redeem-points" className="font-medium text-slate-800 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Redeem Loyalty Points</span>
+                </label>
+                <span className="text-slate-500">
+                  {selectedCustomer ? (
+                    <>
+                      Available: <span className="font-medium text-amber-800 tabular-nums">{availablePoints.toLocaleString('en-IN')} pts</span>
+                      {' '}· 1 pt = {formatINR(rupeeValuePerPoint)}
+                      {minRedeemPoints > 0 && <> · min {minRedeemPoints.toLocaleString('en-IN')} pts</>}
+                    </>
+                  ) : (
+                    'Select a customer first'
+                  )}
+                </span>
+              </div>
+
+              {selectedCustomer && !canRedeem ? (
+                <p className="text-slate-500">
+                  {rupeeValuePerPoint > 0
+                    ? `Not enough points to redeem yet (minimum ${Math.max(minRedeemPoints, 1).toLocaleString('en-IN')}).`
+                    : 'Point redemption is switched off in Settings.'}
+                </p>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    id="redeem-points"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={redeemPoints}
+                    disabled={!selectedCustomer}
+                    onChange={(e) => {
+                      setRedeemPoints(e.target.value);
+                      if (formErrors.redeemPoints) setFormErrors((prev) => ({ ...prev, redeemPoints: '' }));
+                    }}
+                    placeholder="0"
+                    className={`w-36 px-3 py-2 bg-white border rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs disabled:bg-slate-100 ${
+                      redemptionError ? 'border-rose-400' : 'border-slate-300'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    disabled={!selectedCustomer || maxRedeemablePoints < Math.max(minRedeemPoints, 1)}
+                    onClick={() => setRedeemPoints(String(maxRedeemablePoints))}
+                    className="py-2 px-3 rounded-lg border border-amber-300 bg-white text-amber-800 font-medium hover:bg-amber-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Use max ({maxRedeemablePoints.toLocaleString('en-IN')})
+                  </button>
+                  {redeemPoints && (
+                    <button
+                      type="button"
+                      onClick={() => setRedeemPoints('')}
+                      className="py-2 px-2 text-slate-500 hover:text-slate-800 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  {pointsToRedeem > 0 && !redemptionError && (
+                    <span className="text-emerald-700 font-medium">− {formatINR(redemptionValue)} off the bill</span>
+                  )}
+                </div>
+              )}
+              {(redemptionError || formErrors.redeemPoints) && (
+                <p className="text-[11px] text-rose-600">{redemptionError || formErrors.redeemPoints}</p>
+              )}
+            </div>
           </div>
 
           {/* Section 5: Bill / Invoice File (optional) */}
@@ -696,6 +815,27 @@ export const RecordPurchasePage = () => {
               <span>Warranty Until</span>
               <span className="font-medium text-slate-800">{warrantyUntil || (warrantyValid ? 'No warranty' : '—')}</span>
             </div>
+
+            {(numericDiscount > 0 || (pointsToRedeem > 0 && !redemptionError)) && (
+              <div className="pt-3 border-t border-slate-100 space-y-1.5">
+                <div className="flex justify-between text-slate-500">
+                  <span>Price</span>
+                  <span className="tabular-nums text-slate-800">{formatINR(numericAmount)}</span>
+                </div>
+                {numericDiscount > 0 && (
+                  <div className="flex justify-between text-slate-500">
+                    <span>Discount</span>
+                    <span className="tabular-nums text-slate-800">− {formatINR(numericDiscount)}</span>
+                  </div>
+                )}
+                {pointsToRedeem > 0 && !redemptionError && (
+                  <div className="flex justify-between text-amber-800">
+                    <span>Points redeemed ({pointsToRedeem.toLocaleString('en-IN')})</span>
+                    <span className="tabular-nums">− {formatINR(redemptionValue)}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="pt-3 border-t border-slate-100 flex justify-between items-baseline">
               <span className="font-medium text-slate-600">Total Billed</span>

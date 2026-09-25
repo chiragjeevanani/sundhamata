@@ -12,6 +12,8 @@ export const LOYALTY_SOURCES = Object.freeze({
   REDEMPTION: 'redemption',
   ADMIN_ADJUSTMENT: 'admin_adjustment',
   PURCHASE_CANCELLATION: 'purchase_cancellation',
+  // Points redeemed on a purchase, given back when that purchase is cancelled
+  REDEMPTION_REFUND: 'redemption_refund',
   EXPIRY: 'expiry',
 });
 

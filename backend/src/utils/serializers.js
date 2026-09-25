@@ -92,6 +92,7 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
     pricing: {
       purchaseAmount: p.pricing.purchaseAmount,
       discount: p.pricing.discount,
+      loyaltyDiscount: p.pricing.loyaltyDiscount ?? 0,
       finalAmount: p.pricing.finalAmount,
       taxRatePercent: p.pricing.taxRatePercent,
       taxAmount: p.pricing.taxAmount,
@@ -99,6 +100,8 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
     },
     loyalty: {
       pointsEarned: p.loyalty?.pointsEarned ?? 0,
+      pointsRedeemed: p.loyalty?.pointsRedeemed ?? 0,
+      pointsRefunded: p.loyalty?.pointsRefunded ?? 0,
       pointsReversed: p.loyalty?.pointsReversed ?? 0,
       reversalShortfall: p.loyalty?.reversalShortfall ?? 0,
     },

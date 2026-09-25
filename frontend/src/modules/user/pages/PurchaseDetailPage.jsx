@@ -317,6 +317,24 @@ export const PurchaseDetailPage = () => {
                     {purchase.paymentStatus}
                   </span>
                 </div>
+
+                {purchase.loyalty?.pointsRedeemed > 0 && (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-slate-500 font-medium">Points Redeemed</span>
+                    <span className="font-bold text-amber-800 tabular-nums">
+                      {purchase.loyalty.pointsRedeemed.toLocaleString('en-IN')} pts (−{formatINR(purchase.pricing.loyaltyDiscount)})
+                    </span>
+                  </div>
+                )}
+
+                {purchase.loyalty?.pointsEarned > 0 && (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-slate-500 font-medium">Points Earned</span>
+                    <span className="font-bold text-emerald-700 tabular-nums">
+                      +{purchase.loyalty.pointsEarned.toLocaleString('en-IN')} pts
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -23,6 +23,7 @@ export const SettingsPage = () => {
   // Loyalty Settings
   const [pointsPerHundred, setPointsPerHundred] = useState(1);
   const [rupeeValuePerPoint, setRupeeValuePerPoint] = useState(1.0);
+  const [minRedeemPoints, setMinRedeemPoints] = useState(0);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -41,6 +42,7 @@ export const SettingsPage = () => {
 
         setPointsPerHundred(s.loyalty?.pointsPerHundred ?? 1);
         setRupeeValuePerPoint(s.loyalty?.rupeeValuePerPoint ?? 1.0);
+        setMinRedeemPoints(s.loyalty?.minRedeemPoints ?? 0);
       } finally {
         setLoading(false);
       }
@@ -65,6 +67,7 @@ export const SettingsPage = () => {
         loyalty: {
           pointsPerHundred: Number(pointsPerHundred),
           rupeeValuePerPoint: Number(rupeeValuePerPoint),
+          minRedeemPoints: Number(minRedeemPoints) || 0,
         },
       });
 
@@ -225,6 +228,19 @@ export const SettingsPage = () => {
                 onChange={(e) => setRupeeValuePerPoint(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-medium text-slate-700 block">Minimum Points per Redemption</label>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={minRedeemPoints}
+                onChange={(e) => setMinRedeemPoints(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs"
+              />
+              <p className="text-[11px] text-slate-400">0 = customers can redeem any amount</p>
             </div>
           </div>
         </div>

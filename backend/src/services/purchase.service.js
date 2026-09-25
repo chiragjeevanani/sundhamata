@@ -95,7 +95,34 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
 
     const settings = await getSettings(session);
     const { purchaseAmount, discount } = input.pricing;
-    const finalAmount = roundMoney(purchaseAmount - discount);
+    const amountAfterDiscount = roundMoney(purchaseAmount - discount);
+
+    // Loyalty redemption: points come off the bill after the discount.
+    const pointsRedeemed = input.loyaltyRedemption?.points ?? 0;
+    const { rupeeValuePerPoint, minRedeemPoints } = settings.loyalty;
+    let loyaltyDiscount = 0;
+    if (pointsRedeemed > 0) {
+      const redemptionError = (message) =>
+        ApiError.unprocessable(message, [{ field: 'loyaltyRedemption.points', message }]);
+      if (!(rupeeValuePerPoint > 0)) {
+        throw redemptionError('Point redemption is switched off (point value is ₹0 in settings)');
+      }
+      if (minRedeemPoints > 0 && pointsRedeemed < minRedeemPoints) {
+        throw redemptionError(`At least ${minRedeemPoints} points must be redeemed at a time`);
+      }
+      if (pointsRedeemed > customer.loyaltyPoints) {
+        throw redemptionError(`Customer has only ${customer.loyaltyPoints} points; cannot redeem ${pointsRedeemed}`);
+      }
+      loyaltyDiscount = roundMoney(pointsRedeemed * rupeeValuePerPoint);
+      if (loyaltyDiscount > amountAfterDiscount) {
+        throw redemptionError(
+          `${pointsRedeemed} points are worth ₹${loyaltyDiscount}, more than the ₹${amountAfterDiscount} bill`
+        );
+      }
+    }
+
+    // What the customer actually pays; tax and newly earned points are based on this.
+    const finalAmount = roundMoney(amountAfterDiscount - loyaltyDiscount);
     const taxRatePercent = settings.tax?.gstRatePercent ?? 18;
     const baseAmount = roundMoney(finalAmount / (1 + taxRatePercent / 100));
     const taxAmount = roundMoney(finalAmount - baseAmount);
@@ -116,8 +143,13 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
           product: { ...input.product, brand: input.product.brand ?? inferBrand(input.product.name) },
           purchaseDate,
           payment: input.payment,
-          pricing: { purchaseAmount, discount, finalAmount, taxRatePercent, taxAmount, baseAmount },
-          loyalty: { pointsEarned, pointsPerHundredRupees },
+          pricing: { purchaseAmount, discount, loyaltyDiscount, finalAmount, taxRatePercent, taxAmount, baseAmount },
+          loyalty: {
+            pointsEarned,
+            pointsPerHundredRupees,
+            pointsRedeemed,
+            rupeeValuePerPoint: pointsRedeemed > 0 ? rupeeValuePerPoint : null,
+          },
           warranty: buildWarranty(purchaseDate, months) ?? undefined,
           notes: input.notes ?? null,
           createdBy: admin._id,
@@ -129,6 +161,24 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     onRollback(() => Purchase.deleteOne({ _id: purchase._id }));
 
     let balance = customer.loyaltyPoints;
+    // Spend first, then earn: the conditional debit guarantees the balance never goes negative,
+    // even if another request spent points after the check above.
+    if (pointsRedeemed > 0) {
+      ({ balance } = await applyPointsChange(
+        {
+          customerId: customer._id,
+          delta: -pointsRedeemed,
+          type: LOYALTY_TYPES.REDEEMED,
+          source: LOYALTY_SOURCES.REDEMPTION,
+          title: 'Points Redeemed',
+          description: `${purchase.product.name} — ₹${loyaltyDiscount.toLocaleString('en-IN')} off`,
+          purchaseId: purchase._id,
+          createdBy: admin._id,
+          occurredAt,
+        },
+        ctx
+      ));
+    }
     if (pointsEarned > 0) {
       ({ balance } = await applyPointsChange(
         {
@@ -146,7 +196,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       ));
     }
 
-    return { purchaseId: purchase._id, pointsEarned, balance };
+    return { purchaseId: purchase._id, pointsEarned, pointsRedeemed, balance };
   });
 
   logger.info(
@@ -154,6 +204,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       purchaseId: result.purchaseId.toString(),
       adminId: admin.id,
       pointsEarned: result.pointsEarned,
+      pointsRedeemed: result.pointsRedeemed,
     },
     'Purchase created'
   );
@@ -272,8 +323,28 @@ export const cancelPurchase = async (id, reason, admin) => {
     );
 
     const earned = purchase.loyalty?.pointsEarned ?? 0;
+    const redeemed = purchase.loyalty?.pointsRedeemed ?? 0;
     let reversed = 0;
     let shortfall = 0;
+
+    // Give back points the customer spent on this bill first, so the reversal
+    // of earned points below can draw on them.
+    if (redeemed > 0) {
+      await applyPointsChange(
+        {
+          customerId: purchase.customerId,
+          delta: redeemed,
+          type: LOYALTY_TYPES.ADJUSTMENT,
+          source: LOYALTY_SOURCES.REDEMPTION_REFUND,
+          title: 'Redeemed Points Returned',
+          description: purchase.product.name,
+          reason,
+          purchaseId: purchase._id,
+          createdBy: admin._id,
+        },
+        ctx
+      );
+    }
 
     if (earned > 0) {
       const customer = await Customer.findById(purchase.customerId, { loyaltyPoints: 1 }).session(session).lean();
@@ -300,21 +371,30 @@ export const cancelPurchase = async (id, reason, admin) => {
         );
       }
 
+    }
+
+    if (earned > 0 || redeemed > 0) {
       await Purchase.updateOne(
         { _id: id },
-        { $set: { 'loyalty.pointsReversed': reversed, 'loyalty.reversalShortfall': shortfall } },
+        {
+          $set: {
+            'loyalty.pointsReversed': reversed,
+            'loyalty.reversalShortfall': shortfall,
+            'loyalty.pointsRefunded': redeemed,
+          },
+        },
         { session }
       );
     }
 
-    return { earned, reversed, shortfall };
+    return { earned, reversed, shortfall, refunded: redeemed };
   });
 
   logger.info({ purchaseId: id, adminId: admin.id, ...result }, 'Purchase cancelled');
 
   return {
     purchase: serializePurchase(await findPurchaseForAdmin(id)),
-    loyalty: { pointsReversed: result.reversed, reversalShortfall: result.shortfall },
+    loyalty: { pointsReversed: result.reversed, reversalShortfall: result.shortfall, pointsRefunded: result.refunded },
   };
 };
 

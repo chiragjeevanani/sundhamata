@@ -37,6 +37,7 @@ export const adminSettingsService = {
       body.loyalty = {};
       if (loyalty.pointsPerHundred !== undefined) body.loyalty.pointsPerHundredRupees = loyalty.pointsPerHundred;
       if (loyalty.rupeeValuePerPoint !== undefined) body.loyalty.rupeeValuePerPoint = loyalty.rupeeValuePerPoint;
+      if (loyalty.minRedeemPoints !== undefined) body.loyalty.minRedeemPoints = loyalty.minRedeemPoints;
     }
     const data = await adminApi.patch('/admin/settings', body);
     return toUiSettings(data.settings);

@@ -459,7 +459,29 @@ export const PurchaseDetailPage = () => {
             </h3>
 
             <div className="space-y-2 text-xs divide-y divide-slate-100">
-              <div className="flex items-center justify-between pt-1">
+              {(purchase.pricing?.discount > 0 || purchase.pricing?.loyaltyDiscount > 0) && (
+                <>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-slate-500 font-normal">Price</span>
+                    <span className="font-medium text-slate-800 tabular-nums">{formatINR(purchase.pricing.purchaseAmount)}</span>
+                  </div>
+                  {purchase.pricing.discount > 0 && (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-slate-500 font-normal">Discount</span>
+                      <span className="font-medium text-slate-800 tabular-nums">− {formatINR(purchase.pricing.discount)}</span>
+                    </div>
+                  )}
+                  {purchase.pricing.loyaltyDiscount > 0 && (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-amber-800 font-normal">
+                        Loyalty points redeemed ({purchase.loyalty.pointsRedeemed.toLocaleString('en-IN')} pts)
+                      </span>
+                      <span className="font-medium text-amber-800 tabular-nums">− {formatINR(purchase.pricing.loyaltyDiscount)}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              <div className="flex items-center justify-between pt-2">
                 <span className="text-slate-500 font-normal">Base Amount</span>
                 <span className="font-medium text-slate-800 tabular-nums">
                   {formatINR(purchase.baseAmount || Math.round(purchase.amount * 0.82))}
@@ -536,6 +558,12 @@ export const PurchaseDetailPage = () => {
               <span className="text-xl font-semibold text-amber-950 tabular-nums block">
                 +{loyaltyPoints.toLocaleString('en-IN')} Points
               </span>
+              {purchase.loyalty?.pointsRedeemed > 0 && (
+                <p className="text-[11px] text-amber-900 font-medium">
+                  −{purchase.loyalty.pointsRedeemed.toLocaleString('en-IN')} points redeemed on this bill
+                  {isCancelled && purchase.loyalty.pointsRefunded > 0 ? ' (returned on cancellation)' : ''}
+                </p>
+              )}
               <p className="text-[11px] text-amber-800 font-normal">
                 {isCancelled
                   ? `Reversed ${(purchase.loyalty?.pointsReversed ?? 0).toLocaleString('en-IN')} pts on cancellation${purchase.loyalty?.reversalShortfall ? ` (${purchase.loyalty.reversalShortfall.toLocaleString('en-IN')} pts had already been used)` : ''}.`
@@ -663,7 +691,7 @@ export const PurchaseDetailPage = () => {
         onClose={() => setCancelModalOpen(false)}
         onConfirm={handleConfirmCancel}
         title="Cancel This Purchase?"
-        message={`Invoice ${purchase.invoiceNumber} will be marked as Cancelled. Note: ${loyaltyPoints} loyalty points were associated with this purchase.`}
+        message={`Invoice ${purchase.invoiceNumber} will be marked as Cancelled. The ${loyaltyPoints} points earned will be reversed${purchase.loyalty?.pointsRedeemed > 0 ? ` and the ${purchase.loyalty.pointsRedeemed} points redeemed will be returned to the customer` : ''}.`}
         confirmText="Confirm Cancellation"
         type="danger"
         isLoading={cancelling}

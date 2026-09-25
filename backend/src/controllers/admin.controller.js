@@ -70,11 +70,11 @@ export const updatePurchase = async (req, res) => {
 
 export const cancelPurchase = async (req, res) => {
   const data = await purchaseService.cancelPurchase(req.valid.params.id, req.valid.body.reason, req.admin);
-  const { pointsReversed, reversalShortfall } = data.loyalty;
-  const message =
-    reversalShortfall > 0
-      ? `Purchase cancelled. ${pointsReversed} points reversed; ${reversalShortfall} points had already been used.`
-      : `Purchase cancelled. ${pointsReversed} points reversed.`;
+  const { pointsReversed, reversalShortfall, pointsRefunded } = data.loyalty;
+  const parts = [`${pointsReversed} points reversed`];
+  if (reversalShortfall > 0) parts.push(`${reversalShortfall} points had already been used`);
+  if (pointsRefunded > 0) parts.push(`${pointsRefunded} redeemed points returned to the customer`);
+  const message = `Purchase cancelled. ${parts.join('; ')}.`;
   sendSuccess(res, { data, message });
 };
 

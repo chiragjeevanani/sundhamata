@@ -150,7 +150,7 @@ describe('Cancellation reversal', () => {
       .set('Authorization', adminAuth)
       .send({ reason: 'Returned' })
       .expect(200);
-    expect(res.body.data.loyalty).toEqual({ pointsReversed: 1249, reversalShortfall: 0 });
+    expect(res.body.data.loyalty).toEqual({ pointsReversed: 1249, reversalShortfall: 0, pointsRefunded: 0 });
     expect(await balanceOf()).toBe(2450);
 
     const reversal = await LoyaltyTransaction.findOne({ source: 'purchase_cancellation' }).lean();
@@ -169,7 +169,7 @@ describe('Cancellation reversal', () => {
       .set('Authorization', adminAuth)
       .send({ reason: 'Returned' })
       .expect(200);
-    expect(res.body.data.loyalty).toEqual({ pointsReversed: 249, reversalShortfall: 1000 });
+    expect(res.body.data.loyalty).toEqual({ pointsReversed: 249, reversalShortfall: 1000, pointsRefunded: 0 });
     expect(res.body.message).toMatch(/1000 points had already been used/);
     expect(res.body.data.purchase.loyalty).toMatchObject({ pointsEarned: 1249, pointsReversed: 249, reversalShortfall: 1000 });
     expect(await balanceOf()).toBe(0);

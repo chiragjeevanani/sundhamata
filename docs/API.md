@@ -463,6 +463,7 @@ Admin customer objects add:
   "warranty": { "duration": 2, "unit": "years" },
   "payment": { "method": "UPI", "status": "Paid" },
   "pricing": { "purchaseAmount": 124999, "discount": 0 },
+  "loyaltyRedemption": { "points": 500 },
   "notes": "Screen guard applied"
 }
 // 201
@@ -481,6 +482,7 @@ Admin customer objects add:
 - `invoiceNumber` is entered by the store so it matches the printed bill, in **any format** (e.g. `SM/2026-27/0042`, `Bill #45 A`), 1–50 characters. It is stored exactly as typed (trimmed). Uniqueness ignores case: `inv-1` and `INV-1` are the same bill (409). There is no auto-numbering.
 - `purchaseDate` defaults to now and cannot be in the future.
 - `warranty`: `{ "duration": <whole number>, "unit": "months" | "years" }`, up to 10 years; `duration: 0` means no warranty. The server sets `warranty.validUntil` to the same calendar day `duration` months/years after the purchase date (31 Jan + 1 month → 28/29 Feb), with a label such as `"2 Years Warranty"`. When omitted: 12 months, or none for `service`.
+- `loyaltyRedemption` (optional): `{ "points": <whole number> }` — loyalty points the customer spends on this bill. See [Redeeming points](#redeeming-points).
 - **`pointsEarned` / `loyalty` / `loyaltyPoints` are rejected (422)**: the server calculates loyalty.
 
 Errors: 404 unknown customer, 422 inactive customer / invalid amounts / discount greater than amount, 409 duplicate invoice.
@@ -651,13 +653,23 @@ Merged feed of recent purchases, cancellations, new customers and manual loyalty
 | Purchase | `earned` | `purchase` | + |
 | Admin add / deduct | `adjustment` | `admin_adjustment` | + / − |
 | Purchase cancellation | `adjustment` | `purchase_cancellation` | − |
-| Redemption (seed/import) | `redeemed` | `redemption` | − |
+| Points redeemed on a purchase | `redeemed` | `redemption` | − |
+| Redeemed points returned on cancellation | `adjustment` | `redemption_refund` | + |
 
 Balances can never go negative: debits use a conditional atomic update, so concurrent deductions cannot overdraw. A purchase can be rewarded once and reversed once (unique index).
 
+### Redeeming points
+
+Points are spent while recording a purchase (`loyaltyRedemption.points` on `POST /admin/purchases`):
+
+- Value: `points × loyalty.rupeeValuePerPoint` from store settings, taken off the bill **after** the discount. The response shows it as `pricing.loyaltyDiscount` and `loyalty.pointsRedeemed`.
+- `pricing.finalAmount = purchaseAmount − discount − loyaltyDiscount` — the amount actually paid. GST and newly earned points are calculated on this amount (500 points on a ₹1,24,999 phone: pays ₹1,24,499, earns 1,244).
+- Rules (422 with field `loyaltyRedemption.points`): whole points; not more than the customer's balance; at least `loyalty.minRedeemPoints` per redemption (0 = no minimum); not worth more than the bill; not allowed when `rupeeValuePerPoint` is 0.
+- The ledger gets a `redeemed` / `redemption` entry (negative points) for the purchase, before the `earned` entry. Both happen in the same transaction as the purchase, and the debit is conditional, so two bills can never spend the same points.
+
 ### Cancellation
 
-Purchases are never deleted. Cancelling sets `status: "Cancelled"`, payment status `Cancelled`, and reverses the purchase's points. If the customer has already spent some of those points, only the available balance is reversed and the difference is recorded as `loyalty.reversalShortfall` on the purchase and reported in the response message.
+Purchases are never deleted. Cancelling sets `status: "Cancelled"`, payment status `Cancelled`, first returns any points redeemed on the bill (`adjustment` / `redemption_refund`, recorded as `loyalty.pointsRefunded`) and then reverses the points it earned. If the customer has already spent some of those points, only the available balance is reversed and the difference is recorded as `loyalty.reversalShortfall` on the purchase and reported in the response message.
 
 ### Atomicity
 

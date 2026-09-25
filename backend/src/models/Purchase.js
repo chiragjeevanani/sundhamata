@@ -40,6 +40,8 @@ const purchaseSchema = new mongoose.Schema(
     pricing: {
       purchaseAmount: moneyField,
       discount: { ...moneyField, default: 0 },
+      // Rupee value of loyalty points redeemed on this bill (after the discount)
+      loyaltyDiscount: { ...moneyField, default: 0 },
       finalAmount: moneyField,
       // GST-inclusive breakdown frozen at billing time.
       taxRatePercent: { type: Number, min: 0, max: 100, default: 18 },
@@ -50,6 +52,11 @@ const purchaseSchema = new mongoose.Schema(
     loyalty: {
       // Always calculated server-side from StoreSettings at creation time.
       pointsEarned: { type: Number, default: 0, min: 0 },
+      // Points spent on this bill, and the ₹ value per point applied at billing time
+      pointsRedeemed: { type: Number, default: 0, min: 0 },
+      rupeeValuePerPoint: { type: Number, default: null },
+      // Redeemed points given back on cancellation
+      pointsRefunded: { type: Number, default: 0, min: 0 },
       pointsPerHundredRupees: { type: Number, default: null },
       pointsReversed: { type: Number, default: 0, min: 0 },
       // Points that could not be reversed on cancellation because the customer

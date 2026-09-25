@@ -2,8 +2,10 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Gift, Sparkles, CheckCircle2 } from 'lucide-react';
 import { formatINR } from '../../../utils/formatters';
+import { useStoreInfo } from '../hooks/useStoreInfo';
 
 export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 0 }) => {
+  const loyalty = useStoreInfo()?.loyalty;
   if (!isOpen) return null;
 
   return (
@@ -45,10 +47,12 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
               Sundhamata Rewards
             </span>
             <h3 className="text-base font-extrabold text-[#0F2042] tracking-tight">
-              Redemption coming soon
+              Redeem at the store counter
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed font-normal">
-              Your points are currently being collected with every eligible store purchase. In-store voucher redemption and bill discounts will be available soon.
+              Tell our staff you want to use your points when you buy. They come straight off your bill
+              {loyalty?.rupeeValuePerPoint ? ` — each point is worth ${formatINR(loyalty.rupeeValuePerPoint)}` : ''}
+              {loyalty?.minRedeemPoints > 0 ? `, from ${loyalty.minRedeemPoints.toLocaleString('en-IN')} points at a time` : ''}.
             </p>
           </div>
 
