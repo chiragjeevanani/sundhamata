@@ -74,8 +74,11 @@ export const loginAsCustomer = async (app, mobile) => {
   return { token: res.body.data.token, auth: `Bearer ${res.body.data.token}`, customer: res.body.data.customer };
 };
 
+let invoiceCounter = 0;
+
 export const samplePurchase = (customerId, overrides = {}) => ({
   customerId: String(customerId),
+  invoiceNumber: `TEST/2026-27/${String((invoiceCounter += 1)).padStart(4, '0')}`,
   category: 'phones',
   product: { name: 'Samsung Galaxy S25 Ultra', variant: '12GB + 256GB', color: 'Titanium Black', imei: '358921104829104' },
   payment: { method: 'UPI', status: 'Paid' },

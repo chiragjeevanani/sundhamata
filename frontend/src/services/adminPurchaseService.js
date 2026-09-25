@@ -3,21 +3,10 @@
 
 import { adminApi } from './api/apiClient';
 import { toUiPurchase } from './api/adapters';
+import { dateInputToTimestamp } from '../utils/purchaseDates';
 
 const PAYMENT_STATUS_FILTER = { paid: 'Paid', pending: 'Pending', 'partially paid': 'Partially Paid', cancelled: 'Cancelled' };
 const IMEI_PATTERN = /^\d{15}$/;
-
-/**
- * Date input ("YYYY-MM-DD") → timestamp. Today's purchases keep the current time
- * (for hourly reports); past dates are recorded at midday.
- */
-const toPurchaseTimestamp = (dateString) => {
-  if (!dateString) return undefined;
-  const today = new Date();
-  const [year, month, day] = dateString.split('-').map(Number);
-  const isToday = year === today.getFullYear() && month === today.getMonth() + 1 && day === today.getDate();
-  return (isToday ? today : new Date(year, month - 1, day, 12)).toISOString();
-};
 
 export const adminPurchaseService = {
   /**
@@ -49,17 +38,19 @@ export const adminPurchaseService = {
    * Records a sale. Loyalty points are calculated by the server — any client
    * estimate is display-only and never sent.
    */
-  async createPurchase({ customerId, product, purchaseDate, paymentMethod, paymentStatus = 'Paid', pricing, notes }) {
+  async createPurchase({ customerId, invoiceNumber, product, purchaseDate, warranty, paymentMethod, paymentStatus = 'Paid', pricing, notes }) {
     const identifier = (product.imei || '').replace(/[\s-]/g, '');
     const data = await adminApi.post('/admin/purchases', {
       customerId,
+      invoiceNumber: invoiceNumber.trim(),
       category: product.category || 'phones',
       product: {
         name: product.name,
         ...(identifier && IMEI_PATTERN.test(identifier) ? { imei: identifier } : {}),
         ...(identifier && !IMEI_PATTERN.test(identifier) ? { serialNumber: identifier } : {}),
       },
-      purchaseDate: toPurchaseTimestamp(purchaseDate),
+      purchaseDate: dateInputToTimestamp(purchaseDate),
+      ...(warranty ? { warranty: { duration: Number(warranty.duration), unit: warranty.unit } } : {}),
       payment: { method: paymentMethod, status: paymentStatus },
       pricing: { purchaseAmount: pricing.purchaseAmount, discount: pricing.discount || 0 },
       ...(notes ? { notes } : {}),
@@ -67,9 +58,15 @@ export const adminPurchaseService = {
     return { ...toUiPurchase(data.purchase), customerLoyaltyBalance: data.customerLoyaltyBalance };
   },
 
-  /** Editable: payment status/method and notes. Pricing is immutable once billed. */
-  async updatePurchase(id, { paymentStatus, paymentMethod, notes }) {
+  /**
+   * Editable: invoice number, purchase date, warranty, payment status/method and notes.
+   * Pricing is immutable once billed. The server recomputes the warranty expiry.
+   */
+  async updatePurchase(id, { invoiceNumber, purchaseDate, warranty, paymentStatus, paymentMethod, notes }) {
     const data = await adminApi.patch(`/admin/purchases/${encodeURIComponent(id)}`, {
+      ...(invoiceNumber !== undefined ? { invoiceNumber: invoiceNumber.trim() } : {}),
+      ...(purchaseDate ? { purchaseDate: dateInputToTimestamp(purchaseDate) } : {}),
+      ...(warranty ? { warranty: { duration: Number(warranty.duration), unit: warranty.unit } } : {}),
       payment: { status: paymentStatus, method: paymentMethod },
       notes: notes ?? null,
     });

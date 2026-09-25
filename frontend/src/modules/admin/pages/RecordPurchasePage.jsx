@@ -17,7 +17,13 @@ import { customerService } from '../../../services/customerService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { useToast } from '../context/ToastContext';
-import { formatINR } from '../../../utils/formatters';
+import { formatINR, formatDate } from '../../../utils/formatters';
+import {
+  addMonthsToDate,
+  MAX_WARRANTY_MONTHS,
+  toDateInputValue,
+  warrantyToMonths,
+} from '../../../utils/purchaseDates';
 import { BILL_ACCEPT, BILL_HINT, formatFileSize, validateBillFile } from '../../../utils/billFile';
 
 export const RecordPurchasePage = () => {
@@ -38,9 +44,10 @@ export const RecordPurchasePage = () => {
   const [imei, setImei] = useState('');
 
   // Purchase & Payment Info
-  const [purchaseDate, setPurchaseDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState(() => toDateInputValue());
+  const [warrantyDuration, setWarrantyDuration] = useState('1');
+  const [warrantyUnit, setWarrantyUnit] = useState('years');
   const [paymentMethod, setPaymentMethod] = useState('UPI');
 
   // Pricing
@@ -96,6 +103,14 @@ export const RecordPurchasePage = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const today = toDateInputValue();
+  const warrantyMonths = warrantyToMonths(warrantyDuration, warrantyUnit);
+  const warrantyValid = warrantyMonths !== null && warrantyMonths <= MAX_WARRANTY_MONTHS;
+  const warrantyUntil =
+    warrantyValid && warrantyMonths > 0 && purchaseDate
+      ? formatDate(addMonthsToDate(new Date(`${purchaseDate}T12:00:00`), warrantyMonths))
+      : null;
+
   const numericAmount = Number(purchaseAmount) || 0;
   const numericDiscount = Number(discount) || 0;
   const finalAmount = Math.max(0, numericAmount - numericDiscount);
@@ -132,6 +147,17 @@ export const RecordPurchasePage = () => {
     if (!numericAmount || numericAmount <= 0) {
       errors.purchaseAmount = 'Enter a valid amount.';
     }
+    if (!invoiceNumber.trim()) {
+      errors.invoiceNumber = 'Enter the invoice / bill number.';
+    }
+    if (!purchaseDate) {
+      errors.purchaseDate = 'Select the purchase date.';
+    } else if (purchaseDate > today) {
+      errors.purchaseDate = 'Purchase date cannot be in the future.';
+    }
+    if (!warrantyValid) {
+      errors.warranty = `Enter whole ${warrantyUnit} from 0 to ${warrantyUnit === 'years' ? MAX_WARRANTY_MONTHS / 12 : MAX_WARRANTY_MONTHS}.`;
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -140,15 +166,17 @@ export const RecordPurchasePage = () => {
 
     setSubmitting(true);
     try {
-      // Invoice number and loyalty points are assigned by the server.
+      // Loyalty points and the warranty expiry date are calculated by the server.
       const recorded = await adminPurchaseService.createPurchase({
         customerId: selectedCustomer.id,
+        invoiceNumber,
         product: {
           name: productName.trim(),
           category,
           imei: imei.trim(),
         },
         purchaseDate,
+        warranty: { duration: warrantyDuration, unit: warrantyUnit },
         paymentMethod,
         paymentStatus: 'Paid',
         pricing: {
@@ -193,6 +221,11 @@ export const RecordPurchasePage = () => {
     setDiscount('');
     setBillFile(null);
     setBillError('');
+    setInvoiceNumber('');
+    setPurchaseDate(toDateInputValue());
+    setWarrantyDuration('1');
+    setWarrantyUnit('years');
+    setFormErrors({});
   };
 
   // SUCCESS STATE
@@ -218,6 +251,14 @@ export const RecordPurchasePage = () => {
           <div className="flex justify-between text-slate-500">
             <span>Amount Paid</span>
             <span className="font-medium text-slate-900 tabular-nums">{formatINR(successRecord.amount)}</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Warranty</span>
+            <span className="font-medium text-slate-900 text-right">
+              {successRecord.warranty
+                ? `${successRecord.warranty.type} · until ${successRecord.warranty.validUntil}`
+                : 'No warranty'}
+            </span>
           </div>
           <div className="flex justify-between text-emerald-700 font-medium pt-2 border-t border-slate-100">
             <span>Points Credited</span>
@@ -426,10 +467,94 @@ export const RecordPurchasePage = () => {
             </div>
           </div>
 
-          {/* Section 3: Pricing & Payment Terms */}
+          {/* Section 3: Invoice, Purchase Date & Warranty */}
           <div className="p-5 sm:p-6 space-y-4">
             <div>
-              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">3. Pricing & Payment</h3>
+              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">3. Invoice, Date & Warranty</h3>
+              <p className="text-xs text-slate-400 font-normal">Use the same number as on the printed bill, in any format</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Invoice / Bill Number *</label>
+                <input
+                  type="text"
+                  value={invoiceNumber}
+                  maxLength={50}
+                  onChange={(e) => {
+                    setInvoiceNumber(e.target.value);
+                    if (formErrors.invoiceNumber) setFormErrors((prev) => ({ ...prev, invoiceNumber: '' }));
+                  }}
+                  placeholder="e.g. SM/2026-27/0042"
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs font-mono text-xs ${formErrors.invoiceNumber ? 'border-rose-400' : 'border-slate-300'}`}
+                />
+                {formErrors.invoiceNumber && <p className="text-[11px] text-rose-600">{formErrors.invoiceNumber}</p>}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Purchase Date *</label>
+                <input
+                  type="date"
+                  value={purchaseDate}
+                  max={today}
+                  onChange={(e) => {
+                    setPurchaseDate(e.target.value);
+                    if (formErrors.purchaseDate) setFormErrors((prev) => ({ ...prev, purchaseDate: '' }));
+                  }}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs ${formErrors.purchaseDate ? 'border-rose-400' : 'border-slate-300'}`}
+                />
+                {formErrors.purchaseDate && <p className="text-[11px] text-rose-600">{formErrors.purchaseDate}</p>}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Warranty</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={warrantyDuration}
+                    aria-label="Warranty duration"
+                    onChange={(e) => {
+                      setWarrantyDuration(e.target.value);
+                      if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
+                    }}
+                    className={`px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs tabular-nums w-20 shrink-0 ${formErrors.warranty ? 'border-rose-400' : 'border-slate-300'}`}
+                  />
+                  <select
+                    value={warrantyUnit}
+                    aria-label="Warranty unit"
+                    onChange={(e) => {
+                      setWarrantyUnit(e.target.value);
+                      if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs cursor-pointer"
+                  >
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+                {formErrors.warranty ? (
+                  <p className="text-[11px] text-rose-600">{formErrors.warranty}</p>
+                ) : (
+                  <p className="text-[11px] text-slate-500">
+                    {warrantyUntil ? (
+                      <>
+                        Valid until <span className="font-medium text-slate-800">{warrantyUntil}</span>
+                      </>
+                    ) : warrantyValid && warrantyMonths === 0 ? (
+                      'No warranty'
+                    ) : null}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Pricing & Payment Terms */}
+          <div className="p-5 sm:p-6 space-y-4">
+            <div>
+              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">4. Pricing & Payment</h3>
               <p className="text-xs text-slate-400 font-normal">Enter retail price, discount, and settlement mode</p>
             </div>
 
@@ -478,10 +603,10 @@ export const RecordPurchasePage = () => {
             </div>
           </div>
 
-          {/* Section 4: Bill / Invoice File (optional) */}
+          {/* Section 5: Bill / Invoice File (optional) */}
           <div className="p-5 sm:p-6 space-y-3">
             <div>
-              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">4. Bill / Invoice File</h3>
+              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">5. Bill / Invoice File</h3>
               <p className="text-xs text-slate-400 font-normal">
                 Optional. The customer can download it from their purchase. {BILL_HINT}.
               </p>
@@ -542,8 +667,8 @@ export const RecordPurchasePage = () => {
         {/* Right (4 Cols): Sleek Order Summary Panel */}
         <div className="lg:col-span-4 bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-4 sticky top-20">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
-            <span className="font-medium text-slate-500">Invoice Reference</span>
-            <span className="font-mono text-xs font-medium text-blue-700">Auto-assigned</span>
+            <span className="font-medium text-slate-500">Invoice Number</span>
+            <span className="font-mono text-xs font-medium text-blue-700 truncate max-w-[170px]">{invoiceNumber.trim() || '—'}</span>
           </div>
 
           <div className="space-y-2.5 text-xs">
@@ -562,6 +687,14 @@ export const RecordPurchasePage = () => {
             <div className="flex justify-between text-slate-500">
               <span>Payment Mode</span>
               <span className="font-medium text-slate-800">{paymentMethod}</span>
+            </div>
+            <div className="flex justify-between text-slate-500">
+              <span>Purchase Date</span>
+              <span className="font-medium text-slate-800">{purchaseDate ? formatDate(`${purchaseDate}T12:00:00`) : '—'}</span>
+            </div>
+            <div className="flex justify-between text-slate-500">
+              <span>Warranty Until</span>
+              <span className="font-medium text-slate-800">{warrantyUntil || (warrantyValid ? 'No warranty' : '—')}</span>
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex justify-between items-baseline">

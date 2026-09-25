@@ -21,10 +21,25 @@ export const startOfIstDay = (date = new Date(), dayOffset = 0) => {
 
 export const istYear = (date = new Date()) => toIst(date).getUTCFullYear();
 
+/**
+ * Same IST calendar day `months` later, clamped to the month's last day
+ * (31 Jan + 1 month → 28/29 Feb). Time of day is preserved.
+ */
 export const addMonths = (date, months) => {
-  const d = new Date(date);
-  d.setUTCMonth(d.getUTCMonth() + months);
-  return d;
+  const ist = toIst(new Date(date));
+  const day = ist.getUTCDate();
+  ist.setUTCDate(1);
+  ist.setUTCMonth(ist.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth() + 1, 0)).getUTCDate();
+  ist.setUTCDate(Math.min(day, lastDay));
+  return fromIst(ist);
+};
+
+/** Whole calendar months between two dates (IST), e.g. for purchases created before warranty.months existed. */
+export const monthsBetween = (from, to) => {
+  const a = toIst(new Date(from));
+  const b = toIst(new Date(to));
+  return (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth());
 };
 
 /**

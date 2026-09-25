@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 
+// Case-insensitive comparison for invoice numbers (matches the invoiceNumber_ci index).
+export const INVOICE_COLLATION = Object.freeze({ locale: 'en', strength: 2 });
+export const MAX_WARRANTY_MONTHS = 120;
+
 export const PURCHASE_CATEGORIES = Object.freeze(['phones', 'accessories', 'service']);
 export const PURCHASE_STATUSES = Object.freeze({ PURCHASED: 'Purchased', CANCELLED: 'Cancelled' });
 export const PAYMENT_METHODS = Object.freeze(['UPI', 'Cash', 'Card', 'Credit Card', 'Debit Card', 'EMI', 'Other']);
@@ -11,7 +15,8 @@ const moneyField = { type: Number, required: true, min: 0 };
 const purchaseSchema = new mongoose.Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-    invoiceNumber: { type: String, required: true, unique: true, trim: true, uppercase: true },
+    // Entered by the store exactly as printed on their bill (any format). Unique, ignoring case.
+    invoiceNumber: { type: String, required: true, trim: true, maxlength: 50 },
     category: { type: String, enum: PURCHASE_CATEGORIES, default: 'phones' },
 
     product: {
@@ -53,6 +58,7 @@ const purchaseSchema = new mongoose.Schema(
     },
 
     warranty: {
+      months: { type: Number, min: 1, default: null },
       type: { type: String, trim: true, default: null },
       validUntil: { type: Date, default: null },
       coverage: { type: String, trim: true, default: null },
@@ -83,6 +89,10 @@ const purchaseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+purchaseSchema.index(
+  { invoiceNumber: 1 },
+  { unique: true, name: 'invoiceNumber_ci', collation: INVOICE_COLLATION }
+);
 purchaseSchema.index({ customerId: 1, purchaseDate: -1 });
 purchaseSchema.index({ purchaseDate: -1 });
 purchaseSchema.index({ status: 1, purchaseDate: -1 });

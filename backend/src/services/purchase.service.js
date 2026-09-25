@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import { logger } from '../config/logger.js';
-import { Customer, nextSequence, Purchase } from '../models/index.js';
+import { Customer, Purchase } from '../models/index.js';
 import { LOYALTY_SOURCES, LOYALTY_TYPES } from '../models/LoyaltyTransaction.js';
-import { PURCHASE_STATUSES } from '../models/Purchase.js';
+import { INVOICE_COLLATION, PURCHASE_STATUSES } from '../models/Purchase.js';
 import { ApiError } from '../utils/ApiError.js';
-import { addMonths, istYear } from '../utils/dates.js';
+import { addMonths, monthsBetween } from '../utils/dates.js';
 import { calculatePurchasePoints } from '../utils/loyalty.js';
 import { buildPagination, containsRegex, paginated, parseSort } from '../utils/query.js';
 import { serializePurchase } from '../utils/serializers.js';
@@ -12,8 +12,6 @@ import { runAtomic } from '../utils/transaction.js';
 import { buildCustomerSearchFilter } from './customer.service.js';
 import { applyPointsChange } from './loyalty.service.js';
 import { getSettings } from './settings.service.js';
-
-const DEFAULT_WARRANTY_MONTHS = 12;
 
 const KNOWN_BRANDS = [
   ['Samsung', /\b(samsung|galaxy)\b/i],
@@ -40,15 +38,32 @@ const ADMIN_POPULATE = [
 
 const findPurchaseForAdmin = (id) => Purchase.findById(id).populate(ADMIN_POPULATE).lean();
 
-/** Next free invoice number, e.g. "SM-2026-000042". Skips numbers already used manually. */
-const generateInvoiceNumber = async (session) => {
-  const year = istYear();
-  for (;;) {
-    const seq = await nextSequence(`invoice-${year}`, session);
-    const invoiceNumber = `SM-${year}-${String(seq).padStart(6, '0')}`;
-    if (!(await Purchase.exists({ invoiceNumber }).session(session))) return invoiceNumber;
-  }
+const WARRANTY_COVERAGE = 'Manufacturing defects covered at authorised brand service centres across India.';
+
+const duplicateInvoice = () =>
+  ApiError.conflict('A purchase with this invoice number already exists', [
+    { field: 'invoiceNumber', message: 'Already used on another purchase' },
+  ]);
+
+/** Invoice numbers are unique ignoring case ("inv-1" and "INV-1" are the same bill). */
+const invoiceTaken = (invoiceNumber, { excludeId = null, session = null } = {}) =>
+  Purchase.exists(excludeId ? { invoiceNumber, _id: { $ne: excludeId } } : { invoiceNumber })
+    .collation(INVOICE_COLLATION)
+    .session(session);
+
+/** "2 Years Warranty", "18 Months Warranty", "1 Year Warranty" */
+const warrantyLabel = (months) => {
+  const [n, unit] = months % 12 === 0 ? [months / 12, 'Year'] : [months, 'Month'];
+  return `${n} ${unit}${n === 1 ? '' : 's'} Warranty`;
 };
+
+/** Warranty expiring exactly `months` after the purchase date, or null for none. */
+const buildWarranty = (purchaseDate, months) =>
+  months > 0
+    ? { months, type: warrantyLabel(months), validUntil: addMonths(purchaseDate, months), coverage: WARRANTY_COVERAGE }
+    : null;
+
+const warrantyMonths = ({ duration, unit }) => duration * (unit === 'years' ? 12 : 1);
 
 /**
  * Records a purchase: validates the customer, prices it, calculates loyalty
@@ -76,11 +91,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       ]);
     }
 
-    if (input.invoiceNumber && (await Purchase.exists({ invoiceNumber: input.invoiceNumber }).session(session))) {
-      throw ApiError.conflict('A purchase with this invoice number already exists', [
-        { field: 'invoiceNumber', message: 'Already used' },
-      ]);
-    }
+    if (await invoiceTaken(input.invoiceNumber, { session })) throw duplicateInvoice();
 
     const settings = await getSettings(session);
     const { purchaseAmount, discount } = input.pricing;
@@ -93,27 +104,21 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     const pointsEarned = calculatePurchasePoints(finalAmount, pointsPerHundredRupees);
 
     const purchaseDate = input.purchaseDate ?? new Date();
-    const invoiceNumber = input.invoiceNumber ?? (await generateInvoiceNumber(session));
-    const hasWarranty = input.category !== 'service';
+    // Default when not specified: 12 months, none for service jobs.
+    const months = input.warranty ? warrantyMonths(input.warranty) : input.category === 'service' ? 0 : 12;
 
     const [purchase] = await Purchase.create(
       [
         {
           customerId: customer._id,
-          invoiceNumber,
+          invoiceNumber: input.invoiceNumber,
           category: input.category,
           product: { ...input.product, brand: input.product.brand ?? inferBrand(input.product.name) },
           purchaseDate,
           payment: input.payment,
           pricing: { purchaseAmount, discount, finalAmount, taxRatePercent, taxAmount, baseAmount },
           loyalty: { pointsEarned, pointsPerHundredRupees },
-          warranty: hasWarranty
-            ? {
-                type: '1 Year Brand Manufacturer Warranty',
-                validUntil: addMonths(purchaseDate, DEFAULT_WARRANTY_MONTHS),
-                coverage: 'Manufacturing defects covered at authorised brand service centres across India.',
-              }
-            : undefined,
+          warranty: buildWarranty(purchaseDate, months) ?? undefined,
           notes: input.notes ?? null,
           createdBy: admin._id,
           ...(occurredAt ? { createdAt: occurredAt } : {}),
@@ -172,27 +177,51 @@ const toSetPaths = (patch) => {
   return $set;
 };
 
-/** Updates non-financial details. Pricing (and therefore loyalty) is immutable. */
-export const updatePurchase = async (id, patch, admin) => {
-  const existing = await Purchase.findById(id, { status: 1, product: 1 }).lean();
+/**
+ * Updates non-financial details (incl. invoice number, purchase date, warranty).
+ * Pricing (and therefore loyalty) is immutable.
+ */
+export const updatePurchase = async (id, { warranty, ...patch }, admin) => {
+  const existing = await Purchase.findById(id, { status: 1, product: 1, purchaseDate: 1, warranty: 1 }).lean();
   if (!existing) throw ApiError.notFound('Purchase not found');
   if (existing.status === PURCHASE_STATUSES.CANCELLED) {
     throw ApiError.conflict('Cancelled purchases cannot be edited');
   }
+  if (patch.invoiceNumber && (await invoiceTaken(patch.invoiceNumber, { excludeId: existing._id }))) {
+    throw duplicateInvoice();
+  }
 
   const $set = toSetPaths(patch);
+  const $unset = {};
+
+  // The expiry always follows the purchase date: recompute when either changes.
+  if (warranty || patch.purchaseDate) {
+    const purchaseDate = patch.purchaseDate ?? existing.purchaseDate;
+    const currentMonths =
+      existing.warranty?.months ??
+      (existing.warranty?.validUntil ? monthsBetween(existing.purchaseDate, existing.warranty.validUntil) : 0);
+    const next = buildWarranty(purchaseDate, warranty ? warrantyMonths(warranty) : currentMonths);
+    if (next) $set.warranty = next;
+    else $unset.warranty = 1;
+  }
   if (patch.product?.name && patch.product.brand === undefined && !existing.product.brand) {
     $set['product.brand'] = inferBrand(patch.product.name);
   }
 
-  const updated = await Purchase.findOneAndUpdate(
-    { _id: id, status: PURCHASE_STATUSES.PURCHASED },
-    { $set },
-    { returnDocument: 'after', runValidators: true }
-  );
+  let updated;
+  try {
+    updated = await Purchase.findOneAndUpdate(
+      { _id: id, status: PURCHASE_STATUSES.PURCHASED },
+      Object.keys($unset).length ? { $set, $unset } : { $set },
+      { returnDocument: 'after', runValidators: true }
+    );
+  } catch (err) {
+    if (err?.code === 11000) throw duplicateInvoice(); // lost a race with another edit
+    throw err;
+  }
   if (!updated) throw ApiError.conflict('Cancelled purchases cannot be edited');
 
-  logger.info({ purchaseId: id, adminId: admin.id, fields: Object.keys($set) }, 'Purchase updated');
+  logger.info({ purchaseId: id, adminId: admin.id, fields: [...Object.keys($set), ...Object.keys($unset)] }, 'Purchase updated');
   return serializePurchase(await findPurchaseForAdmin(id));
 };
 

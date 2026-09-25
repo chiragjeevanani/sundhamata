@@ -49,8 +49,8 @@ export const AdminSidebar = ({
         {!isCollapsed ? (
           <>
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 to-amber-500 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-xs">
-                SM
+              <div className="w-8 h-8 rounded-lg bg-black/90 p-0.5 ring-1 ring-slate-800 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+                <img src="/logo.png" alt="Sundhamata" className="w-full h-full object-contain rounded-md" />
               </div>
               <div className="truncate">
                 <span className="text-xs font-semibold text-white tracking-tight block truncate">
@@ -86,10 +86,10 @@ export const AdminSidebar = ({
         ) : (
           <button
             onClick={onToggleCollapse}
-            className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-amber-500 flex items-center justify-center font-bold text-white text-xs shadow-xs hover:ring-2 hover:ring-blue-400/50 transition-all cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-black/90 p-0.5 ring-1 ring-slate-800 flex items-center justify-center shadow-xs hover:ring-2 hover:ring-amber-500/50 transition-all cursor-pointer overflow-hidden"
             title="Expand sidebar (Ctrl+B)"
           >
-            SM
+            <img src="/logo.png" alt="Sundhamata" className="w-full h-full object-contain rounded-md" />
           </button>
         )}
       </div>

@@ -13,10 +13,12 @@ import {
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { useStoreInfo } from '../hooks/useStoreInfo';
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, logout, refreshUser } = useAuth();
+  const store = useStoreInfo();
   const { onOpenStoreInfo } = useOutletContext() || {};
 
   // Keep profile details (e.g. loyalty points) current with the server
@@ -166,7 +168,7 @@ export const ProfilePage = () => {
                     Store Information
                   </span>
                   <span className="text-[9.5px] text-slate-400">
-                    Chandan Nagar, Jaipur
+                    {[store?.city, store?.state].filter(Boolean).join(', ')}
                   </span>
                 </div>
               </div>
@@ -275,7 +277,7 @@ export const ProfilePage = () => {
                     At Sundhamata Mobile, customer data privacy is our utmost priority. Mobile numbers and purchase records are stored strictly for billing, warranty verification, and customer identification purposes.
                   </p>
                   <p>
-                    Your contact information will never be shared with third parties. All device IMEIs and serial numbers are linked directly to GST tax invoices generated at our retail store in Chandan Nagar, Jaipur.
+                    Your contact information will never be shared with third parties. All device IMEIs and serial numbers are linked directly to GST tax invoices generated at our retail store in Narol, Ahmedabad.
                   </p>
                 </>
               ) : (

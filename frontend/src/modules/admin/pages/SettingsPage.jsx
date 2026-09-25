@@ -15,6 +15,8 @@ export const SettingsPage = () => {
   const [gstin, setGstin] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
+  const [stateName, setStateName] = useState('');
+  const [pincode, setPincode] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
@@ -30,8 +32,10 @@ export const SettingsPage = () => {
         setStoreName(s.storeName || 'Sundhamata Mobile');
         setTagline(s.tagline || 'Smart Phones Smart People');
         setGstin(s.gstin || '08AABCS1429P1Z5');
-        setAddress(s.address || 'Shop No. 12-14, Laxmi Complex, Chandan Nagar');
-        setCity(s.city || 'Jaipur');
+        setAddress(s.address || '');
+        setCity(s.city || '');
+        setStateName(s.state || '');
+        setPincode(s.pincode || '');
         setPhone(s.phone || '+91 98290 12345');
         setEmail(s.email || 'care@sundhamatamobile.com');
 
@@ -54,6 +58,8 @@ export const SettingsPage = () => {
         gstin,
         address,
         city,
+        state: stateName,
+        pincode,
         phone,
         email,
         loyalty: {
@@ -125,11 +131,44 @@ export const SettingsPage = () => {
             </div>
 
             <div className="space-y-1 sm:col-span-2">
-              <label className="font-medium text-slate-700 block">Store Address</label>
+              <label className="font-medium text-slate-700 block">Store Address (street / area)</label>
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+              />
+            </div>
+
+
+            <div className="space-y-1">
+              <label className="font-medium text-slate-700 block">City</label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-medium text-slate-700 block">State</label>
+              <input
+                type="text"
+                value={stateName}
+                onChange={(e) => setStateName(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-medium text-slate-700 block">Pincode</label>
+              <input
+                type="text"
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value)}
+                inputMode="numeric"
+                maxLength={6}
                 className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
               />
             </div>

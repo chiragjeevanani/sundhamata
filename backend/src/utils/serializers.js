@@ -104,6 +104,7 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
     },
     warranty: p.warranty?.validUntil
       ? {
+          months: p.warranty.months ?? null,
           type: p.warranty.type,
           validUntil: p.warranty.validUntil,
           coverage: p.warranty.coverage,

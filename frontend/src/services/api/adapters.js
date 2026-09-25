@@ -39,7 +39,7 @@ export const toUiPurchase = (purchase) => {
       modelNumber: purchase.product.model,
     },
     warranty: purchase.warranty
-      ? { ...purchase.warranty, validUntil: formatDate(purchase.warranty.validUntil) }
+      ? { ...purchase.warranty, validUntil: formatDate(purchase.warranty.validUntil), validUntilDate: purchase.warranty.validUntil }
       : null,
     store: { salesExecutive: purchase.billedBy },
     customerName: purchase.customer?.name,

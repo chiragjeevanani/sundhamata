@@ -22,7 +22,7 @@ export const useStoreInfo = () => {
   return store;
 };
 
-/** "Shop 12, Chandan Nagar, Jaipur, Rajasthan - 302019" without empty segments */
+/** "70, Chandannagar, ..., Narol, Ahmedabad, Gujarat - 382405" without empty segments */
 export const formatStoreAddress = (store, { includeState = true } = {}) => {
   if (!store) return '';
   const parts = [store.address, store.city, includeState ? store.state : null].filter(Boolean).join(', ');

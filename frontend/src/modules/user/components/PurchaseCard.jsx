@@ -35,14 +35,8 @@ export const PurchaseCard = ({ purchase }) => {
             loading="lazy"
           />
         ) : (
-          <div
-            className="w-full h-full rounded flex flex-col items-center justify-center text-white"
-            style={{ backgroundColor: product.fallbackColor || '#1E3A5F' }}
-          >
-            <Smartphone className="w-4 h-4 opacity-80" />
-            <span className="text-[6.5px] font-bold uppercase mt-0.5 tracking-wider opacity-90">
-              {product.brand}
-            </span>
+          <div className="w-full h-full rounded flex flex-col items-center justify-center p-1 bg-black/90">
+            <img src="/logo.png" alt={product.brand || 'Sundhamata'} className="w-full h-full object-contain" />
           </div>
         )}
       </div>

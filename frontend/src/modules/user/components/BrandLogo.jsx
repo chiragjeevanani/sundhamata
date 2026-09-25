@@ -2,48 +2,27 @@ import React from 'react';
 
 /**
  * Sundhamata Mobile Official Brand Logo
- * Refined retail brand mark with deep navy emblem, subtle amber accent, and crisp typography.
+ * Features the official SM Headset & Plug brand mark.
  * Tagline: "Smart Phones • Smart People"
  */
 export const BrandLogo = ({ size = 'md', showTagline = true, light = false, className = '' }) => {
   const isSm = size === 'sm';
   const isLg = size === 'lg';
 
+  const imgSizeClass = isSm ? 'w-8 h-8' : isLg ? 'w-12 h-12' : 'w-10 h-10';
+
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Brand Monogram Icon */}
+      {/* Brand Logo Emblem */}
       <div
-        className={`relative flex items-center justify-center shrink-0 transition-transform ${
-          light
-            ? 'bg-white text-[#0F2042]'
-            : 'bg-[#0F2042] text-white border border-[#1E365D]'
-        } ${
-          isSm
-            ? 'w-7.5 h-7.5 rounded-lg'
-            : isLg
-            ? 'w-11 h-11 rounded-2xl'
-            : 'w-9 h-9 rounded-xl'
-        }`}
+        className={`relative flex items-center justify-center shrink-0 rounded-xl overflow-hidden shadow-xs transition-transform ${
+          light ? 'bg-slate-900/60 ring-1 ring-white/20' : 'bg-black/90 ring-1 ring-slate-800'
+        } ${imgSizeClass}`}
       >
-        {/* Smartphone Silhouette Graphic */}
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={isSm ? 'w-4 h-4' : isLg ? 'w-5.5 h-5.5' : 'w-4.5 h-4.5'}
-        >
-          <rect width="13" height="19" x="5.5" y="2.5" rx="2.5" ry="2.5" />
-          <path d="M12 18h.01" />
-        </svg>
-
-        {/* Subtle Warm Amber Spark Accent */}
-        <span
-          className={`absolute -top-0.5 -right-0.5 rounded-full bg-[#F59E0B] ring-2 ${
-            light ? 'ring-[#0F2042]' : 'ring-[#F8F9FA]'
-          } ${isSm ? 'w-1.5 h-1.5' : 'w-2 h-2'}`}
+        <img
+          src="/logo.png"
+          alt="Sundhamata Mobile"
+          className="w-full h-full object-contain p-0.5 rounded-xl"
         />
       </div>
 
@@ -59,7 +38,7 @@ export const BrandLogo = ({ size = 'md', showTagline = true, light = false, clas
           </span>
           <span
             className={`font-bold tracking-normal ${
-              light ? 'text-blue-300' : 'text-[#2563EB]'
+              light ? 'text-amber-400' : 'text-[#f97316]'
             } ${isSm ? 'text-xs' : isLg ? 'text-sm' : 'text-xs'}`}
           >
             MOBILE
@@ -79,3 +58,4 @@ export const BrandLogo = ({ size = 'md', showTagline = true, light = false, clas
     </div>
   );
 };
+

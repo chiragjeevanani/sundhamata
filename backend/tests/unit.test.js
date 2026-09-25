@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildTrendBuckets } from '../src/utils/dates.js';
+import { addMonths, buildTrendBuckets } from '../src/utils/dates.js';
 import { calculatePurchasePoints, getLoyaltyTier } from '../src/utils/loyalty.js';
 import { normalizeIndianMobile } from '../src/utils/mobile.js';
 
@@ -49,6 +49,27 @@ describe('getLoyaltyTier', () => {
     [10000, 'platinum'],
   ])('%s points → %s', (points, key) => {
     expect(getLoyaltyTier(points).key).toBe(key);
+  });
+});
+
+describe('addMonths (warranty expiry)', () => {
+  const ist = (s) => new Date(`${s}T12:00:00+05:30`);
+  const istDay = (d) => new Date(d.getTime() + 330 * 60000).toISOString().slice(0, 10);
+
+  it.each([
+    ['2026-09-25', 24, '2028-09-25'],
+    ['2026-09-25', 6, '2027-03-25'],
+    ['2026-01-31', 1, '2026-02-28'], // clamped, not 3 March
+    ['2028-01-31', 1, '2028-02-29'], // leap year
+    ['2028-02-29', 12, '2029-02-28'],
+    ['2026-12-15', 1, '2027-01-15'],
+  ])('%s + %s months → %s', (from, months, expected) => {
+    expect(istDay(addMonths(ist(from), months))).toBe(expected);
+  });
+
+  it('keeps the calendar day for purchases made just after midnight IST', () => {
+    const justAfterMidnight = new Date('2026-09-25T00:10:00+05:30'); // still 24 Sep in UTC
+    expect(istDay(addMonths(justAfterMidnight, 12))).toBe('2027-09-25');
   });
 });
 

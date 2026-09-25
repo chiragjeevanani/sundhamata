@@ -53,6 +53,7 @@ describe('End-to-end: ADMIN → PURCHASE → LOYALTY → CUSTOMER APP', () => {
       .set('Authorization', adminAuth)
       .send({
         customerId,
+        invoiceNumber: 'SM/2026-27/0001',
         category: 'phones',
         product: { name: 'Samsung Galaxy S25 Ultra', variant: '12GB + 256GB', color: 'Titanium Black' },
         payment: { method: 'UPI', status: 'Paid' },
@@ -147,6 +148,7 @@ describe('End-to-end: ADMIN → PURCHASE → LOYALTY → CUSTOMER APP', () => {
       .set('Authorization', adminAuth)
       .send({
         customerId,
+        invoiceNumber: 'SM/2026-27/0002',
         product: { name: 'Samsung Galaxy S25 Ultra' },
         payment: { method: 'UPI', status: 'Paid' },
         pricing: { purchaseAmount: 124999 },

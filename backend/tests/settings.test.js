@@ -26,16 +26,22 @@ describe('Store settings', () => {
       .patch('/api/v1/admin/settings')
       .set('Authorization', auth)
       .send({
-        storeName: 'Sundhamata Mobile Jaipur',
+        storeName: 'Sundhamata Mobile Ahmedabad',
         tagline: 'Smart Phones Smart People',
-        address: 'Shop No. 12-14, Laxmi Complex, Chandan Nagar',
+        address: '70, Chandannagar, Near Aryamanflat, Bharatmata Chok, Bhamriyakuwa, Narol',
+        city: 'Ahmedabad',
+        state: 'Gujarat',
+        pincode: '382405',
         contactNumber: '+91 98290 12345',
         loyalty: { pointsPerHundredRupees: 2 },
       })
       .expect(200);
     expect(res.body.data.settings).toMatchObject({
-      storeName: 'Sundhamata Mobile Jaipur',
+      storeName: 'Sundhamata Mobile Ahmedabad',
       contactNumber: '+91 98290 12345',
+      city: 'Ahmedabad',
+      state: 'Gujarat',
+      pincode: '382405',
       loyalty: { pointsPerHundredRupees: 2, rupeeValuePerPoint: 1, minRedeemPoints: 500 },
     });
 

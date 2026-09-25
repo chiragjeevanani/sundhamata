@@ -38,16 +38,16 @@ const STORE = {
   tagline: 'Smart Phones Smart People',
   legalName: 'Sundhamata Mobile & Electronics Pvt. Ltd.',
   gstin: '08AABCS1429P1Z5',
-  address: 'Shop No. 12-14, Ground Floor, Laxmi Complex, Chandan Nagar, New Sanganer Road',
-  city: 'Jaipur',
-  state: 'Rajasthan',
-  pincode: '302019',
+  address: '70, Chandannagar, Near Aryamanflat, Bharatmata Chok, Bhamriyakuwa, Narol',
+  city: 'Ahmedabad',
+  state: 'Gujarat',
+  pincode: '382405',
   contactNumber: '+91 98290 12345',
   supportNumber: '+91 141 2894567',
   whatsappNumber: '+91 98290 12345',
   email: 'care@sundhamatamobile.com',
   workingHours: 'Mon - Sun: 10:30 AM - 09:30 PM',
-  googleMapsUrl: 'https://maps.google.com/?q=Chandan+Nagar+Jaipur',
+  googleMapsUrl: 'https://maps.google.com/?q=Chandannagar+Bharatmata+Chok+Narol+Ahmedabad+382405',
 };
 
 const CUSTOMERS = [

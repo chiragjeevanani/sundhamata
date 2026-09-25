@@ -26,12 +26,14 @@ const createPurchase = (body) => api().post('/api/v1/admin/purchases').set('Auth
 
 describe('Record purchase', () => {
   it('15. admin creates a purchase with server-side pricing, tax and invoice number', async () => {
-    const res = await createPurchase(samplePurchase(rohit._id, { pricing: { purchaseAmount: 129999, discount: 5000 } })).expect(201);
+    const res = await createPurchase(
+      samplePurchase(rohit._id, { invoiceNumber: 'SM/2026-27/0042', pricing: { purchaseAmount: 129999, discount: 5000 } })
+    ).expect(201);
     const { purchase, customerLoyaltyBalance } = res.body.data;
 
     expect(purchase).toMatchObject({
       customerId: rohit.id,
-      invoiceNumber: expect.stringMatching(/^SM-\d{4}-\d{6}$/),
+      invoiceNumber: 'SM/2026-27/0042',
       status: 'Purchased',
       category: 'phones',
       product: { name: 'Samsung Galaxy S25 Ultra', brand: 'Samsung', imei: '358921104829104' },
@@ -45,12 +47,12 @@ describe('Record purchase', () => {
     expect(customerLoyaltyBalance).toBe(1249);
   });
 
-  it('generates sequential invoice numbers', async () => {
-    const a = await createPurchase(samplePurchase(rohit._id)).expect(201);
-    const b = await createPurchase(samplePurchase(rohit._id, { product: { name: 'OnePlus 13' } })).expect(201);
-    const seqA = Number(a.body.data.purchase.invoiceNumber.slice(-6));
-    const seqB = Number(b.body.data.purchase.invoiceNumber.slice(-6));
-    expect(seqB).toBe(seqA + 1);
+  it('requires the admin to enter the invoice number (no auto-numbering)', async () => {
+    const { invoiceNumber: _omit, ...body } = samplePurchase(rohit._id);
+    const res = await createPurchase(body).expect(422);
+    expect(res.body.errors).toEqual([{ field: 'invoiceNumber', message: 'Invoice number is required' }]);
+    await createPurchase(samplePurchase(rohit._id, { invoiceNumber: '   ' })).expect(422);
+    expect(await Purchase.countDocuments()).toBe(0);
   });
 
   it('16. rejects an unknown customer without writing anything', async () => {

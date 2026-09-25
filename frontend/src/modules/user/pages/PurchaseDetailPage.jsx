@@ -139,14 +139,12 @@ export const PurchaseDetailPage = () => {
                       className="w-full h-full object-contain mix-blend-multiply"
                     />
                   ) : (
-                    <div
-                      className="w-full h-full rounded-lg flex flex-col items-center justify-center text-white"
-                      style={{ backgroundColor: purchase.product.fallbackColor || '#1E3A5F' }}
-                    >
-                      <Smartphone className="w-5 h-5 opacity-80" />
-                      <span className="text-[7.5px] font-bold uppercase tracking-wider mt-0.5">
-                        {purchase.product.brand}
-                      </span>
+                    <div className="w-full h-full rounded-lg flex items-center justify-center p-1 bg-black/90">
+                      <img
+                        src="/logo.png"
+                        alt={purchase.product.brand || 'Sundhamata'}
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   )}
                 </div>

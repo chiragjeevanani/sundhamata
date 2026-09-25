@@ -27,6 +27,13 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DetailsSkeleton } from '../components/SkeletonLoaders';
 import { formatINR, formatLongDate } from '../../../utils/formatters';
 import { BILL_ACCEPT, BILL_HINT, formatFileSize, saveBlob, validateBillFile } from '../../../utils/billFile';
+import {
+  addMonthsToDate,
+  MAX_WARRANTY_MONTHS,
+  monthsToWarrantyInput,
+  toDateInputValue,
+  warrantyToMonths,
+} from '../../../utils/purchaseDates';
 import { useToast } from '../context/ToastContext';
 
 export const PurchaseDetailPage = () => {
@@ -42,6 +49,10 @@ export const PurchaseDetailPage = () => {
   const [editPaymentStatus, setEditPaymentStatus] = useState('Paid');
   const [editPaymentMethod, setEditPaymentMethod] = useState('UPI');
   const [editNotes, setEditNotes] = useState('');
+  const [editInvoiceNumber, setEditInvoiceNumber] = useState('');
+  const [editPurchaseDate, setEditPurchaseDate] = useState('');
+  const [editWarrantyDuration, setEditWarrantyDuration] = useState('1');
+  const [editWarrantyUnit, setEditWarrantyUnit] = useState('years');
   const [savingEdit, setSavingEdit] = useState(false);
 
   // Bill file (upload / replace / download / remove)
@@ -61,6 +72,11 @@ export const PurchaseDetailPage = () => {
       setEditPaymentStatus(data.paymentStatus || 'Paid');
       setEditPaymentMethod(data.paymentMethod || 'UPI');
       setEditNotes(data.notes || '');
+      setEditInvoiceNumber(data.invoiceNumber || '');
+      setEditPurchaseDate(toDateInputValue(data.purchaseDate));
+      const w = monthsToWarrantyInput(data.warranty?.months ?? (data.warranty ? 12 : 0));
+      setEditWarrantyDuration(w.duration);
+      setEditWarrantyUnit(w.unit);
     } catch (err) {
       showError('Error', err.message || 'Could not find purchase.');
     } finally {
@@ -74,9 +90,26 @@ export const PurchaseDetailPage = () => {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
+    const months = warrantyToMonths(editWarrantyDuration, editWarrantyUnit);
+    if (!editInvoiceNumber.trim()) {
+      showError('Validation', 'Enter the invoice / bill number.');
+      return;
+    }
+    if (!editPurchaseDate || editPurchaseDate > toDateInputValue()) {
+      showError('Validation', 'Choose a purchase date that is not in the future.');
+      return;
+    }
+    if (months === null || months > MAX_WARRANTY_MONTHS) {
+      showError('Validation', `Warranty must be a whole number up to ${MAX_WARRANTY_MONTHS / 12} years.`);
+      return;
+    }
     setSavingEdit(true);
     try {
+      const dateChanged = editPurchaseDate !== toDateInputValue(purchase.purchaseDate);
       const updated = await adminPurchaseService.updatePurchase(purchase.id, {
+        invoiceNumber: editInvoiceNumber,
+        purchaseDate: dateChanged ? editPurchaseDate : undefined,
+        warranty: { duration: editWarrantyDuration, unit: editWarrantyUnit },
         paymentStatus: editPaymentStatus,
         paymentMethod: editPaymentMethod,
         notes: editNotes.trim(),
@@ -192,6 +225,14 @@ export const PurchaseDetailPage = () => {
             </h1>
             <StatusBadge status={purchase.paymentStatus || 'Paid'} size="sm" />
           </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Purchased on <span className="font-medium text-slate-700">{formatLongDate(purchase.purchaseDate)}</span>
+            {purchase.warranty && (
+              <>
+                {' '}• Warranty until <span className="font-medium text-slate-700">{formatLongDate(purchase.warranty.validUntilDate)}</span>
+              </>
+            )}
+          </p>
         </div>
 
         {/* Action Buttons */}
@@ -243,6 +284,61 @@ export const PurchaseDetailPage = () => {
           </div>
 
           <form onSubmit={handleSaveEdit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Invoice / Bill Number</label>
+              <input
+                type="text"
+                value={editInvoiceNumber}
+                maxLength={50}
+                onChange={(e) => setEditInvoiceNumber(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Purchase Date</label>
+              <input
+                type="date"
+                value={editPurchaseDate}
+                max={toDateInputValue()}
+                onChange={(e) => setEditPurchaseDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Warranty</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={editWarrantyDuration}
+                  aria-label="Warranty duration"
+                  onChange={(e) => setEditWarrantyDuration(e.target.value)}
+                  className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden w-20 shrink-0 tabular-nums"
+                />
+                <select
+                  value={editWarrantyUnit}
+                  aria-label="Warranty unit"
+                  onChange={(e) => setEditWarrantyUnit(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                >
+                  <option value="months">Months</option>
+                  <option value="years">Years</option>
+                </select>
+              </div>
+              <p className="text-[11px] text-amber-800 mt-1">
+                {(() => {
+                  const m = warrantyToMonths(editWarrantyDuration, editWarrantyUnit);
+                  if (m === null || m > MAX_WARRANTY_MONTHS || !editPurchaseDate) return null;
+                  if (m === 0) return 'No warranty';
+                  const expiry = addMonthsToDate(new Date(`${editPurchaseDate}T12:00:00`), m);
+                  return `Valid until ${formatLongDate(expiry)}`;
+                })()}
+              </p>
+            </div>
+
             <div>
               <label className="block font-medium text-slate-700 mb-1">Payment Status</label>
               <select

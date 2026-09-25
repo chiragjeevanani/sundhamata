@@ -308,8 +308,9 @@ Query: `page`, `limit`, `search` (product, brand, variant, invoice, IMEI, serial
       },
       "loyalty": { "pointsEarned": 1249, "pointsReversed": 0, "reversalShortfall": 0 },
       "warranty": {
-        "type": "1 Year Brand Manufacturer Warranty",
-        "validUntil": "2027-09-24T12:18:46.000Z",
+        "months": 24,
+        "type": "2 Years Warranty",
+        "validUntil": "2028-09-24T12:18:46.000Z",
         "coverage": "Manufacturing defects covered at authorised brand service centres across India.",
         "status": "Active"
       },
@@ -385,12 +386,12 @@ Query: `page`, `limit`, `type` (`earned` | `redeemed` | `adjustment` | `expired`
     "store": {
       "storeName": "Sundhamata Mobile", "tagline": "Smart Phones Smart People",
       "legalName": "Sundhamata Mobile & Electronics Pvt. Ltd.", "gstin": "08AABCS1429P1Z5",
-      "address": "Shop No. 12-14, Ground Floor, Laxmi Complex, Chandan Nagar, New Sanganer Road",
-      "city": "Jaipur", "state": "Rajasthan", "pincode": "302019",
+      "address": "70, Chandannagar, Near Aryamanflat, Bharatmata Chok, Bhamriyakuwa, Narol",
+      "city": "Ahmedabad", "state": "Gujarat", "pincode": "382405",
       "contactNumber": "+91 98290 12345", "supportNumber": "+91 141 2894567",
       "whatsappNumber": "+91 98290 12345", "email": "care@sundhamatamobile.com",
       "workingHours": "Mon - Sun: 10:30 AM - 09:30 PM",
-      "googleMapsUrl": "https://maps.google.com/?q=Chandan+Nagar+Jaipur",
+      "googleMapsUrl": "https://maps.google.com/?q=Chandannagar+Bharatmata+Chok+Narol+Ahmedabad+382405",
       "loyalty": { "pointsPerHundredRupees": 1, "rupeeValuePerPoint": 1, "minRedeemPoints": 500, "expiryMonths": 12 }
     }
   },
@@ -438,7 +439,7 @@ Admin customer objects add:
 | GET | `/admin/purchases` | `search` (invoice, product, brand, IMEI, serial, customer name/mobile), `status` (`Purchased`/`Cancelled`), `paymentStatus`, `category`, `customerId`, `from`, `to` (purchase date), `sort` (`-purchaseDate` default), `page`, `limit` |
 | GET | `/admin/purchases/:id` | Adds `customer { id, name, mobile, customerCode }` and `createdBy { id, name }` |
 | POST | `/admin/purchases` | Record a purchase (below) |
-| PATCH | `/admin/purchases/:id` | `payment.method`, `payment.status`, `notes`, `category`, product details. **Pricing cannot be changed** — cancel and re-record instead. Cancelled purchases cannot be edited (409) |
+| PATCH | `/admin/purchases/:id` | `invoiceNumber` (409 if taken), `purchaseDate`, `warranty`, `payment.method`, `payment.status`, `notes`, `category`, product details. Changing the purchase date or warranty recomputes the warranty expiry. **Pricing cannot be changed** — cancel and re-record instead. Cancelled purchases cannot be edited (409) |
 | POST | `/admin/purchases/:id/cancel` | `{ "reason": "Customer returned device" }` (optional) |
 | POST | `/admin/purchases/:id/bill?filename=...` | Attach or replace the bill (raw file body, see [Purchase bills](#purchase-bills)) |
 | GET | `/admin/purchases/:id/bill` | Download the bill |
@@ -450,6 +451,7 @@ Admin customer objects add:
 // request
 {
   "customerId": "6ab514fcb6310c16af7d7bd2",
+  "invoiceNumber": "SM/2026-27/0042",
   "category": "phones",
   "product": {
     "name": "Samsung Galaxy S25 Ultra",
@@ -458,6 +460,7 @@ Admin customer objects add:
     "imei": "358921104829104"
   },
   "purchaseDate": "2026-09-24T12:18:46.000Z",
+  "warranty": { "duration": 2, "unit": "years" },
   "payment": { "method": "UPI", "status": "Paid" },
   "pricing": { "purchaseAmount": 124999, "discount": 0 },
   "notes": "Screen guard applied"
@@ -470,13 +473,14 @@ Admin customer objects add:
 }
 ```
 
-- Required: `customerId`, `product.name`, `payment.method`, `pricing.purchaseAmount`.
-- `category`: `phones` (default) | `accessories` | `service` (service purchases get no warranty).
+- Required: `customerId`, `invoiceNumber`, `product.name`, `payment.method`, `pricing.purchaseAmount`.
+- `category`: `phones` (default) | `accessories` | `service`.
 - `payment.method`: `UPI`, `Cash`, `Card`, `Credit Card`, `Debit Card`, `EMI`, `Other`.
 - `payment.status`: `Paid` (default), `Pending`, `Partially Paid`. (`Cancelled` is set only by the cancel endpoint.)
 - `product.imei`: exactly 15 digits. `product.serialNumber`: 4–30 letters/digits/hyphens. `product.brand` is inferred from the name when omitted.
-- `invoiceNumber` is optional; when omitted the server assigns the next `SM-<year>-<6 digits>`. A duplicate is rejected with 409.
+- `invoiceNumber` is entered by the store so it matches the printed bill, in **any format** (e.g. `SM/2026-27/0042`, `Bill #45 A`), 1–50 characters. It is stored exactly as typed (trimmed). Uniqueness ignores case: `inv-1` and `INV-1` are the same bill (409). There is no auto-numbering.
 - `purchaseDate` defaults to now and cannot be in the future.
+- `warranty`: `{ "duration": <whole number>, "unit": "months" | "years" }`, up to 10 years; `duration: 0` means no warranty. The server sets `warranty.validUntil` to the same calendar day `duration` months/years after the purchase date (31 Jan + 1 month → 28/29 Feb), with a label such as `"2 Years Warranty"`. When omitted: 12 months, or none for `service`.
 - **`pointsEarned` / `loyalty` / `loyaltyPoints` are rejected (422)**: the server calculates loyalty.
 
 Errors: 404 unknown customer, 422 inactive customer / invalid amounts / discount greater than amount, 409 duplicate invoice.
@@ -579,7 +583,10 @@ A deduction larger than the balance is refused with 422 (`Customer has only N po
 {
   "storeName": "Sundhamata Mobile",
   "tagline": "Smart Phones Smart People",
-  "address": "Shop No. 12-14, Laxmi Complex, Chandan Nagar",
+  "address": "70, Chandannagar, Near Aryamanflat, Bharatmata Chok, Bhamriyakuwa, Narol",
+  "city": "Ahmedabad",
+  "state": "Gujarat",
+  "pincode": "382405",
   "contactNumber": "+91 98290 12345",
   "gstin": "08AABCS1429P1Z5",
   "loyalty": { "pointsPerHundredRupees": 1.5 }
