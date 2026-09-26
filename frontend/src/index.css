@@ -4,17 +4,27 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Sundhamata Brand Color Palette */
-  --color-brand-950: #071020;
-  --color-brand-900: #0F2042;
-  --color-brand-850: #132448;
-  --color-brand-800: #162B56;
-  --color-brand-700: #1B365D;
-  --color-brand-600: #1E40AF;
-  --color-brand-500: #2563EB;
-  --color-brand-400: #3B82F6;
-  --color-brand-100: #DBEAFE;
-  --color-brand-50: #EFF6FF;
+  /* Sundhamata brand colours, taken from the logo.
+     brand-*: the logo orange (#D77F3F = brand-500). Use 500 for accents, icons,
+     active states and charts; 600+ for filled buttons and small text on white
+     (brand-600 with white text passes WCAG AA at 4.7:1; brand-500 is only 3:1).
+     navy-*: the logo navy used for headings, dark surfaces and the sidebar. */
+  --color-brand-50: #FDF5EE;
+  --color-brand-100: #FAE8D7;
+  --color-brand-200: #F4CFAE;
+  --color-brand-300: #EBB07F;
+  --color-brand-400: #E2955A;
+  --color-brand-500: #D77F3F;
+  --color-brand-600: #B55B1F;
+  --color-brand-700: #9A4A1B;
+  --color-brand-800: #7C3D1A;
+  --color-brand-900: #653318;
+  --color-brand-950: #371909;
+
+  --color-navy-950: #071020;
+  --color-navy-900: #0F2042;
+  --color-navy-800: #162B56;
+  --color-navy-700: #1B365D;
 
   --color-warm-amber: #D97706;
   --color-warm-gold: #F59E0B;
@@ -35,6 +45,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Native checkboxes, radios, range sliders and progress bars in the brand orange
+   (browsers default to blue) */
+:root {
+  accent-color: var(--color-brand-600);
 }
 
 /* Tabular figures for numbers, currency and serial codes */

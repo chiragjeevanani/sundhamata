@@ -72,7 +72,7 @@ export const DashboardPage = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/admin/purchases/new')}
-            className="py-2 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
+            className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Record Purchase</span>
@@ -95,7 +95,7 @@ export const DashboardPage = () => {
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Total Customers</span>
-            <Users className="w-4 h-4 text-blue-600/80" />
+            <Users className="w-4 h-4 text-brand-600/80" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="text-2xl font-semibold text-slate-900 tabular-nums">
@@ -103,7 +103,7 @@ export const DashboardPage = () => {
             </span>
             <SparklineChart
               data={sparklines?.customers ?? []}
-              color="#2563EB"
+              color="#D77F3F"
               width={65}
               height={22}
             />
@@ -154,7 +154,7 @@ export const DashboardPage = () => {
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Points Distributed</span>
-            <Sparkles className="w-4 h-4 text-indigo-600/80" />
+            <Sparkles className="w-4 h-4 text-brand-600/80" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="text-2xl font-semibold text-slate-900 tabular-nums">
@@ -164,7 +164,7 @@ export const DashboardPage = () => {
             </span>
             <SparklineChart
               data={sparklines?.loyaltyPoints ?? []}
-              color="#6366F1"
+              color="#D77F3F"
               width={65}
               height={22}
             />
@@ -180,7 +180,7 @@ export const DashboardPage = () => {
             title="Revenue Trajectory"
             subtitle="Gross store sales billed across timeline"
             height={220}
-            accentColor="#2563EB"
+            accentColor="#D77F3F"
             timeframes={['30 Days', '6 Months', '1 Year']}
             activeTimeframe={activeTimeframe}
             onTimeframeChange={(tf) => setActiveTimeframe(tf)}
@@ -209,7 +209,7 @@ export const DashboardPage = () => {
           </div>
           <button
             onClick={() => navigate('/admin/purchases')}
-            className="text-xs font-medium text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors cursor-pointer"
+            className="text-xs font-medium text-brand-600 hover:text-brand-800 inline-flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>View all invoices</span>
             <ChevronRight className="w-3.5 h-3.5" />

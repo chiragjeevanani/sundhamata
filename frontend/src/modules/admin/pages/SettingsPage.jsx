@@ -97,7 +97,7 @@ export const SettingsPage = () => {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="py-2 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto disabled:opacity-50"
+          className="py-2 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto disabled:opacity-50"
         >
           <Save className="w-3.5 h-3.5" />
           <span>{saving ? 'Saving...' : 'Save Settings'}</span>
@@ -119,7 +119,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -129,7 +129,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -139,7 +139,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -150,7 +150,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -160,7 +160,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={stateName}
                 onChange={(e) => setStateName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -172,7 +172,7 @@ export const SettingsPage = () => {
                 onChange={(e) => setPincode(e.target.value)}
                 inputMode="numeric"
                 maxLength={6}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -182,7 +182,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -192,7 +192,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs uppercase text-slate-900 focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs uppercase text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
           </div>
@@ -214,7 +214,7 @@ export const SettingsPage = () => {
                 min="0.1"
                 value={pointsPerHundred}
                 onChange={(e) => setPointsPerHundred(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -226,7 +226,7 @@ export const SettingsPage = () => {
                 min="0.1"
                 value={rupeeValuePerPoint}
                 onChange={(e) => setRupeeValuePerPoint(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
@@ -238,7 +238,7 @@ export const SettingsPage = () => {
                 min="0"
                 value={minRedeemPoints}
                 onChange={(e) => setMinRedeemPoints(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
               <p className="text-[11px] text-slate-400">0 = customers can redeem any amount</p>
             </div>

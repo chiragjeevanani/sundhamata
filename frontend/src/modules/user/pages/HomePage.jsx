@@ -96,7 +96,7 @@ export const HomePage = () => {
                     {summary?.totalPurchases || 0}
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1E40AF] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-brand-50 text-[#B55B1F] flex items-center justify-center shrink-0">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
               </button>
@@ -162,7 +162,7 @@ export const HomePage = () => {
                       className="mt-0.5 w-full py-2 px-3 rounded-lg bg-white hover:bg-slate-100 text-[#0F2042] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98] cursor-pointer"
                     >
                       <span>View Details</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#1E40AF]" />
+                      <ArrowRight className="w-3.5 h-3.5 text-[#B55B1F]" />
                     </button>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export const HomePage = () => {
                   </h2>
                   <button
                     onClick={() => navigate('/purchases')}
-                    className="text-[11px] font-bold text-blue-700 hover:text-blue-900 transition-colors inline-flex items-center gap-0.5 cursor-pointer"
+                    className="text-[11px] font-bold text-brand-700 hover:text-brand-900 transition-colors inline-flex items-center gap-0.5 cursor-pointer"
                   >
                     <span>View All</span>
                     <ChevronRight className="w-3 h-3" />
@@ -196,7 +196,7 @@ export const HomePage = () => {
             {/* Zero Purchases State for Newly Registered Customers */}
             {!latestPurchase && previousPurchases.length === 0 && (
               <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] text-center space-y-2">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1E40AF] mx-auto flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 text-[#B55B1F] mx-auto flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div className="space-y-0.5">
@@ -221,7 +221,7 @@ export const HomePage = () => {
                     <PhoneCall className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h3 className="text-[11.5px] font-bold text-slate-900 group-hover:text-blue-700 transition-colors leading-tight">
+                    <h3 className="text-[11.5px] font-bold text-slate-900 group-hover:text-brand-700 transition-colors leading-tight">
                       Need help with your purchase?
                     </h3>
                     <p className="text-[10px] text-slate-500 mt-0.5 font-normal">

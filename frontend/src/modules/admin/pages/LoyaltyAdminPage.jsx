@@ -151,7 +151,7 @@ export const LoyaltyAdminPage = () => {
 
         <button
           onClick={() => setAdjustModalOpen(true)}
-          className="py-2 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto"
+          className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Adjust Points</span>
@@ -337,7 +337,7 @@ export const LoyaltyAdminPage = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedCustomer(null)}
-                      className="text-blue-600 font-medium text-xs hover:underline cursor-pointer"
+                      className="text-brand-600 font-medium text-xs hover:underline cursor-pointer"
                     >
                       Change
                     </button>
@@ -348,7 +348,7 @@ export const LoyaltyAdminPage = () => {
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
                     placeholder="Search customer name or phone..."
-                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
                   />
                 )}
                 {customerSearchResults.length > 0 && !selectedCustomer && (
@@ -401,7 +401,7 @@ export const LoyaltyAdminPage = () => {
                   type="number"
                   value={adjustPoints}
                   onChange={(e) => setAdjustPoints(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
                 />
               </div>
 
@@ -411,7 +411,7 @@ export const LoyaltyAdminPage = () => {
                   type="text"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
                 />
               </div>
 
@@ -426,7 +426,7 @@ export const LoyaltyAdminPage = () => {
                 <button
                   type="submit"
                   disabled={submittingAdjust}
-                  className="py-1.5 px-4 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 cursor-pointer disabled:opacity-50"
+                  className="py-1.5 px-4 rounded-lg bg-brand-600 text-white font-medium hover:bg-brand-700 cursor-pointer disabled:opacity-50"
                 >
                   {submittingAdjust ? 'Saving...' : 'Confirm'}
                 </button>

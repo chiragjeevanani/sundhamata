@@ -117,7 +117,7 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
           {loading ? (
             <div className="py-8 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-              <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
+              <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-brand-600 rounded-full animate-spin" />
               <span>Searching customer records...</span>
             </div>
           ) : !query.trim() ? (
@@ -140,7 +140,7 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
               {customers.length > 0 && (
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 px-1">
-                    <User className="w-3.5 h-3.5 text-blue-600" />
+                    <User className="w-3.5 h-3.5 text-brand-600" />
                     <span>Customers ({customers.length})</span>
                   </div>
                   <div className="space-y-1">
@@ -155,7 +155,7 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
                             {c.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="text-xs font-medium text-slate-900 group-hover:text-blue-700 transition-colors truncate">
+                            <h4 className="text-xs font-medium text-slate-900 group-hover:text-brand-700 transition-colors truncate">
                               {c.name}
                             </h4>
                             <p className="text-xs text-slate-400 font-normal">
@@ -180,7 +180,7 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
               {purchases.length > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 px-1">
-                    <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
+                    <ShoppingBag className="w-3.5 h-3.5 text-brand-600" />
                     <span>Invoices & Purchases ({purchases.length})</span>
                   </div>
                   <div className="space-y-1">
@@ -191,12 +191,12 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
                         className="p-2.5 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200/80 transition-all flex items-center justify-between cursor-pointer group"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-md bg-brand-50 text-brand-700 flex items-center justify-center shrink-0">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-xs font-medium text-slate-900 group-hover:text-blue-700 transition-colors">
+                              <span className="font-mono text-xs font-medium text-slate-900 group-hover:text-brand-700 transition-colors">
                                 {p.invoiceNumber}
                               </span>
                               <span className="text-xs text-slate-400 font-normal">

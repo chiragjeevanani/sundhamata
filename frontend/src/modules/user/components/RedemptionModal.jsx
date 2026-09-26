@@ -43,7 +43,7 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
 
           {/* Content */}
           <div className="space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-700 block">
               Sundhamata Rewards
             </span>
             <h3 className="text-base font-extrabold text-[#0F2042] tracking-tight">

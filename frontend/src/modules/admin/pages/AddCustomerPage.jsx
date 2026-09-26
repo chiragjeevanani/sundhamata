@@ -91,7 +91,7 @@ export const AddCustomerPage = () => {
                 if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
               }}
               placeholder="e.g. Ramesh Agrawal"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-blue-600 shadow-2xs transition-all"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs transition-all"
               autoFocus
             />
             {errors.name && <p className="text-[11px] text-rose-600">{errors.name}</p>}
@@ -102,7 +102,7 @@ export const AddCustomerPage = () => {
             <label className="block font-medium text-slate-700">
               Mobile Number <span className="text-rose-500">*</span>
             </label>
-            <div className="relative flex items-center rounded-lg border border-slate-300 bg-white focus-within:border-blue-600 overflow-hidden shadow-2xs">
+            <div className="relative flex items-center rounded-lg border border-slate-300 bg-white focus-within:border-brand-600 overflow-hidden shadow-2xs">
               <span className="px-3 py-2 bg-slate-50 border-r border-slate-200 text-slate-600 font-medium select-none text-xs">
                 +91
               </span>
@@ -135,7 +135,7 @@ export const AddCustomerPage = () => {
                     onClick={() => setInterest(item.id)}
                     className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
+                        ? 'bg-brand-600 border-brand-600 text-white shadow-2xs'
                         : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                     }`}
                   >
@@ -157,7 +157,7 @@ export const AddCustomerPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="customer@gmail.com"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-blue-600 shadow-2xs"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
             />
           </div>
 
@@ -173,7 +173,7 @@ export const AddCustomerPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="py-2 px-5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:opacity-50"
+              className="py-2 px-5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Registering...' : 'Register Customer'}
             </button>

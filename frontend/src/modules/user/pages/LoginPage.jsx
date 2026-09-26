@@ -378,7 +378,7 @@ export const LoginPage = () => {
                   >
                     Mobile Number
                   </label>
-                  <div className="relative flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-2xs overflow-hidden">
+                  <div className="relative flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
                     <div className="px-3 py-2.5 bg-slate-50 border-r border-slate-200 text-slate-700 font-bold text-sm flex items-center gap-1.5 select-none shrink-0">
                       <span>🇮🇳</span>
                       <span>+91</span>
@@ -438,7 +438,7 @@ export const LoginPage = () => {
                     setMobile('9876543210');
                     setError('');
                   }}
-                  className="text-[11px] font-semibold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold text-brand-700 hover:text-brand-900 transition-colors cursor-pointer"
                 >
                   Existing User
                 </button>
@@ -449,7 +449,7 @@ export const LoginPage = () => {
                     setMobile('9999988888');
                     setError('');
                   }}
-                  className="text-[11px] font-semibold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold text-brand-700 hover:text-brand-900 transition-colors cursor-pointer"
                 >
                   New Customer
                 </button>
@@ -519,7 +519,7 @@ export const LoginPage = () => {
                     className={`w-full px-3 py-2.5 bg-white rounded-xl border text-slate-900 font-semibold text-sm transition-all shadow-2xs focus:outline-hidden ${
                       fieldErrors.name
                         ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                        : 'border-slate-300 focus:border-[#0F2042] focus:ring-2 focus:ring-blue-100'
+                        : 'border-slate-300 focus:border-[#0F2042] focus:ring-2 focus:ring-brand-100'
                     }`}
                     autoFocus
                   />
@@ -578,7 +578,7 @@ export const LoginPage = () => {
                         >
                           <Icon
                             className={`w-4.5 h-4.5 ${
-                              isSelected ? 'text-[#F59E0B]' : 'text-slate-500'
+                              isSelected ? 'text-brand-400' : 'text-slate-500'
                             }`}
                           />
                           <span className="text-xs font-bold tracking-tight">
@@ -603,7 +603,7 @@ export const LoginPage = () => {
                   >
                     Budget <span className="font-normal text-slate-400">(Optional)</span>
                   </label>
-                  <div className="relative flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-2xs overflow-hidden">
+                  <div className="relative flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
                     <span className="pl-3 text-slate-400 font-bold text-sm select-none">
                       ₹
                     </span>
@@ -711,7 +711,7 @@ export const LoginPage = () => {
                         className={`w-10 sm:w-11 h-12 sm:h-13 text-center text-lg sm:text-xl font-bold font-mono bg-white rounded-xl border transition-all shadow-2xs tabular-nums focus:outline-hidden ${
                           digit
                             ? 'border-[#0F2042] text-[#0F2042] ring-1 ring-[#0F2042]'
-                            : 'border-slate-300 text-slate-800 focus:border-[#0F2042] focus:ring-2 focus:ring-blue-100'
+                            : 'border-slate-300 text-slate-800 focus:border-[#0F2042] focus:ring-2 focus:ring-brand-100'
                         }`}
                       />
                     ))}
@@ -731,7 +731,7 @@ export const LoginPage = () => {
                   ) : (
                     <>
                       <span>Verify & Continue</span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-200" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-200" />
                     </>
                   )}
                 </button>
@@ -746,7 +746,7 @@ export const LoginPage = () => {
                       <button
                         type="button"
                         onClick={handleResendOtp}
-                        className="font-bold text-blue-700 hover:text-blue-900 underline underline-offset-2 cursor-pointer"
+                        className="font-bold text-brand-700 hover:text-brand-900 underline underline-offset-2 cursor-pointer"
                       >
                         Resend OTP
                       </button>

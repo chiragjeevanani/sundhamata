@@ -47,7 +47,7 @@ export const BarChartGroup = ({
                 style={{ height: `${heightPercent}%` }}
                 className={`w-full max-w-[40px] rounded-t-md transition-all duration-200 ${
                   item.highlight
-                    ? 'bg-blue-600'
+                    ? 'bg-brand-600'
                     : 'bg-slate-300 hover:bg-slate-400'
                 } ${isHovered ? 'brightness-110' : ''}`}
               />

@@ -2,7 +2,7 @@ import React from 'react';
 
 export const SparklineChart = ({
   data = [12, 14, 18, 16, 22, 26, 24, 28, 32],
-  color = '#2563EB',
+  color = '#D77F3F',
   width = 90,
   height = 32,
   fill = true,

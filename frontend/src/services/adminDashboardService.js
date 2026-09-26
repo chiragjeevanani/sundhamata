@@ -4,11 +4,11 @@
 import { adminApi } from './api/apiClient';
 import { byTimeframe, toUiPurchase } from './api/adapters';
 
-const CATEGORY_COLORS = { phones: '#1E40AF', accessories: '#3B82F6', service: '#10B981' };
+const CATEGORY_COLORS = { phones: '#B55B1F', accessories: '#E2955A', service: '#10B981' };
 const BRAND_COLORS = {
-  Samsung: '#1E40AF',
+  Samsung: '#B55B1F',
   Apple: '#0F2042',
-  OnePlus: '#F59E0B',
+  OnePlus: '#64748B',
   Xiaomi: '#10B981',
   Realme: '#10B981',
   Vivo: '#8B5CF6',

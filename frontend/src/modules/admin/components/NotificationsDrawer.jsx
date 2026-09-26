@@ -68,14 +68,14 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bell className="w-4 h-4 text-blue-700" />
+            <Bell className="w-4 h-4 text-brand-700" />
             <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
           </div>
 
           <div className="flex items-center gap-1">
             <button
               onClick={handleMarkAllRead}
-              className="p-1.5 text-slate-500 hover:text-blue-700 text-xs font-semibold flex items-center gap-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1.5 text-slate-500 hover:text-brand-700 text-xs font-semibold flex items-center gap-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
               title="Mark all as read"
             >
               <CheckCheck className="w-3.5 h-3.5" />
@@ -113,13 +113,13 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
                   className={`p-3 rounded-xl transition-all cursor-pointer flex items-start gap-2.5 ${
                     item.read
                       ? 'hover:bg-slate-50 opacity-80'
-                      : 'bg-blue-50/40 hover:bg-blue-50/70'
+                      : 'bg-brand-50/40 hover:bg-brand-50/70'
                   }`}
                 >
                   <div
                     className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                       isPurchase
-                        ? 'bg-blue-100 text-blue-700'
+                        ? 'bg-brand-100 text-brand-700'
                         : isCustomer
                         ? 'bg-emerald-100 text-emerald-700'
                         : isLoyalty
@@ -157,7 +157,7 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
                   </div>
 
                   {!item.read && (
-                    <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0 mt-1.5" />
+                    <span className="w-2 h-2 rounded-full bg-brand-600 shrink-0 mt-1.5" />
                   )}
                 </div>
               );

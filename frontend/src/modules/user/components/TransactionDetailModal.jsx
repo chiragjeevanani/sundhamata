@@ -92,7 +92,7 @@ export const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
             {transaction.invoiceNumber && (
               <div className="flex items-center justify-between pt-1.5">
                 <span className="text-slate-500 font-medium">Linked Invoice</span>
-                <span className="font-mono font-bold text-blue-700 tabular-nums">
+                <span className="font-mono font-bold text-brand-700 tabular-nums">
                   {transaction.invoiceNumber}
                 </span>
               </div>

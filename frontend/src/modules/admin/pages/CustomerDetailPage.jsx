@@ -127,7 +127,7 @@ export const CustomerDetailPage = () => {
           </button>
           <button
             onClick={() => navigate(`/admin/purchases/new?customerId=${customer.id}`)}
-            className="py-2 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+            className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Record Purchase</span>
@@ -166,7 +166,7 @@ export const CustomerDetailPage = () => {
           title="Customer Purchase Progression"
           subtitle="Spend trajectory over recent retail visits"
           height={200}
-          accentColor="#2563EB"
+          accentColor="#D77F3F"
           timeframes={[]}
         />
       </div>
@@ -194,7 +194,7 @@ export const CustomerDetailPage = () => {
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {purchases.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3 px-5 font-mono text-xs font-medium text-blue-700">{p.invoiceNumber}</td>
+                  <td className="py-3 px-5 font-mono text-xs font-medium text-brand-700">{p.invoiceNumber}</td>
                   <td className="py-3 px-4 font-normal text-slate-800">{p.product?.name}</td>
                   <td className="py-3 px-4 font-medium text-slate-900 tabular-nums">{formatINR(p.amount)}</td>
                   <td className="py-3 px-4 text-slate-500 font-normal">{p.formattedDate}</td>
@@ -268,7 +268,7 @@ export const CustomerDetailPage = () => {
                 <button
                   type="submit"
                   disabled={adjusting}
-                  className="py-1.5 px-4 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 cursor-pointer"
+                  className="py-1.5 px-4 rounded-lg bg-brand-600 text-white font-medium hover:bg-brand-700 cursor-pointer"
                 >
                   {adjusting ? 'Saving...' : 'Confirm'}
                 </button>

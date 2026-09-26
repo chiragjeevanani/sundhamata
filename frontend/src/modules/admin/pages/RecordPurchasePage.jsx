@@ -389,7 +389,7 @@ export const RecordPurchasePage = () => {
         <div className="flex items-center justify-center gap-2 pt-2">
           <button
             onClick={() => navigate(`/admin/purchases/${successRecord.id}`)}
-            className="py-2 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium cursor-pointer transition-colors"
+            className="py-2 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium cursor-pointer transition-colors"
           >
             View Invoice
           </button>
@@ -436,7 +436,7 @@ export const RecordPurchasePage = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/admin/customers/new')}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  className="text-xs font-medium text-brand-600 hover:text-brand-800 hover:underline cursor-pointer"
                 >
                   + Add New Customer
                 </button>
@@ -451,7 +451,7 @@ export const RecordPurchasePage = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search customer by name or 10-digit mobile number..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-normal text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:bg-white focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-normal text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:bg-white focus:border-brand-600 transition-all shadow-2xs"
                   autoFocus
                 />
 
@@ -541,7 +541,7 @@ export const RecordPurchasePage = () => {
                     if (formErrors.productName) setFormErrors((prev) => ({ ...prev, productName: '' }));
                   }}
                   placeholder="e.g. Samsung Galaxy S24 Ultra 256GB"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
                 {formErrors.productName && (
                   <p className="text-[11px] text-rose-600">{formErrors.productName}</p>
@@ -553,7 +553,7 @@ export const RecordPurchasePage = () => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs cursor-pointer"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="phones">Smartphones</option>
                   <option value="accessories">Accessories</option>
@@ -570,7 +570,7 @@ export const RecordPurchasePage = () => {
                   maxLength={80}
                   onChange={(e) => setBrand(e.target.value)}
                   placeholder="e.g. Samsung (auto-detected if empty)"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
@@ -582,7 +582,7 @@ export const RecordPurchasePage = () => {
                   maxLength={80}
                   onChange={(e) => setModel(e.target.value)}
                   placeholder="e.g. SM-S938B / Galaxy S25 Ultra"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
@@ -594,7 +594,7 @@ export const RecordPurchasePage = () => {
                   maxLength={80}
                   onChange={(e) => setVariant(e.target.value)}
                   placeholder="e.g. 12GB + 256GB"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
@@ -606,7 +606,7 @@ export const RecordPurchasePage = () => {
                   maxLength={80}
                   onChange={(e) => setColor(e.target.value)}
                   placeholder="e.g. Titanium Black"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
@@ -617,7 +617,7 @@ export const RecordPurchasePage = () => {
                   value={imei}
                   onChange={(e) => setImei(e.target.value)}
                   placeholder="15-digit IMEI or serial number for warranty registration"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs text-slate-900 focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs text-slate-900 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
@@ -681,7 +681,7 @@ export const RecordPurchasePage = () => {
                     if (formErrors.invoiceNumber) setFormErrors((prev) => ({ ...prev, invoiceNumber: '' }));
                   }}
                   placeholder="e.g. SM/2026-27/0042"
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs font-mono text-xs ${formErrors.invoiceNumber ? 'border-rose-400' : 'border-slate-300'}`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs font-mono text-xs ${formErrors.invoiceNumber ? 'border-rose-400' : 'border-slate-300'}`}
                 />
                 {formErrors.invoiceNumber && <p className="text-[11px] text-rose-600">{formErrors.invoiceNumber}</p>}
               </div>
@@ -696,7 +696,7 @@ export const RecordPurchasePage = () => {
                     setPurchaseDate(e.target.value);
                     if (formErrors.purchaseDate) setFormErrors((prev) => ({ ...prev, purchaseDate: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs ${formErrors.purchaseDate ? 'border-rose-400' : 'border-slate-300'}`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs ${formErrors.purchaseDate ? 'border-rose-400' : 'border-slate-300'}`}
                 />
                 {formErrors.purchaseDate && <p className="text-[11px] text-rose-600">{formErrors.purchaseDate}</p>}
               </div>
@@ -714,7 +714,7 @@ export const RecordPurchasePage = () => {
                       setWarrantyDuration(e.target.value);
                       if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
                     }}
-                    className={`px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs tabular-nums w-20 shrink-0 ${formErrors.warranty ? 'border-rose-400' : 'border-slate-300'}`}
+                    className={`px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs tabular-nums w-20 shrink-0 ${formErrors.warranty ? 'border-rose-400' : 'border-slate-300'}`}
                   />
                   <select
                     value={warrantyUnit}
@@ -723,7 +723,7 @@ export const RecordPurchasePage = () => {
                       setWarrantyUnit(e.target.value);
                       if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
                     }}
-                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs cursor-pointer"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="months">Months</option>
                     <option value="years">Years</option>
@@ -764,7 +764,7 @@ export const RecordPurchasePage = () => {
                     if (formErrors.purchaseAmount) setFormErrors((prev) => ({ ...prev, purchaseAmount: '' }));
                   }}
                   placeholder="e.g. 124999"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
                 {formErrors.purchaseAmount && (
                   <p className="text-[11px] text-rose-600">{formErrors.purchaseAmount}</p>
@@ -778,7 +778,7 @@ export const RecordPurchasePage = () => {
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
@@ -787,7 +787,7 @@ export const RecordPurchasePage = () => {
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-800 focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs cursor-pointer"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-800 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="UPI">UPI</option>
                   <option value="Cash">Cash</option>
@@ -837,7 +837,7 @@ export const RecordPurchasePage = () => {
                       if (formErrors.redeemPoints) setFormErrors((prev) => ({ ...prev, redeemPoints: '' }));
                     }}
                     placeholder="0"
-                    className={`w-36 px-3 py-2 bg-white border rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-blue-600 shadow-2xs disabled:bg-slate-100 ${
+                    className={`w-36 px-3 py-2 bg-white border rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs disabled:bg-slate-100 ${
                       redemptionError ? 'border-rose-400' : 'border-slate-300'
                     }`}
                   />
@@ -881,7 +881,7 @@ export const RecordPurchasePage = () => {
             {billFile ? (
               <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-slate-50/80 border border-slate-200/80 text-xs">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                  <FileText className="w-4 h-4 text-brand-600 shrink-0" />
                   <div className="min-w-0">
                     <span className="font-medium text-slate-900 block truncate">{billFile.name}</span>
                     <span className="text-slate-400">{formatFileSize(billFile.size)}</span>
@@ -909,7 +909,7 @@ export const RecordPurchasePage = () => {
                   chooseBillFile(e.dataTransfer.files?.[0]);
                 }}
                 className={`flex flex-col items-center justify-center gap-1.5 py-6 px-4 rounded-lg border border-dashed text-center cursor-pointer transition-colors ${
-                  dragOver ? 'border-blue-500 bg-blue-50/60' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'
+                  dragOver ? 'border-brand-500 bg-brand-50/60' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'
                 }`}
               >
                 <Paperclip className="w-4 h-4 text-slate-400" />
@@ -934,7 +934,7 @@ export const RecordPurchasePage = () => {
         <div className="lg:col-span-4 bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-4 sticky top-20">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
             <span className="font-medium text-slate-500">Invoice Number</span>
-            <span className="font-mono text-xs font-medium text-blue-700 truncate max-w-[170px]">{invoiceNumber.trim() || '—'}</span>
+            <span className="font-mono text-xs font-medium text-brand-700 truncate max-w-[170px]">{invoiceNumber.trim() || '—'}</span>
           </div>
 
           <div className="space-y-2.5 text-xs">
@@ -1004,7 +1004,7 @@ export const RecordPurchasePage = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-all shadow-2xs active:scale-[0.99] cursor-pointer disabled:opacity-50"
+            className="w-full py-2.5 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs transition-all shadow-2xs active:scale-[0.99] cursor-pointer disabled:opacity-50"
           >
             {submitting ? (billFile ? 'Saving & uploading bill...' : 'Generating Invoice...') : 'Record Purchase'}
           </button>

@@ -41,7 +41,7 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-blue-800 text-xs font-semibold hover:bg-blue-100 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-brand-50 text-brand-800 text-xs font-semibold hover:bg-brand-100 transition-colors cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print / PDF</span>
@@ -75,7 +75,7 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
                   Original for Buyer
                 </span>
                 <h4 className="text-xs font-black text-slate-900 mt-0.5 tracking-tight">TAX INVOICE</h4>
-                <p className="font-mono text-xs font-bold text-blue-800 mt-0.5 tabular-nums">
+                <p className="font-mono text-xs font-bold text-brand-800 mt-0.5 tabular-nums">
                   {purchase.invoiceNumber}
                 </p>
                 <p className="text-[10.5px] text-slate-500 mt-0.5">
@@ -188,10 +188,10 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
               </div>
 
               <div className="text-right">
-                <div className="inline-block px-2.5 py-1 rounded border border-blue-200 bg-blue-50/50 text-[8.5px] font-bold text-blue-950 uppercase tracking-widest text-center">
+                <div className="inline-block px-2.5 py-1 rounded border border-brand-200 bg-brand-50/50 text-[8.5px] font-bold text-brand-950 uppercase tracking-widest text-center">
                   SUNDHAMATA MOBILE
                   <br />
-                  <span className="text-[7.5px] text-blue-700">AUTHORIZED INVOICE</span>
+                  <span className="text-[7.5px] text-brand-700">AUTHORIZED INVOICE</span>
                 </div>
               </div>
             </div>

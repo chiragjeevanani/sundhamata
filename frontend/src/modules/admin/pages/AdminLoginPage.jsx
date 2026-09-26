@@ -71,7 +71,7 @@ export const AdminLoginPage = () => {
       {/* Top Header */}
       <div className="flex items-center justify-between max-w-5xl mx-auto w-full">
         <BrandLogo size="md" light={true} />
-        <span className="text-xs font-bold font-mono uppercase tracking-wider text-amber-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">
+        <span className="text-xs font-bold font-mono uppercase tracking-wider text-brand-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">
           Store Management System
         </span>
       </div>
@@ -85,7 +85,7 @@ export const AdminLoginPage = () => {
           className="bg-white rounded-2xl p-6 sm:p-7 shadow-2xl text-slate-900 border border-slate-100 space-y-5"
         >
           <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-700 block">
               Sundhamata Mobile
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-[#0F2042] tracking-tight">
@@ -111,7 +111,7 @@ export const AdminLoginPage = () => {
               >
                 Mobile / Email
               </label>
-              <div className="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-2xs overflow-hidden">
+              <div className="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
                 <span className="pl-3 text-slate-400">
                   <Mail className="w-4 h-4" />
                 </span>
@@ -148,12 +148,12 @@ export const AdminLoginPage = () => {
                         : 'Please contact your store administrator to reset your password.'
                     )
                   }
-                  className="text-[10.5px] font-semibold text-blue-700 hover:text-blue-900 cursor-pointer"
+                  className="text-[10.5px] font-semibold text-brand-700 hover:text-brand-900 cursor-pointer"
                 >
                   Forgot password?
                 </button>
               </div>
-              <div className="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-2xs overflow-hidden">
+              <div className="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
                 <span className="pl-3 text-slate-400">
                   <Lock className="w-4 h-4" />
                 </span>
@@ -178,7 +178,7 @@ export const AdminLoginPage = () => {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer"
               />
               <label
                 htmlFor="remember"
@@ -202,7 +202,7 @@ export const AdminLoginPage = () => {
               ) : (
                 <>
                   <span>Sign In to Admin</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                  <ArrowRight className="w-3.5 h-3.5 text-brand-400" />
                 </>
               )}
             </button>
@@ -214,7 +214,7 @@ export const AdminLoginPage = () => {
             <button
               type="button"
               onClick={handleQuickDemo}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-900 transition-colors py-1.5 px-3 rounded-lg hover:bg-blue-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 hover:text-brand-900 transition-colors py-1.5 px-3 rounded-lg hover:bg-brand-50 cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>Instant Store Manager Demo Sign In</span>

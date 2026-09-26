@@ -114,7 +114,7 @@ export const LoyaltyPage = () => {
                 <h2 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight leading-none">
                   <AnimatedPoints value={summary?.currentBalance || 0} />
                 </h2>
-                <span className="text-xs font-bold text-blue-300 uppercase tracking-wide">
+                <span className="text-xs font-bold text-brand-300 uppercase tracking-wide">
                   Points
                 </span>
               </div>
@@ -205,7 +205,7 @@ export const LoyaltyPage = () => {
                         <h4 className="text-[12px] font-bold text-slate-900 leading-tight">
                           {method.title}
                         </h4>
-                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 border border-blue-100 shrink-0">
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-brand-50 text-brand-800 border border-brand-100 shrink-0">
                           {method.tag}
                         </span>
                       </div>
@@ -287,7 +287,7 @@ export const LoyaltyPage = () => {
                             </div>
 
                             <div className="min-w-0">
-                              <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-blue-700 transition-colors truncate">
+                              <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-brand-700 transition-colors truncate">
                                 {txn.title}
                               </h4>
                               <p className="text-[10.5px] text-slate-500 truncate">
@@ -331,7 +331,7 @@ export const LoyaltyPage = () => {
               className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-2.5 pt-3"
             >
               <div className="flex items-center gap-1.5 pb-1 border-b border-slate-100">
-                <HelpCircle className="w-3.5 h-3.5 text-blue-700" />
+                <HelpCircle className="w-3.5 h-3.5 text-brand-700" />
                 <h3 className="text-xs font-bold text-[#0F2042] uppercase tracking-wider">
                   How Loyalty Points Work
                 </h3>
@@ -340,7 +340,7 @@ export const LoyaltyPage = () => {
               <div className="space-y-2">
                 {programInfo?.programSteps?.map((item) => (
                   <div key={item.step} className="flex items-start gap-2.5 text-xs">
-                    <div className="w-5 h-5 rounded-full bg-blue-50 border border-blue-100 text-blue-800 font-bold text-[10.5px] flex items-center justify-center shrink-0 mt-0.5 font-mono">
+                    <div className="w-5 h-5 rounded-full bg-brand-50 border border-brand-100 text-brand-800 font-bold text-[10.5px] flex items-center justify-center shrink-0 mt-0.5 font-mono">
                       {item.step}
                     </div>
                     <div>

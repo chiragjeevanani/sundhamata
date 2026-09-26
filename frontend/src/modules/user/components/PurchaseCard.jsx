@@ -43,7 +43,7 @@ export const PurchaseCard = ({ purchase }) => {
 
       {/* Main Info */}
       <div className="flex-1 min-w-0">
-        <h4 className="text-[13.5px] font-bold text-slate-900 tracking-tight leading-snug truncate group-hover:text-blue-700 transition-colors">
+        <h4 className="text-[13.5px] font-bold text-slate-900 tracking-tight leading-snug truncate group-hover:text-brand-700 transition-colors">
           {product.name}
         </h4>
         <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">

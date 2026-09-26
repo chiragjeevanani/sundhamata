@@ -101,7 +101,7 @@ export const AdminHeader = ({
         {/* Quick Record Purchase Button */}
         <button
           onClick={() => navigate('/admin/purchases/new')}
-          className="hidden sm:inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs shadow-2xs active:scale-[0.98] transition-all cursor-pointer"
+          className="hidden sm:inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs shadow-2xs active:scale-[0.98] transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Record Purchase</span>
@@ -115,7 +115,7 @@ export const AdminHeader = ({
         >
           <Bell className="w-4.5 h-4.5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-600 ring-2 ring-white" />
           )}
         </button>
 

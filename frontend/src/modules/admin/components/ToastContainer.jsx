@@ -27,7 +27,7 @@ export const ToastContainer = () => {
                   ? 'border-emerald-200 text-slate-900 shadow-emerald-950/5'
                   : isError
                   ? 'border-rose-200 text-slate-900 shadow-rose-950/5'
-                  : 'border-blue-200 text-slate-900 shadow-blue-950/5'
+                  : 'border-brand-200 text-slate-900 shadow-brand-950/5'
               }`}
             >
               <div
@@ -36,7 +36,7 @@ export const ToastContainer = () => {
                     ? 'bg-emerald-50 text-emerald-600'
                     : isError
                     ? 'bg-rose-50 text-rose-600'
-                    : 'bg-blue-50 text-blue-600'
+                    : 'bg-brand-50 text-brand-600'
                 }`}
               >
                 {isSuccess ? (

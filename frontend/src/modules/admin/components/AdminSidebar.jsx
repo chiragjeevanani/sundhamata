@@ -56,7 +56,7 @@ export const AdminSidebar = ({
               <div className="min-w-0 leading-none">
                 <div className="flex items-baseline gap-1 whitespace-nowrap">
                   <span className="text-[13px] font-black text-white tracking-tight">SUNDHAMATA</span>
-                  <span className="text-[10px] font-bold text-amber-400">MOBILE</span>
+                  <span className="text-[10px] font-bold text-brand-400">MOBILE</span>
                 </div>
                 <span className="text-[8.5px] font-semibold tracking-[0.14em] uppercase text-slate-400 block truncate mt-1">
                   Store Management
@@ -104,7 +104,7 @@ export const AdminSidebar = ({
               navigate('/admin/purchases/new');
               handleLinkClick();
             }}
-            className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+            className="w-full py-2 px-3 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
           >
             <Plus className="w-4 h-4 text-white" />
             <span>Record Purchase</span>
@@ -115,7 +115,7 @@ export const AdminSidebar = ({
               navigate('/admin/purchases/new');
               handleLinkClick();
             }}
-            className="w-10 h-10 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-xs transition-all active:scale-[0.96] cursor-pointer group relative"
+            className="w-10 h-10 rounded-lg bg-brand-600 hover:bg-brand-500 text-white flex items-center justify-center shadow-xs transition-all active:scale-[0.96] cursor-pointer group relative"
             title="Record Purchase"
             aria-label="Record Purchase"
           >
@@ -140,12 +140,12 @@ export const AdminSidebar = ({
                   isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2'
                 } ${
                   isActive
-                    ? 'bg-blue-600/20 text-white font-semibold'
+                    ? 'bg-brand-600/20 text-white font-semibold'
                     : 'text-slate-400 hover:text-slate-100 hover:bg-white/5 font-medium'
                 }`
               }
             >
-              <Icon className="w-4 h-4 text-blue-400 shrink-0" />
+              <Icon className="w-4 h-4 text-brand-400 shrink-0" />
               {!isCollapsed && <span className="truncate">{item.label}</span>}
             </NavLink>
           );

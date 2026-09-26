@@ -30,7 +30,7 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/70 select-none">
             <div>
-              <span className="text-[9.5px] font-bold uppercase tracking-wider text-blue-700 block">
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-brand-700 block">
                 Official Retail Store
               </span>
               <h3 className="text-sm font-extrabold text-[#0F2042]">
@@ -71,7 +71,7 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
             {/* Address Card */}
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
               <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 text-blue-700 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0 text-brand-700 mt-0.5">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -85,7 +85,7 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
                     href={store?.googleMapsUrl || undefined}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 mt-1.5"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-700 hover:text-brand-900 mt-1.5"
                   >
                     <span>View on Google Maps</span>
                     <ExternalLink className="w-3 h-3" />

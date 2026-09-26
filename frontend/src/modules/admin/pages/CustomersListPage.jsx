@@ -46,7 +46,7 @@ export const CustomersListPage = () => {
 
         <button
           onClick={() => navigate('/admin/customers/new')}
-          className="py-2 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto"
+          className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto"
         >
           <UserPlus className="w-3.5 h-3.5" />
           <span>Add Customer</span>
@@ -62,7 +62,7 @@ export const CustomersListPage = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by customer name, mobile number, or ID..."
-            className="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 font-normal placeholder:text-slate-400 focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+            className="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 font-normal placeholder:text-slate-400 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
           />
           {search && (
             <button
@@ -121,7 +121,7 @@ export const CustomersListPage = () => {
                     onClick={() => navigate(`/admin/customers/${c.id}`)}
                   >
                     <td className="py-3 px-5">
-                      <span className="font-medium text-slate-900 group-hover:text-blue-700 block">
+                      <span className="font-medium text-slate-900 group-hover:text-brand-700 block">
                         {c.name}
                       </span>
                       <span className="text-[11px] text-slate-400 font-mono font-normal">{c.customerCode}</span>

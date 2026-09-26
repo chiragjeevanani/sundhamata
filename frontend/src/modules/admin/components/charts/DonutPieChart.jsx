@@ -63,7 +63,7 @@ export const DonutPieChart = ({
                 cy={center}
                 r={radius}
                 fill="transparent"
-                stroke={slice.color || '#2563EB'}
+                stroke={slice.color || '#D77F3F'}
                 strokeWidth={hoveredIdx === slice.idx ? strokeWidth + 4 : strokeWidth}
                 strokeDasharray={slice.strokeDasharray}
                 strokeDashoffset={slice.strokeDashoffset}
@@ -84,7 +84,7 @@ export const DonutPieChart = ({
               {activeItem ? activeItem.formattedValue || `${activeItem.percentage}%` : totalValue}
             </span>
             {activeItem && (
-              <span className="text-xs font-medium text-blue-600 tabular-nums mt-0.5">
+              <span className="text-xs font-medium text-brand-600 tabular-nums mt-0.5">
                 {activeItem.percentage}% share
               </span>
             )}
@@ -108,7 +108,7 @@ export const DonutPieChart = ({
                 <div className="flex items-center gap-2 min-w-0">
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: item.color || '#2563EB' }}
+                    style={{ backgroundColor: item.color || '#D77F3F' }}
                   />
                   <span className="font-bold text-slate-800 truncate">{item.label}</span>
                 </div>
@@ -128,7 +128,7 @@ export const DonutPieChart = ({
                   className="h-full rounded-full transition-all duration-300"
                   style={{
                     width: `${item.percentage}%`,
-                    backgroundColor: item.color || '#2563EB',
+                    backgroundColor: item.color || '#D77F3F',
                   }}
                 />
               </div>

@@ -103,7 +103,7 @@ export const ReportsPage = () => {
 
         <div className="p-4 sm:p-5">
           <span className="text-xs font-medium text-slate-500">Points Distributed</span>
-          <div className="text-2xl font-semibold text-indigo-700 tabular-nums mt-1">
+          <div className="text-2xl font-semibold text-brand-700 tabular-nums mt-1">
             {data.pointsIssued >= 100000
               ? `${(data.pointsIssued / 100000).toFixed(2)}L`
               : data.pointsIssued.toLocaleString('en-IN')}
@@ -119,7 +119,7 @@ export const ReportsPage = () => {
             title="Monthly Sales Velocity"
             subtitle="Store sales performance over time"
             height={220}
-            accentColor="#2563EB"
+            accentColor="#D77F3F"
             timeframes={['30 Days', '6 Months', '1 Year']}
             activeTimeframe={activeRange}
             onTimeframeChange={(tf) => setActiveRange(tf)}

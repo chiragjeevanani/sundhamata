@@ -162,7 +162,7 @@ export const PurchaseDetailPage = () => {
                 {/* Main Product Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-blue-700">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-brand-700">
                       {purchase.product.brand}
                     </span>
                     <StatusBadge status={purchase.status} size="sm" />
@@ -202,7 +202,7 @@ export const PurchaseDetailPage = () => {
             {/* Section 1: Product Details (Brand, Model, Variant, Colour, IMEI/SN) */}
             <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-1.5">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#0F2042] flex items-center gap-1.5 pb-1.5 border-b border-slate-100">
-                <Smartphone className="w-3 h-3 text-blue-700" />
+                <Smartphone className="w-3 h-3 text-brand-700" />
                 <span>Product Details</span>
               </h3>
 
@@ -237,7 +237,7 @@ export const PurchaseDetailPage = () => {
                       </span>
                       <button
                         onClick={() => copyToClipboard(purchase.product.imei || purchase.product.serialNumber, 'identifier')}
-                        className="p-0.5 text-slate-400 hover:text-blue-700 transition-colors cursor-pointer"
+                        className="p-0.5 text-slate-400 hover:text-brand-700 transition-colors cursor-pointer"
                         title="Copy IMEI / serial number"
                       >
                         {copiedKey === 'identifier' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
@@ -251,7 +251,7 @@ export const PurchaseDetailPage = () => {
             {/* Section 2: Purchase & Payment Information */}
             <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-1.5">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#0F2042] flex items-center gap-1.5 pb-1.5 border-b border-slate-100">
-                <FileText className="w-3 h-3 text-blue-700" />
+                <FileText className="w-3 h-3 text-brand-700" />
                 <span>Purchase Information</span>
               </h3>
 
@@ -264,7 +264,7 @@ export const PurchaseDetailPage = () => {
                     </span>
                     <button
                       onClick={() => copyToClipboard(purchase.invoiceNumber, 'invoice')}
-                      className="p-0.5 text-slate-400 hover:text-blue-700 cursor-pointer"
+                      className="p-0.5 text-slate-400 hover:text-brand-700 cursor-pointer"
                     >
                       {copiedKey === 'invoice' ? (
                         <Check className="w-3 h-3 text-emerald-600" />
@@ -341,7 +341,7 @@ export const PurchaseDetailPage = () => {
             {/* Section 4: Store & Service Counter */}
             <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-1.5">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#0F2042] flex items-center gap-1.5 pb-1.5 border-b border-slate-100">
-                <MapPin className="w-3 h-3 text-blue-700" />
+                <MapPin className="w-3 h-3 text-brand-700" />
                 <span>Store</span>
               </h3>
 
@@ -360,7 +360,7 @@ export const PurchaseDetailPage = () => {
 
                 <button
                   onClick={onOpenStoreInfo}
-                  className="px-2.5 py-1 rounded-md bg-blue-50 text-blue-800 font-bold text-[11px] hover:bg-blue-100 transition-colors inline-flex items-center gap-1 shrink-0 cursor-pointer"
+                  className="px-2.5 py-1 rounded-md bg-brand-50 text-brand-800 font-bold text-[11px] hover:bg-brand-100 transition-colors inline-flex items-center gap-1 shrink-0 cursor-pointer"
                 >
                   <PhoneCall className="w-3 h-3" />
                   <span>Contact</span>
@@ -376,7 +376,7 @@ export const PurchaseDetailPage = () => {
                   disabled={billDownloading}
                   className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-[#0F2042] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
                 >
-                  <Download className="w-3.5 h-3.5 text-blue-700" />
+                  <Download className="w-3.5 h-3.5 text-brand-700" />
                   <span>{billDownloading ? 'Downloading...' : 'Download Bill'}</span>
                 </button>
                 <p className="text-[10.5px] text-slate-400 text-center truncate">
@@ -392,7 +392,7 @@ export const PurchaseDetailPage = () => {
                 onClick={() => setShowInvoiceModal(true)}
                 className="w-full py-2.5 px-3 rounded-xl bg-[#0F2042] hover:bg-[#162B56] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 text-blue-200" />
+                <Download className="w-3.5 h-3.5 text-brand-200" />
                 <span>Download Tax Invoice</span>
               </button>
             </div>

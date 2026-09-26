@@ -18,7 +18,7 @@ export const calculatePurchasePoints = (finalAmount, pointsPerHundredRupees) => 
 // Tier thresholds on the current points balance. Kept in one place so the
 // business can tune them later without touching callers.
 export const LOYALTY_TIERS = Object.freeze([
-  { key: 'platinum', label: 'Platinum Elite', minPoints: 10000, color: '#1E40AF' },
+  { key: 'platinum', label: 'Platinum Elite', minPoints: 10000, color: '#0F2042' },
   { key: 'gold', label: 'Gold Member', minPoints: 2500, color: '#F59E0B' },
   { key: 'silver', label: 'Silver Member', minPoints: 1000, color: '#64748B' },
   { key: 'bronze', label: 'Bronze Member', minPoints: 0, color: '#B45309' },

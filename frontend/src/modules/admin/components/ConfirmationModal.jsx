@@ -35,7 +35,7 @@ export const ConfirmationModal = ({
                   ? 'bg-rose-50 border-rose-100 text-rose-600'
                   : isWarning
                   ? 'bg-amber-50 border-amber-100 text-amber-600'
-                  : 'bg-blue-50 border-blue-100 text-blue-600'
+                  : 'bg-brand-50 border-brand-100 text-brand-600'
               }`}
             >
               {isDanger ? (

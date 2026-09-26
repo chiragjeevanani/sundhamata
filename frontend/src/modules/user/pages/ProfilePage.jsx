@@ -76,7 +76,7 @@ export const ProfilePage = () => {
               <h2 className="text-[14px] font-bold text-slate-900 truncate">
                 {name}
               </h2>
-              <span className="w-3.5 h-3.5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[9px] font-bold shrink-0">
+              <span className="w-3.5 h-3.5 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-[9px] font-bold shrink-0">
                 ✓
               </span>
             </div>
@@ -86,7 +86,7 @@ export const ProfilePage = () => {
               {email ? (
                 <span className="text-slate-400 truncate">{email}</span>
               ) : interest ? (
-                <span className="text-blue-700 font-medium">{interest}</span>
+                <span className="text-brand-700 font-medium">{interest}</span>
               ) : null}
             </div>
           </div>
@@ -107,10 +107,10 @@ export const ProfilePage = () => {
               className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-6.5 h-6.5 rounded bg-blue-50 text-blue-700 flex items-center justify-center">
+                <div className="w-6.5 h-6.5 rounded bg-brand-50 text-brand-700 flex items-center justify-center">
                   <ShoppingBag className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-semibold text-slate-800 group-hover:text-blue-700 transition-colors">
+                <span className="font-semibold text-slate-800 group-hover:text-brand-700 transition-colors">
                   Purchase History
                 </span>
               </div>

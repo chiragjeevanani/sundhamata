@@ -38,7 +38,7 @@ export const BrandLogo = ({ size = 'md', showTagline = true, light = false, clas
           </span>
           <span
             className={`font-bold tracking-normal ${
-              light ? 'text-amber-400' : 'text-[#f97316]'
+              light ? 'text-brand-400' : 'text-brand-500'
             } ${isSm ? 'text-xs' : isLg ? 'text-sm' : 'text-xs'}`}
           >
             MOBILE

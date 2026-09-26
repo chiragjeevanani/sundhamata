@@ -64,7 +64,7 @@ export const BottomNav = () => {
                 {active && (
                   <motion.div
                     layoutId="navActiveTopLine"
-                    className="absolute -top-1 w-5 h-0.5 rounded-full bg-[#1E40AF]"
+                    className="absolute -top-1 w-5 h-0.5 rounded-full bg-[#B55B1F]"
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -72,7 +72,7 @@ export const BottomNav = () => {
                 <div className="relative">
                   <Icon
                     className={`w-4.5 h-4.5 transition-transform duration-150 ${
-                      active ? 'stroke-[2.2] text-[#1E40AF]' : 'stroke-[1.8]'
+                      active ? 'stroke-[2.2] text-[#B55B1F]' : 'stroke-[1.8]'
                     }`}
                   />
                 </div>

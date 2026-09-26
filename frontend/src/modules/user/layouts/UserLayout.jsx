@@ -22,7 +22,7 @@ export const UserLayout = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2] flex flex-col justify-start items-center relative overflow-x-hidden selection:bg-[#1E40AF] selection:text-white">
+    <div className="min-h-screen bg-[#ECEEF2] flex flex-col justify-start items-center relative overflow-x-hidden selection:bg-[#B55B1F] selection:text-white">
       {/* Desktop Ambient Brand Anchor */}
       <div className="hidden lg:flex fixed top-4 left-6 items-center gap-3 z-30 select-none">
         <BrandLogo size="md" />
@@ -36,7 +36,7 @@ export const UserLayout = () => {
           <span className="text-slate-300">|</span>
           <button
             onClick={() => setDeviceMode(deviceMode === 'mobile' ? 'desktop' : 'mobile')}
-            className="text-blue-700 hover:text-blue-900 font-bold inline-flex items-center gap-1 cursor-pointer text-[11.5px]"
+            className="text-brand-700 hover:text-brand-900 font-bold inline-flex items-center gap-1 cursor-pointer text-[11.5px]"
           >
             {deviceMode === 'mobile' ? (
               <>
