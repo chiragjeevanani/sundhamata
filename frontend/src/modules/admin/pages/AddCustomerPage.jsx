@@ -61,26 +61,26 @@ export const AddCustomerPage = () => {
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Add Customer</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Register a new store customer for quick counter billing and loyalty rewards.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Add Customer</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Register a new store customer for quick counter billing and loyalty rewards.</p>
         </div>
 
         <button
           onClick={() => navigate('/admin/customers')}
-          className="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto transition-colors"
+          className="text-xs font-medium text-stone-500 hover:text-stone-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>All Customers</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/80 shadow-2xs">
+      <div className="bg-white rounded-xl p-5 sm:p-6 border border-stone-200/80 shadow-2xs">
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Full Name */}
           <div className="space-y-1">
-            <label className="block font-medium text-slate-700">
+            <label className="block font-medium text-stone-700">
               Customer Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -91,7 +91,7 @@ export const AddCustomerPage = () => {
                 if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
               }}
               placeholder="e.g. Ramesh Agrawal"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs transition-all"
+              className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs transition-all"
               autoFocus
             />
             {errors.name && <p className="text-[11px] text-rose-600">{errors.name}</p>}
@@ -99,11 +99,11 @@ export const AddCustomerPage = () => {
 
           {/* Mobile Number */}
           <div className="space-y-1">
-            <label className="block font-medium text-slate-700">
+            <label className="block font-medium text-stone-700">
               Mobile Number <span className="text-rose-500">*</span>
             </label>
-            <div className="relative flex items-center rounded-lg border border-slate-300 bg-white focus-within:border-brand-600 overflow-hidden shadow-2xs">
-              <span className="px-3 py-2 bg-slate-50 border-r border-slate-200 text-slate-600 font-medium select-none text-xs">
+            <div className="relative flex items-center rounded-lg border border-stone-300 bg-white focus-within:border-brand-600 overflow-hidden shadow-2xs">
+              <span className="px-3 py-2 bg-stone-50 border-r border-stone-200 text-stone-600 font-medium select-none text-xs">
                 +91
               </span>
               <input
@@ -115,7 +115,7 @@ export const AddCustomerPage = () => {
                   if (errors.mobile) setErrors((prev) => ({ ...prev, mobile: '' }));
                 }}
                 placeholder="98290 12345"
-                className="w-full px-3 py-2 font-normal text-slate-900 placeholder:text-slate-400 focus:outline-hidden text-xs"
+                className="w-full px-3 py-2 font-normal text-stone-900 placeholder:text-stone-400 focus:outline-hidden text-xs"
               />
             </div>
             {errors.mobile && <p className="text-[11px] text-rose-600">{errors.mobile}</p>}
@@ -123,7 +123,7 @@ export const AddCustomerPage = () => {
 
           {/* Primary Shopping Interest */}
           <div className="space-y-1.5 pt-1">
-            <label className="block font-medium text-slate-700">Shopping Interest</label>
+            <label className="block font-medium text-stone-700">Shopping Interest</label>
             <div className="grid grid-cols-3 gap-2.5">
               {interestOptions.map((item) => {
                 const Icon = item.icon;
@@ -136,10 +136,10 @@ export const AddCustomerPage = () => {
                     className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-brand-600 border-brand-600 text-white shadow-2xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+                        : 'bg-white border-stone-200 hover:border-stone-300 text-stone-700'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-stone-500'}`} />
                     <span className="font-medium text-xs">{item.label}</span>
                   </button>
                 );
@@ -149,24 +149,24 @@ export const AddCustomerPage = () => {
 
           {/* Email (Optional) */}
           <div className="space-y-1 pt-1">
-            <label className="block font-medium text-slate-700">
-              Email Address <span className="font-normal text-slate-400">(Optional)</span>
+            <label className="block font-medium text-stone-700">
+              Email Address <span className="font-normal text-stone-400">(Optional)</span>
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="customer@gmail.com"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
+              className="w-full px-3.5 py-2.5 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
             />
           </div>
 
           {/* Action CTAs */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => navigate('/admin/customers')}
-              className="py-2 px-4 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer transition-colors"
+              className="py-2 px-4 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer transition-colors"
             >
               Cancel
             </button>

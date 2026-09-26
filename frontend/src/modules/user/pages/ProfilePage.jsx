@@ -61,30 +61,30 @@ export const ProfilePage = () => {
 
       <div className="p-3.5 sm:p-4 space-y-3">
         {/* Title */}
-        <h1 className="text-xl font-black text-[#0F2042] tracking-tight">
+        <h1 className="text-xl font-black text-ink-900 tracking-tight">
           My Profile
         </h1>
 
         {/* Customer Profile Card */}
-        <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#0F2042] text-white flex items-center justify-center font-extrabold text-sm tracking-wider shrink-0 border border-[#1E365D]">
+        <div className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-ink-900 text-white flex items-center justify-center font-extrabold text-sm tracking-wider shrink-0 border border-ink-700">
             {initials || 'CU'}
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <h2 className="text-[14px] font-bold text-slate-900 truncate">
+              <h2 className="text-[14px] font-bold text-stone-900 truncate">
                 {name}
               </h2>
               <span className="w-3.5 h-3.5 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-[9px] font-bold shrink-0">
                 ✓
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500 font-medium">
+            <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-stone-500 font-medium">
               <span className="font-mono tabular-nums">{phone}</span>
               {(email || interest) && <span>•</span>}
               {email ? (
-                <span className="text-slate-400 truncate">{email}</span>
+                <span className="text-stone-400 truncate">{email}</span>
               ) : interest ? (
                 <span className="text-brand-700 font-medium">{interest}</span>
               ) : null}
@@ -93,41 +93,41 @@ export const ProfilePage = () => {
         </div>
 
         {/* Section 2: My Account Shortcuts */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] overflow-hidden">
-          <div className="px-3 py-2 bg-slate-50/80 border-b border-slate-100">
-            <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-600">
+        <div className="bg-white rounded-xl border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] overflow-hidden">
+          <div className="px-3 py-2 bg-stone-50/80 border-b border-stone-100">
+            <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-stone-600">
               My Account
             </h3>
           </div>
 
-          <div className="divide-y divide-slate-100 text-xs">
+          <div className="divide-y divide-stone-100 text-xs">
             {/* Purchase History */}
             <button
               onClick={() => navigate('/purchases')}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-6.5 h-6.5 rounded bg-brand-50 text-brand-700 flex items-center justify-center">
                   <ShoppingBag className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-semibold text-slate-800 group-hover:text-brand-700 transition-colors">
+                <span className="font-semibold text-stone-800 group-hover:text-brand-700 transition-colors">
                   Purchase History
                 </span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             {/* Loyalty Points */}
             <button
               onClick={() => navigate('/loyalty')}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-6.5 h-6.5 rounded bg-amber-50 text-amber-700 flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
                 </div>
                 <div>
-                  <span className="font-semibold text-slate-800 group-hover:text-amber-700 transition-colors block leading-tight">
+                  <span className="font-semibold text-stone-800 group-hover:text-amber-700 transition-colors block leading-tight">
                     Loyalty Points
                   </span>
                   <span className="text-[10px] text-emerald-700 font-bold font-mono">
@@ -135,76 +135,76 @@ export const ProfilePage = () => {
                   </span>
                 </div>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             {/* Help & Support */}
             <button
               onClick={onOpenStoreInfo}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-6.5 h-6.5 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center">
                   <HelpCircle className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors">
+                <span className="font-semibold text-stone-800 group-hover:text-emerald-700 transition-colors">
                   Help & Support
                 </span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             {/* Store Information */}
             <button
               onClick={onOpenStoreInfo}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-6.5 h-6.5 rounded bg-amber-50 text-amber-700 flex items-center justify-center">
                   <MapPin className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <span className="font-semibold text-slate-800 group-hover:text-amber-700 transition-colors block leading-tight">
+                  <span className="font-semibold text-stone-800 group-hover:text-amber-700 transition-colors block leading-tight">
                     Store Information
                   </span>
-                  <span className="text-[9.5px] text-slate-400">
+                  <span className="text-[9.5px] text-stone-400">
                     {[store?.city, store?.state].filter(Boolean).join(', ')}
                   </span>
                 </div>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             {/* Privacy Policy */}
             <button
               onClick={() => setActiveModal('privacy')}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-6.5 h-6.5 rounded bg-slate-100 text-slate-700 flex items-center justify-center">
+                <div className="w-6.5 h-6.5 rounded bg-stone-100 text-stone-700 flex items-center justify-center">
                   <ShieldCheck className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-stone-800">
                   Privacy Policy
                 </span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
             </button>
 
             {/* Terms & Conditions */}
             <button
               onClick={() => setActiveModal('terms')}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-6.5 h-6.5 rounded bg-slate-100 text-slate-700 flex items-center justify-center">
+                <div className="w-6.5 h-6.5 rounded bg-stone-100 text-stone-700 flex items-center justify-center">
                   <FileCheck className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-stone-800">
                   Terms & Conditions
                 </span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
             </button>
           </div>
         </div>
@@ -223,16 +223,16 @@ export const ProfilePage = () => {
 
       {/* Logout Confirmation Dialog */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-xs bg-white rounded-xl p-4 border border-slate-200 shadow-xl space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-xs bg-white rounded-xl p-4 border border-stone-200 shadow-xl space-y-3">
             <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center">
               <LogOut className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-900">
+              <h4 className="text-xs font-bold text-stone-900">
                 Log out of Sundhamata Mobile?
               </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5 font-normal">
+              <p className="text-[11px] text-stone-500 mt-0.5 font-normal">
                 You will need to verify your phone number to access your purchases again.
               </p>
             </div>
@@ -246,7 +246,7 @@ export const ProfilePage = () => {
               </button>
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+                className="flex-1 py-1.5 rounded-lg border border-stone-300 text-stone-700 font-bold text-xs hover:bg-stone-100 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -257,20 +257,20 @@ export const ProfilePage = () => {
 
       {/* Policy Modal */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-white rounded-xl p-4 border border-slate-200 shadow-xl space-y-2.5 max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-              <h4 className="text-xs font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm bg-white rounded-xl p-4 border border-stone-200 shadow-xl space-y-2.5 max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between pb-1.5 border-b border-stone-100">
+              <h4 className="text-xs font-bold text-stone-900">
                 {activeModal === 'privacy' ? 'Customer Privacy Policy' : 'Terms & Conditions'}
               </h4>
               <button
                 onClick={() => setActiveModal(null)}
-                className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+                className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="overflow-y-auto text-[11px] text-slate-600 space-y-2 leading-relaxed pr-1 font-normal">
+            <div className="overflow-y-auto text-[11px] text-stone-600 space-y-2 leading-relaxed pr-1 font-normal">
               {activeModal === 'privacy' ? (
                 <>
                   <p>
@@ -293,7 +293,7 @@ export const ProfilePage = () => {
             </div>
             <button
               onClick={() => setActiveModal(null)}
-              className="w-full py-1.5 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-full py-1.5 rounded-lg bg-stone-900 text-white font-bold text-xs hover:bg-stone-800 transition-colors cursor-pointer"
             >
               Close
             </button>

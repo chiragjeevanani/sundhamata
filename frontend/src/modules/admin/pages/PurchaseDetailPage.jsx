@@ -243,10 +243,10 @@ export const PurchaseDetailPage = () => {
   if (!purchase) {
     return (
       <div className="py-16 text-center space-y-3">
-        <h2 className="text-base font-bold text-slate-900">Purchase Not Found</h2>
+        <h2 className="text-base font-bold text-stone-900">Purchase Not Found</h2>
         <button
           onClick={() => navigate('/admin/purchases')}
-          className="py-2 px-4 rounded-xl bg-[#0F2042] text-white text-xs font-bold"
+          className="py-2 px-4 rounded-xl bg-ink-900 text-white text-xs font-bold"
         >
           Back to Purchases
         </button>
@@ -261,26 +261,26 @@ export const PurchaseDetailPage = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
           <button
             onClick={() => navigate('/admin/purchases')}
-            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800 mb-1.5 cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-800 mb-1.5 cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>All Purchases</span>
           </button>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight font-mono">
+            <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight font-mono">
               {purchase.invoiceNumber}
             </h1>
             <StatusBadge status={purchase.paymentStatus || 'Paid'} size="sm" />
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Purchased on <span className="font-medium text-slate-700">{formatLongDate(purchase.purchaseDate)}</span>
+          <p className="text-xs text-stone-500 mt-1">
+            Purchased on <span className="font-medium text-stone-700">{formatLongDate(purchase.purchaseDate)}</span>
             {purchase.warranty && (
               <>
-                {' '}• Warranty until <span className="font-medium text-slate-700">{formatLongDate(purchase.warranty.validUntilDate)}</span>
+                {' '}• Warranty until <span className="font-medium text-stone-700">{formatLongDate(purchase.warranty.validUntilDate)}</span>
               </>
             )}
           </p>
@@ -292,7 +292,7 @@ export const PurchaseDetailPage = () => {
             <>
               <button
                 onClick={() => setIsEditing(true)}
-                className="py-2 px-3.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                className="py-2 px-3.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5 text-brand-700" />
                 <span>Edit Purchase</span>
@@ -328,7 +328,7 @@ export const PurchaseDetailPage = () => {
             </h3>
             <button
               onClick={() => setIsEditing(false)}
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 cursor-pointer"
+              className="text-xs font-medium text-stone-500 hover:text-stone-800 cursor-pointer"
             >
               Cancel Edit
             </button>
@@ -336,29 +336,29 @@ export const PurchaseDetailPage = () => {
 
           <form onSubmit={handleSaveEdit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Invoice / Bill Number</label>
+              <label className="block font-medium text-stone-700 mb-1">Invoice / Bill Number</label>
               <input
                 type="text"
                 value={editInvoiceNumber}
                 maxLength={50}
                 onChange={(e) => setEditInvoiceNumber(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden font-mono"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden font-mono"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Purchase Date</label>
+              <label className="block font-medium text-stone-700 mb-1">Purchase Date</label>
               <input
                 type="date"
                 value={editPurchaseDate}
                 max={toDateInputValue()}
                 onChange={(e) => setEditPurchaseDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Warranty</label>
+              <label className="block font-medium text-stone-700 mb-1">Warranty</label>
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -367,13 +367,13 @@ export const PurchaseDetailPage = () => {
                   value={editWarrantyDuration}
                   aria-label="Warranty duration"
                   onChange={(e) => setEditWarrantyDuration(e.target.value)}
-                  className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden w-20 shrink-0 tabular-nums"
+                  className="px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden w-20 shrink-0 tabular-nums"
                 />
                 <select
                   value={editWarrantyUnit}
                   aria-label="Warranty unit"
                   onChange={(e) => setEditWarrantyUnit(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
                 >
                   <option value="months">Months</option>
                   <option value="years">Years</option>
@@ -392,55 +392,55 @@ export const PurchaseDetailPage = () => {
 
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Brand</label>
+              <label className="block font-medium text-stone-700 mb-1">Brand</label>
               <input
                 type="text"
                 value={editProduct.brand}
                 maxLength={80}
                 onChange={(e) => setEditProduct((prev) => ({ ...prev, brand: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Model</label>
+              <label className="block font-medium text-stone-700 mb-1">Model</label>
               <input
                 type="text"
                 value={editProduct.model}
                 maxLength={80}
                 onChange={(e) => setEditProduct((prev) => ({ ...prev, model: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Variant</label>
+              <label className="block font-medium text-stone-700 mb-1">Variant</label>
               <input
                 type="text"
                 value={editProduct.variant}
                 maxLength={80}
                 onChange={(e) => setEditProduct((prev) => ({ ...prev, variant: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Colour</label>
+              <label className="block font-medium text-stone-700 mb-1">Colour</label>
               <input
                 type="text"
                 value={editProduct.color}
                 maxLength={80}
                 onChange={(e) => setEditProduct((prev) => ({ ...prev, color: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Payment Status</label>
+              <label className="block font-medium text-stone-700 mb-1">Payment Status</label>
               <select
                 value={editPaymentStatus}
                 onChange={(e) => setEditPaymentStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               >
                 <option value="Paid">Paid</option>
                 <option value="Pending">Pending</option>
@@ -450,11 +450,11 @@ export const PurchaseDetailPage = () => {
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">Payment Method</label>
+              <label className="block font-medium text-stone-700 mb-1">Payment Method</label>
               <select
                 value={editPaymentMethod}
                 onChange={(e) => setEditPaymentMethod(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               >
                 <option value="UPI">UPI</option>
                 <option value="Cash">Cash</option>
@@ -470,7 +470,7 @@ export const PurchaseDetailPage = () => {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium"
+                className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium"
               >
                 Cancel
               </button>
@@ -489,15 +489,15 @@ export const PurchaseDetailPage = () => {
       {/* Main 2-Column Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left (8 Cols): Unified Product & Pricing Information */}
-        <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+        <div className="lg:col-span-8 bg-white rounded-xl border border-stone-200/80 shadow-2xs divide-y divide-stone-100 overflow-hidden">
           {/* Product Information Card */}
           <div className="p-5 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+              <h3 className="text-sm font-semibold text-stone-900 flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-brand-600" />
                 <span>Product Specifications</span>
               </h3>
-              <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+              <span className="text-xs font-medium text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-md">
                 {purchase.product?.brand || 'Mobile Device'}
               </span>
             </div>
@@ -505,11 +505,11 @@ export const PurchaseDetailPage = () => {
             <div className="flex flex-col sm:flex-row gap-5">
               {/* Product photo */}
               <div className="shrink-0 space-y-2">
-                <div className="w-32 h-32 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                <div className="w-32 h-32 rounded-xl border border-stone-200 bg-stone-50 flex items-center justify-center overflow-hidden">
                   {purchase.product?.imageUrl ? (
                     <img src={purchase.product.imageUrl} alt={purchase.product.name} className="w-full h-full object-contain" />
                   ) : (
-                    <div className="text-center text-slate-300 space-y-1">
+                    <div className="text-center text-stone-300 space-y-1">
                       <ImageIcon className="w-6 h-6 mx-auto" />
                       <span className="text-[10px] block">No photo</span>
                     </div>
@@ -521,7 +521,7 @@ export const PurchaseDetailPage = () => {
                     <button
                       onClick={() => imageInputRef.current?.click()}
                       disabled={Boolean(imageBusy)}
-                      className="py-1 px-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                      className="py-1 px-2.5 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer disabled:opacity-50"
                     >
                       {imageBusy === 'upload' ? 'Uploading...' : purchase.product?.imageUrl ? 'Replace photo' : 'Upload photo'}
                     </button>
@@ -541,51 +541,51 @@ export const PurchaseDetailPage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs flex-1">
               <div>
-                <span className="text-slate-400 font-normal">Product Name</span>
-                <p className="font-medium text-slate-900 text-sm mt-0.5">
+                <span className="text-stone-400 font-normal">Product Name</span>
+                <p className="font-medium text-stone-900 text-sm mt-0.5">
                   {purchase.product?.name}
                 </p>
               </div>
 
 
               <div>
-                <span className="text-slate-400 font-normal">Brand</span>
-                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                <span className="text-stone-400 font-normal">Brand</span>
+                <p className="font-medium text-stone-900 mt-0.5 break-words">
                   {purchase.product?.brand || '—'}
                 </p>
               </div>
 
               <div>
-                <span className="text-slate-400 font-normal">Model</span>
-                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                <span className="text-stone-400 font-normal">Model</span>
+                <p className="font-medium text-stone-900 mt-0.5 break-words">
                   {purchase.product?.model || '—'}
                 </p>
               </div>
 
               <div>
-                <span className="text-slate-400 font-normal">Variant</span>
-                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                <span className="text-stone-400 font-normal">Variant</span>
+                <p className="font-medium text-stone-900 mt-0.5 break-words">
                   {purchase.product?.variant || '—'}
                 </p>
               </div>
 
               <div>
-                <span className="text-slate-400 font-normal">Colour</span>
-                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                <span className="text-stone-400 font-normal">Colour</span>
+                <p className="font-medium text-stone-900 mt-0.5 break-words">
                   {purchase.product?.color || '—'}
                 </p>
               </div>
 
               <div>
-                <span className="text-slate-400 font-normal">IMEI / SN</span>
-                <p className="font-mono text-xs font-normal text-slate-800 mt-0.5 break-words">
+                <span className="text-stone-400 font-normal">IMEI / SN</span>
+                <p className="font-mono text-xs font-normal text-stone-800 mt-0.5 break-words">
                   {purchase.product?.imei || purchase.product?.serialNumber || 'Not recorded'}
                 </p>
               </div>
 
               <div>
-                <span className="text-slate-400 font-normal">Quantity</span>
-                <p className="font-medium text-slate-900 tabular-nums mt-0.5">
+                <span className="text-stone-400 font-normal">Quantity</span>
+                <p className="font-medium text-stone-900 tabular-nums mt-0.5">
                   {purchase.product?.quantity || 1} Unit
                 </p>
               </div>
@@ -596,22 +596,22 @@ export const PurchaseDetailPage = () => {
 
           {/* Pricing & Billing Breakdown */}
           <div className="p-5 sm:p-6 space-y-3">
-            <h3 className="text-sm font-semibold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-stone-900 pb-2 border-b border-stone-100 flex items-center gap-2">
               <FileText className="w-4 h-4 text-brand-600" />
               <span>Billing & Tax Breakdown</span>
             </h3>
 
-            <div className="space-y-2 text-xs divide-y divide-slate-100">
+            <div className="space-y-2 text-xs divide-y divide-stone-100">
               {(purchase.pricing?.discount > 0 || purchase.pricing?.loyaltyDiscount > 0) && (
                 <>
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-slate-500 font-normal">Price</span>
-                    <span className="font-medium text-slate-800 tabular-nums">{formatINR(purchase.pricing.purchaseAmount)}</span>
+                    <span className="text-stone-500 font-normal">Price</span>
+                    <span className="font-medium text-stone-800 tabular-nums">{formatINR(purchase.pricing.purchaseAmount)}</span>
                   </div>
                   {purchase.pricing.discount > 0 && (
                     <div className="flex items-center justify-between pt-2">
-                      <span className="text-slate-500 font-normal">Discount</span>
-                      <span className="font-medium text-slate-800 tabular-nums">− {formatINR(purchase.pricing.discount)}</span>
+                      <span className="text-stone-500 font-normal">Discount</span>
+                      <span className="font-medium text-stone-800 tabular-nums">− {formatINR(purchase.pricing.discount)}</span>
                     </div>
                   )}
                   {purchase.pricing.loyaltyDiscount > 0 && (
@@ -625,22 +625,22 @@ export const PurchaseDetailPage = () => {
                 </>
               )}
               <div className="flex items-center justify-between pt-2">
-                <span className="text-slate-500 font-normal">Base Amount</span>
-                <span className="font-medium text-slate-800 tabular-nums">
+                <span className="text-stone-500 font-normal">Base Amount</span>
+                <span className="font-medium text-stone-800 tabular-nums">
                   {formatINR(purchase.baseAmount || Math.round(purchase.amount * 0.82))}
                 </span>
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-slate-500 font-normal">GST Tax (18% Retail)</span>
-                <span className="font-medium text-slate-800 tabular-nums">
+                <span className="text-stone-500 font-normal">GST Tax (18% Retail)</span>
+                <span className="font-medium text-stone-800 tabular-nums">
                   {formatINR(purchase.taxAmount || Math.round(purchase.amount * 0.18))}
                 </span>
               </div>
 
               <div className="flex items-center justify-between pt-2 text-sm">
-                <span className="font-semibold text-slate-900">Total Billed Paid</span>
-                <span className="font-semibold text-slate-900 tabular-nums text-base">
+                <span className="font-semibold text-stone-900">Total Billed Paid</span>
+                <span className="font-semibold text-stone-900 tabular-nums text-base">
                   {formatINR(purchase.amount)}
                 </span>
               </div>
@@ -651,9 +651,9 @@ export const PurchaseDetailPage = () => {
         {/* Right (4 Cols): Customer & Loyalty Overview */}
         <div className="lg:col-span-4 space-y-5">
           {/* Customer Summary Card */}
-          <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-900">Customer</h3>
+          <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+              <h3 className="text-sm font-semibold text-stone-900">Customer</h3>
               <button
                 onClick={() => navigate(`/admin/customers/${purchase.customerId}`)}
                 className="text-xs font-medium text-brand-600 hover:text-brand-800 inline-flex items-center gap-1 cursor-pointer transition-colors"
@@ -665,22 +665,22 @@ export const PurchaseDetailPage = () => {
 
             <div className="space-y-2 text-xs">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-medium text-xs shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-stone-800 text-white flex items-center justify-center font-medium text-xs shrink-0">
                   {purchase.customerName?.slice(0, 2).toUpperCase() || 'CU'}
                 </div>
                 <div>
-                  <h4 className="font-medium text-slate-900 text-sm">
+                  <h4 className="font-medium text-stone-900 text-sm">
                     {purchase.customerName}
                   </h4>
-                  <p className="text-xs text-slate-500 font-normal">
+                  <p className="text-xs text-stone-500 font-normal">
                     {purchase.customerMobile}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 text-xs text-slate-500">
+              <div className="pt-2 border-t border-stone-100 text-xs text-stone-500">
                 <span>Customer ID: </span>
-                <span className="font-mono text-xs text-slate-700 font-normal">
+                <span className="font-mono text-xs text-stone-700 font-normal">
                   {purchase.customerCode || purchase.customerId}
                 </span>
               </div>
@@ -688,10 +688,10 @@ export const PurchaseDetailPage = () => {
           </div>
 
           {/* Loyalty Reward Card */}
-          <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+          <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-stone-100">
               <Sparkles className="w-4 h-4 text-amber-600" />
-              <h3 className="text-sm font-semibold text-slate-900">Loyalty Awarded</h3>
+              <h3 className="text-sm font-semibold text-stone-900">Loyalty Awarded</h3>
             </div>
 
             <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 text-xs space-y-1">
@@ -716,10 +716,10 @@ export const PurchaseDetailPage = () => {
           </div>
 
           {/* Bill file */}
-          <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+          <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b border-stone-100">
               <Paperclip className="w-4 h-4 text-brand-600" />
-              <h3 className="text-sm font-semibold text-slate-900">Bill</h3>
+              <h3 className="text-sm font-semibold text-stone-900">Bill</h3>
             </div>
 
             <input
@@ -735,8 +735,8 @@ export const PurchaseDetailPage = () => {
                 <div className="flex items-start gap-2.5">
                   <FileText className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-900 break-words">{purchase.bill.filename}</p>
-                    <p className="text-slate-400 mt-0.5">
+                    <p className="font-medium text-stone-900 break-words">{purchase.bill.filename}</p>
+                    <p className="text-stone-400 mt-0.5">
                       {formatFileSize(purchase.bill.size)} • uploaded {formatLongDate(purchase.bill.uploadedAt)}
                     </p>
                   </div>
@@ -755,7 +755,7 @@ export const PurchaseDetailPage = () => {
                       <button
                         onClick={() => billInputRef.current?.click()}
                         disabled={Boolean(billBusy)}
-                        className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium inline-flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                        className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium inline-flex items-center gap-1.5 hover:bg-stone-50 cursor-pointer disabled:opacity-50"
                       >
                         <Upload className="w-3.5 h-3.5" />
                         <span>{billBusy === 'upload' ? 'Uploading...' : 'Replace'}</span>
@@ -774,7 +774,7 @@ export const PurchaseDetailPage = () => {
               </div>
             ) : (
               <div className="space-y-2.5 text-xs">
-                <p className="text-slate-500 font-normal">
+                <p className="text-stone-500 font-normal">
                   {isCancelled
                     ? 'No bill was attached to this purchase.'
                     : 'No bill attached yet. Once uploaded, the customer can download it from their purchase.'}
@@ -784,12 +784,12 @@ export const PurchaseDetailPage = () => {
                     <button
                       onClick={() => billInputRef.current?.click()}
                       disabled={Boolean(billBusy)}
-                      className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium inline-flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                      className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium inline-flex items-center gap-1.5 hover:bg-stone-50 cursor-pointer disabled:opacity-50"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>{billBusy === 'upload' ? 'Uploading...' : 'Upload bill'}</span>
                     </button>
-                    <p className="text-[11px] text-slate-400">{BILL_HINT}</p>
+                    <p className="text-[11px] text-stone-400">{BILL_HINT}</p>
                   </>
                 )}
               </div>
@@ -798,9 +798,9 @@ export const PurchaseDetailPage = () => {
 
           {/* Warranty Info */}
           {purchase.warranty && (
-            <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-2 text-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <span className="font-medium text-slate-800 flex items-center gap-1.5">
+            <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs space-y-2 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+                <span className="font-medium text-stone-800 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   <span>Warranty</span>
                 </span>
@@ -808,8 +808,8 @@ export const PurchaseDetailPage = () => {
                   {purchase.warranty.status}
                 </span>
               </div>
-              <p className="font-medium text-slate-800">{purchase.warranty.type}</p>
-              <p className="text-xs text-slate-500 font-normal">
+              <p className="font-medium text-stone-800">{purchase.warranty.type}</p>
+              <p className="text-xs text-stone-500 font-normal">
                 Valid until {purchase.warranty.validUntil}. {purchase.warranty.coverage}
               </p>
             </div>

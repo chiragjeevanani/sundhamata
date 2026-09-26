@@ -8,7 +8,8 @@
      brand-*: the logo orange (#D77F3F = brand-500). Use 500 for accents, icons,
      active states and charts; 600+ for filled buttons and small text on white
      (brand-600 with white text passes WCAG AA at 4.7:1; brand-500 is only 3:1).
-     navy-*: the logo navy used for headings, dark surfaces and the sidebar. */
+     ink-*: warm charcoal from the logo icon, for dark surfaces, headings and the sidebar.
+     cream-*: warm, lightly orange-tinted page backgrounds. */
   --color-brand-50: #FDF5EE;
   --color-brand-100: #FAE8D7;
   --color-brand-200: #F4CFAE;
@@ -21,10 +22,14 @@
   --color-brand-900: #653318;
   --color-brand-950: #371909;
 
-  --color-navy-950: #071020;
-  --color-navy-900: #0F2042;
-  --color-navy-800: #162B56;
-  --color-navy-700: #1B365D;
+  --color-ink-950: #120F0D;
+  --color-ink-900: #1C1917;
+  --color-ink-800: #292421;
+  --color-ink-700: #3B3430;
+
+  --color-cream-50: #FEF6EE;
+  --color-cream-100: #FBEDDF;
+  --color-cream-200: #F6E1CD;
 
   --color-warm-amber: #D97706;
   --color-warm-gold: #F59E0B;
@@ -38,8 +43,8 @@
 
 html, body {
   font-family: var(--font-sans);
-  background-color: #ECEEF2;
-  color: #0F172A;
+  background-color: #FBEDDF;
+  color: #1C1917;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;

@@ -63,10 +63,10 @@ export const DashboardPage = () => {
   return (
     <div className="space-y-7 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Store Overview</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Real-time store performance, invoicing activity, and customer loyalty.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Store Overview</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Real-time store performance, invoicing activity, and customer loyalty.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -90,15 +90,15 @@ export const DashboardPage = () => {
       )}
 
       {/* Fluid Open Metrics Strip (Seamless, un-boxed metrics with subtle dividers) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 grid grid-cols-2 lg:grid-cols-4 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 divide-y sm:divide-y-0 sm:divide-x divide-stone-100 grid grid-cols-2 lg:grid-cols-4 shadow-2xs">
         {/* Total Customers */}
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Customers</span>
+            <span className="text-xs font-medium text-stone-500">Total Customers</span>
             <Users className="w-4 h-4 text-brand-600/80" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+            <span className="text-2xl font-semibold text-stone-900 tabular-nums">
               {stats.totalCustomers.toLocaleString('en-IN')}
             </span>
             <SparklineChart
@@ -113,11 +113,11 @@ export const DashboardPage = () => {
         {/* Total Purchases */}
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Invoices Billed</span>
+            <span className="text-xs font-medium text-stone-500">Invoices Billed</span>
             <ShoppingBag className="w-4 h-4 text-emerald-600/80" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+            <span className="text-2xl font-semibold text-stone-900 tabular-nums">
               {stats.totalPurchases.toLocaleString('en-IN')}
             </span>
             <SparklineChart
@@ -132,11 +132,11 @@ export const DashboardPage = () => {
         {/* This Month's Sales */}
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Monthly Revenue</span>
+            <span className="text-xs font-medium text-stone-500">Monthly Revenue</span>
             <IndianRupee className="w-4 h-4 text-amber-600/80" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+            <span className="text-2xl font-semibold text-stone-900 tabular-nums">
               {stats.monthSales >= 100000
                 ? `₹${(stats.monthSales / 100000).toFixed(2)}L`
                 : formatINR(stats.monthSales)}
@@ -153,11 +153,11 @@ export const DashboardPage = () => {
         {/* Loyalty Points Issued */}
         <div className="p-4 sm:p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Points Distributed</span>
+            <span className="text-xs font-medium text-stone-500">Points Distributed</span>
             <Sparkles className="w-4 h-4 text-brand-600/80" />
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+            <span className="text-2xl font-semibold text-stone-900 tabular-nums">
               {stats.pointsIssued >= 100000
                 ? `${(stats.pointsIssued / 100000).toFixed(2)}L`
                 : stats.pointsIssued.toLocaleString('en-IN')}
@@ -173,7 +173,7 @@ export const DashboardPage = () => {
       </div>
 
       {/* Visual Analytics Strip (Un-boxed, clean surface) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-stone-100 shadow-2xs">
         <div className="lg:col-span-7 p-5 flex flex-col justify-between">
           <AreaLineChart
             data={revenueTrendsByTimeframe[activeTimeframe] || revenueTrendsByTimeframe['6 Months']}
@@ -201,11 +201,11 @@ export const DashboardPage = () => {
       </div>
 
       {/* Recent Purchases Table (Clean Enterprise Data Sheet) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Recent Invoices</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Latest retail transactions recorded at the counter</p>
+            <h3 className="text-sm font-semibold text-stone-900">Recent Invoices</h3>
+            <p className="text-xs text-stone-500 mt-0.5">Latest retail transactions recorded at the counter</p>
           </div>
           <button
             onClick={() => navigate('/admin/purchases')}
@@ -219,7 +219,7 @@ export const DashboardPage = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50/60 border-b border-slate-100 text-xs font-medium text-slate-500">
+              <tr className="bg-stone-50/60 border-b border-stone-100 text-xs font-medium text-stone-500">
                 <th className="py-2.5 px-5">Customer</th>
                 <th className="py-2.5 px-4">Product</th>
                 <th className="py-2.5 px-4">Amount</th>
@@ -228,21 +228,21 @@ export const DashboardPage = () => {
                 <th className="py-2.5 px-5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-stone-100 text-stone-700">
               {recentPurchases.map((purchase) => (
-                <tr key={purchase.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={purchase.id} className="hover:bg-stone-50/70 transition-colors">
                   <td className="py-3 px-5">
-                    <span className="font-medium text-slate-900 block">{purchase.customerName || 'Customer'}</span>
-                    <span className="text-xs text-slate-400 font-normal">{purchase.customerMobile}</span>
+                    <span className="font-medium text-stone-900 block">{purchase.customerName || 'Customer'}</span>
+                    <span className="text-xs text-stone-400 font-normal">{purchase.customerMobile}</span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="font-medium text-slate-800 truncate max-w-[220px] block">{purchase.product?.name}</span>
-                    <span className="text-[11px] text-slate-400 font-mono">{purchase.invoiceNumber}</span>
+                    <span className="font-medium text-stone-800 truncate max-w-[220px] block">{purchase.product?.name}</span>
+                    <span className="text-[11px] text-stone-400 font-mono">{purchase.invoiceNumber}</span>
                   </td>
-                  <td className="py-3 px-4 font-medium text-slate-900 tabular-nums whitespace-nowrap">
+                  <td className="py-3 px-4 font-medium text-stone-900 tabular-nums whitespace-nowrap">
                     {formatINR(purchase.amount)}
                   </td>
-                  <td className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">
+                  <td className="py-3 px-4 text-xs text-stone-500 whitespace-nowrap">
                     {purchase.formattedDate}
                   </td>
                   <td className="py-3 px-4">
@@ -251,7 +251,7 @@ export const DashboardPage = () => {
                   <td className="py-3 px-5 text-right whitespace-nowrap">
                     <button
                       onClick={() => navigate(`/admin/purchases/${purchase.id}`)}
-                      className="py-1 px-2.5 rounded-md text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="py-1 px-2.5 rounded-md text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                     >
                       View
                     </button>

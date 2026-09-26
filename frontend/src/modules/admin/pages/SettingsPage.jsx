@@ -81,17 +81,17 @@ export const SettingsPage = () => {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-xs text-slate-400">Loading settings...</div>
+      <div className="py-12 text-center text-xs text-stone-400">Loading settings...</div>
     );
   }
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Store Settings</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Configure store branding, contact parameters, and loyalty engine ratios.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Store Settings</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Configure store branding, contact parameters, and loyalty engine ratios.</p>
         </div>
 
         <button
@@ -104,95 +104,95 @@ export const SettingsPage = () => {
         </button>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white rounded-xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+      <form onSubmit={handleSave} className="bg-white rounded-xl border border-stone-200/80 shadow-2xs divide-y divide-stone-100 overflow-hidden">
         {/* Store Information */}
         <div className="p-5 sm:p-6 space-y-4 text-xs">
           <div>
-            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">Store Details</h3>
-            <p className="text-xs text-slate-400 font-normal">Legal store identity, physical location, and invoice branding</p>
+            <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">Store Details</h3>
+            <p className="text-xs text-stone-400 font-normal">Legal store identity, physical location, and invoice branding</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Store Name</label>
+              <label className="font-medium text-stone-700 block">Store Name</label>
               <input
                 type="text"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Tagline</label>
+              <label className="font-medium text-stone-700 block">Tagline</label>
               <input
                 type="text"
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1 sm:col-span-2">
-              <label className="font-medium text-slate-700 block">Store Address (street / area)</label>
+              <label className="font-medium text-stone-700 block">Store Address (street / area)</label>
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">City</label>
+              <label className="font-medium text-stone-700 block">City</label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">State</label>
+              <label className="font-medium text-stone-700 block">State</label>
               <input
                 type="text"
                 value={stateName}
                 onChange={(e) => setStateName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Pincode</label>
+              <label className="font-medium text-stone-700 block">Pincode</label>
               <input
                 type="text"
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value)}
                 inputMode="numeric"
                 maxLength={6}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Contact Phone</label>
+              <label className="font-medium text-stone-700 block">Contact Phone</label>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">GSTIN / Tax ID</label>
+              <label className="font-medium text-stone-700 block">GSTIN / Tax ID</label>
               <input
                 type="text"
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs uppercase text-slate-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-mono text-xs uppercase text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
           </div>
@@ -201,46 +201,46 @@ export const SettingsPage = () => {
         {/* Loyalty Program Rules */}
         <div className="p-5 sm:p-6 space-y-4 text-xs">
           <div>
-            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">Loyalty Engine Configuration</h3>
-            <p className="text-xs text-slate-400 font-normal">Conversion rules applied on purchase recordings and redemptions</p>
+            <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">Loyalty Engine Configuration</h3>
+            <p className="text-xs text-stone-400 font-normal">Conversion rules applied on purchase recordings and redemptions</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Points per ₹100 Spent</label>
+              <label className="font-medium text-stone-700 block">Points per ₹100 Spent</label>
               <input
                 type="number"
                 step="0.5"
                 min="0.1"
                 value={pointsPerHundred}
                 onChange={(e) => setPointsPerHundred(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Rupee Value per Point (₹)</label>
+              <label className="font-medium text-stone-700 block">Rupee Value per Point (₹)</label>
               <input
                 type="number"
                 step="0.1"
                 min="0.1"
                 value={rupeeValuePerPoint}
                 onChange={(e) => setRupeeValuePerPoint(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-slate-700 block">Minimum Points per Redemption</label>
+              <label className="font-medium text-stone-700 block">Minimum Points per Redemption</label>
               <input
                 type="number"
                 step="1"
                 min="0"
                 value={minRedeemPoints}
                 onChange={(e) => setMinRedeemPoints(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
               />
-              <p className="text-[11px] text-slate-400">0 = customers can redeem any amount</p>
+              <p className="text-[11px] text-stone-400">0 = customers can redeem any amount</p>
             </div>
           </div>
         </div>

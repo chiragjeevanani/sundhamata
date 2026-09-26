@@ -22,7 +22,7 @@ export const UserLayout = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2] flex flex-col justify-start items-center relative overflow-x-hidden selection:bg-[#B55B1F] selection:text-white">
+    <div className="min-h-screen bg-cream-100 flex flex-col justify-start items-center relative overflow-x-hidden selection:bg-[#B55B1F] selection:text-white">
       {/* Desktop Ambient Brand Anchor */}
       <div className="hidden lg:flex fixed top-4 left-6 items-center gap-3 z-30 select-none">
         <BrandLogo size="md" />
@@ -30,10 +30,10 @@ export const UserLayout = () => {
 
       {/* Desktop Helper Bar */}
       <div className="hidden lg:flex fixed top-4 right-6 items-center gap-2 z-30">
-        <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-slate-200 shadow-2xs flex items-center gap-2 text-xs text-slate-600">
+        <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-stone-200 shadow-2xs flex items-center gap-2 text-xs text-stone-600">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-semibold text-slate-800 text-[11.5px]">Customer Mobile App</span>
-          <span className="text-slate-300">|</span>
+          <span className="font-semibold text-stone-800 text-[11.5px]">Customer Mobile App</span>
+          <span className="text-stone-300">|</span>
           <button
             onClick={() => setDeviceMode(deviceMode === 'mobile' ? 'desktop' : 'mobile')}
             className="text-brand-700 hover:text-brand-900 font-bold inline-flex items-center gap-1 cursor-pointer text-[11.5px]"
@@ -55,10 +55,10 @@ export const UserLayout = () => {
 
       {/* Main Responsive Mobile Shell Container */}
       <div
-        className={`w-full bg-[#F8F9FA] min-h-screen transition-all duration-200 relative flex flex-col ${
+        className={`w-full bg-cream-50 min-h-screen transition-all duration-200 relative flex flex-col ${
           deviceMode === 'mobile'
-            ? 'max-w-md sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border sm:border-slate-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)] sm:overflow-hidden'
-            : 'max-w-2xl sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border sm:border-slate-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)] sm:overflow-hidden'
+            ? 'max-w-md sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border sm:border-stone-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)] sm:overflow-hidden'
+            : 'max-w-2xl sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border sm:border-stone-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)] sm:overflow-hidden'
         }`}
       >
         {/* Page Content Container with subtle page transition and compact bottom padding */}

@@ -37,8 +37,8 @@ export const DonutPieChart = ({
   return (
     <div className="w-full">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+        <h3 className="text-sm font-semibold text-stone-900 tracking-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-stone-500 mt-0.5">{subtitle}</p>}
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
@@ -51,7 +51,7 @@ export const DonutPieChart = ({
               cy={center}
               r={radius}
               fill="transparent"
-              stroke="#F1F5F9"
+              stroke="#F5F5F4"
               strokeWidth={strokeWidth}
             />
 
@@ -77,10 +77,10 @@ export const DonutPieChart = ({
 
           {/* Center Callout */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-2">
-            <span className="text-[11px] font-medium text-slate-400">
+            <span className="text-[11px] font-medium text-stone-400">
               {activeItem ? activeItem.label : totalLabel}
             </span>
-            <span className="text-base font-semibold text-slate-900 tabular-nums tracking-tight leading-none mt-1">
+            <span className="text-base font-semibold text-stone-900 tabular-nums tracking-tight leading-none mt-1">
               {activeItem ? activeItem.formattedValue || `${activeItem.percentage}%` : totalValue}
             </span>
             {activeItem && (
@@ -100,8 +100,8 @@ export const DonutPieChart = ({
               onMouseLeave={() => setHoveredIdx(null)}
               className={`p-2 rounded-xl transition-all cursor-pointer border ${
                 hoveredIdx === item.idx
-                  ? 'bg-slate-50 border-slate-300 shadow-2xs'
-                  : 'border-transparent hover:bg-slate-50/60'
+                  ? 'bg-stone-50 border-stone-300 shadow-2xs'
+                  : 'border-transparent hover:bg-stone-50/60'
               }`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -110,20 +110,20 @@ export const DonutPieChart = ({
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: item.color || '#D77F3F' }}
                   />
-                  <span className="font-bold text-slate-800 truncate">{item.label}</span>
+                  <span className="font-bold text-stone-800 truncate">{item.label}</span>
                 </div>
                 <div className="flex items-center gap-2 font-mono shrink-0">
-                  <span className="font-black text-[#0F2042]">
+                  <span className="font-black text-ink-900">
                     {item.formattedValue || item.value}
                   </span>
-                  <span className="text-[10.5px] font-bold text-slate-400">
+                  <span className="text-[10.5px] font-bold text-stone-400">
                     ({item.percentage}%)
                   </span>
                 </div>
               </div>
 
               {/* Progress bar line */}
-              <div className="w-full h-1.5 rounded-full bg-slate-100 mt-1.5 overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-stone-100 mt-1.5 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-300"
                   style={{

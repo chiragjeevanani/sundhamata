@@ -18,8 +18,8 @@ export const BarChartGroup = ({
     <div className="w-full">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h3>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-stone-900 tracking-tight">{title}</h3>
+          {subtitle && <p className="text-xs text-stone-500 mt-0.5">{subtitle}</p>}
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export const BarChartGroup = ({
             >
               {/* Tooltip on hover */}
               {isHovered && (
-                <div className="absolute -top-9 z-20 bg-slate-900 text-white text-xs font-medium px-2 py-1 rounded-md shadow-lg whitespace-nowrap pointer-events-none tabular-nums">
+                <div className="absolute -top-9 z-20 bg-stone-900 text-white text-xs font-medium px-2 py-1 rounded-md shadow-lg whitespace-nowrap pointer-events-none tabular-nums">
                   {isCurrency ? formatINR(item.value) : item.value.toLocaleString('en-IN')}
                 </div>
               )}
@@ -48,14 +48,14 @@ export const BarChartGroup = ({
                 className={`w-full max-w-[40px] rounded-t-md transition-all duration-200 ${
                   item.highlight
                     ? 'bg-brand-600'
-                    : 'bg-slate-300 hover:bg-slate-400'
+                    : 'bg-stone-300 hover:bg-stone-400'
                 } ${isHovered ? 'brightness-110' : ''}`}
               />
 
               {/* Label */}
               <span
                 className={`text-xs font-normal transition-colors ${
-                  isHovered ? 'text-slate-900 font-medium' : 'text-slate-500'
+                  isHovered ? 'text-stone-900 font-medium' : 'text-stone-500'
                 }`}
               >
                 {item.label}

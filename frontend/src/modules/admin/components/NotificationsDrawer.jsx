@@ -51,7 +51,7 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-2xs">
+    <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/40 backdrop-blur-2xs">
       <div
         className="fixed inset-0"
         onClick={onClose}
@@ -63,19 +63,19 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 350 }}
-        className="relative z-10 w-full max-w-sm bg-white h-full border-l border-slate-200 shadow-2xl flex flex-col"
+        className="relative z-10 w-full max-w-sm bg-white h-full border-l border-stone-200 shadow-2xl flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-4 border-b border-stone-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 text-brand-700" />
-            <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
+            <h3 className="text-sm font-bold text-stone-900">Notifications</h3>
           </div>
 
           <div className="flex items-center gap-1">
             <button
               onClick={handleMarkAllRead}
-              className="p-1.5 text-slate-500 hover:text-brand-700 text-xs font-semibold flex items-center gap-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1.5 text-stone-500 hover:text-brand-700 text-xs font-semibold flex items-center gap-1 rounded hover:bg-stone-100 transition-colors cursor-pointer"
               title="Mark all as read"
             >
               <CheckCheck className="w-3.5 h-3.5" />
@@ -83,7 +83,7 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-700 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1.5 text-stone-400 hover:text-stone-700 rounded hover:bg-stone-100 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -91,13 +91,13 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-100 p-2">
+        <div className="flex-1 overflow-y-auto divide-y divide-stone-100 p-2">
           {loading ? (
-            <div className="py-12 text-center text-xs text-slate-400">
+            <div className="py-12 text-center text-xs text-stone-400">
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="py-12 text-center text-xs text-slate-400">
+            <div className="py-12 text-center text-xs text-stone-400">
               No notifications at this time.
             </div>
           ) : (
@@ -112,7 +112,7 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
                   onClick={() => handleClickItem(item)}
                   className={`p-3 rounded-xl transition-all cursor-pointer flex items-start gap-2.5 ${
                     item.read
-                      ? 'hover:bg-slate-50 opacity-80'
+                      ? 'hover:bg-stone-50 opacity-80'
                       : 'bg-brand-50/40 hover:bg-brand-50/70'
                   }`}
                 >
@@ -124,7 +124,7 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
                         ? 'bg-emerald-100 text-emerald-700'
                         : isLoyalty
                         ? 'bg-amber-100 text-amber-700'
-                        : 'bg-slate-100 text-slate-600'
+                        : 'bg-stone-100 text-stone-600'
                     }`}
                   >
                     {isPurchase ? (
@@ -142,16 +142,16 @@ export const NotificationsDrawer = ({ isOpen, onClose }) => {
                     <div className="flex items-center justify-between gap-1 mb-0.5">
                       <h4
                         className={`text-xs font-bold truncate ${
-                          item.read ? 'text-slate-700' : 'text-slate-900'
+                          item.read ? 'text-stone-700' : 'text-stone-900'
                         }`}
                       >
                         {item.title}
                       </h4>
-                      <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                      <span className="text-[10px] text-stone-400 whitespace-nowrap">
                         {item.time}
                       </span>
                     </div>
-                    <p className="text-[11.5px] text-slate-500 leading-snug line-clamp-2">
+                    <p className="text-[11.5px] text-stone-500 leading-snug line-clamp-2">
                       {item.message}
                     </p>
                   </div>

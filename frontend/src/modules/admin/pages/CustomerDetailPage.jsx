@@ -84,7 +84,7 @@ export const CustomerDetailPage = () => {
 
   if (!customer) {
     return (
-      <div className="py-12 text-center text-xs text-slate-400">
+      <div className="py-12 text-center text-xs text-stone-400">
         Customer not found.
       </div>
     );
@@ -103,25 +103,25 @@ export const CustomerDetailPage = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
           <button
             onClick={() => navigate('/admin/customers')}
-            className="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 mb-1.5 cursor-pointer transition-colors"
+            className="text-xs font-medium text-stone-500 hover:text-stone-800 flex items-center gap-1 mb-1.5 cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Customers</span>
           </button>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">{customer.name}</h1>
-            <span className="text-xs font-normal text-slate-500">({customer.phone || customer.mobile})</span>
+            <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">{customer.name}</h1>
+            <span className="text-xs font-normal text-stone-500">({customer.phone || customer.mobile})</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={() => setAdjustModalOpen(true)}
-            className="py-2 px-3 rounded-lg border border-slate-300 text-slate-700 text-xs font-medium hover:bg-slate-50 cursor-pointer transition-colors shadow-2xs"
+            className="py-2 px-3 rounded-lg border border-stone-300 text-stone-700 text-xs font-medium hover:bg-stone-50 cursor-pointer transition-colors shadow-2xs"
           >
             Adjust Points
           </button>
@@ -136,23 +136,23 @@ export const CustomerDetailPage = () => {
       </div>
 
       {/* Unified Open Metrics Strip */}
-      <div className="bg-white rounded-xl border border-slate-200/80 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 grid grid-cols-1 sm:grid-cols-3 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 divide-y sm:divide-y-0 sm:divide-x divide-stone-100 grid grid-cols-1 sm:grid-cols-3 shadow-2xs">
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Lifetime Spend</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Lifetime Spend</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {formatINR(totalSpent)}
           </div>
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Invoices Billed</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Invoices Billed</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {customer.totalPurchases ?? 0}
           </div>
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Loyalty Balance</span>
+          <span className="text-xs font-medium text-stone-500">Loyalty Balance</span>
           <div className="text-2xl font-semibold text-amber-700 tabular-nums mt-1">
             {currentPoints.toLocaleString('en-IN')} pts
           </div>
@@ -160,7 +160,7 @@ export const CustomerDetailPage = () => {
       </div>
 
       {/* Spend Trajectory Chart */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs">
+      <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs">
         <AreaLineChart
           data={customerSpendTimeline}
           title="Customer Purchase Progression"
@@ -172,18 +172,18 @@ export const CustomerDetailPage = () => {
       </div>
 
       {/* Linked Invoices (Clean Enterprise Data Sheet) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Purchases & Invoices</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Historical store transactions for this customer</p>
+            <h3 className="text-sm font-semibold text-stone-900">Purchases & Invoices</h3>
+            <p className="text-xs text-stone-500 mt-0.5">Historical store transactions for this customer</p>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50/60 border-b border-slate-100 text-xs font-medium text-slate-500">
+              <tr className="bg-stone-50/60 border-b border-stone-100 text-xs font-medium text-stone-500">
                 <th className="py-2.5 px-5">Invoice #</th>
                 <th className="py-2.5 px-4">Product</th>
                 <th className="py-2.5 px-4">Amount</th>
@@ -191,17 +191,17 @@ export const CustomerDetailPage = () => {
                 <th className="py-2.5 px-5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-stone-100 text-stone-700">
               {purchases.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={p.id} className="hover:bg-stone-50/70 transition-colors">
                   <td className="py-3 px-5 font-mono text-xs font-medium text-brand-700">{p.invoiceNumber}</td>
-                  <td className="py-3 px-4 font-normal text-slate-800">{p.product?.name}</td>
-                  <td className="py-3 px-4 font-medium text-slate-900 tabular-nums">{formatINR(p.amount)}</td>
-                  <td className="py-3 px-4 text-slate-500 font-normal">{p.formattedDate}</td>
+                  <td className="py-3 px-4 font-normal text-stone-800">{p.product?.name}</td>
+                  <td className="py-3 px-4 font-medium text-stone-900 tabular-nums">{formatINR(p.amount)}</td>
+                  <td className="py-3 px-4 text-stone-500 font-normal">{p.formattedDate}</td>
                   <td className="py-3 px-5 text-right">
                     <button
                       onClick={() => navigate(`/admin/purchases/${p.id}`)}
-                      className="py-1 px-2.5 rounded-md text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="py-1 px-2.5 rounded-md text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                     >
                       View
                     </button>
@@ -215,9 +215,9 @@ export const CustomerDetailPage = () => {
 
       {/* Adjust Modal */}
       {adjustModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-xl max-w-sm w-full p-5 shadow-xl space-y-3">
-            <h3 className="text-sm font-semibold text-slate-900">Adjust Points for {customer.name}</h3>
+            <h3 className="text-sm font-semibold text-stone-900">Adjust Points for {customer.name}</h3>
 
             <form onSubmit={handleAdjustSubmit} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2">
@@ -225,7 +225,7 @@ export const CustomerDetailPage = () => {
                   type="button"
                   onClick={() => setAdjustType('add')}
                   className={`py-1.5 px-3 rounded-lg font-medium border ${
-                    adjustType === 'add' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-slate-200 text-slate-700'
+                    adjustType === 'add' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-stone-200 text-stone-700'
                   }`}
                 >
                   + Add
@@ -234,7 +234,7 @@ export const CustomerDetailPage = () => {
                   type="button"
                   onClick={() => setAdjustType('deduct')}
                   className={`py-1.5 px-3 rounded-lg font-medium border ${
-                    adjustType === 'deduct' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white border-slate-200 text-slate-700'
+                    adjustType === 'deduct' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white border-stone-200 text-stone-700'
                   }`}
                 >
                   - Deduct
@@ -246,7 +246,7 @@ export const CustomerDetailPage = () => {
                 value={adjustPoints}
                 onChange={(e) => setAdjustPoints(e.target.value)}
                 placeholder="Points"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums shadow-2xs"
               />
 
               <input
@@ -254,14 +254,14 @@ export const CustomerDetailPage = () => {
                 value={adjustReason}
                 onChange={(e) => setAdjustReason(e.target.value)}
                 placeholder="Reason"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal shadow-2xs"
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal shadow-2xs"
               />
 
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setAdjustModalOpen(false)}
-                  className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer"
+                  className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer"
                 >
                   Cancel
                 </button>

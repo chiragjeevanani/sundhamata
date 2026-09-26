@@ -7,8 +7,8 @@ import { byTimeframe, toUiPurchase } from './api/adapters';
 const CATEGORY_COLORS = { phones: '#B55B1F', accessories: '#E2955A', service: '#10B981' };
 const BRAND_COLORS = {
   Samsung: '#B55B1F',
-  Apple: '#0F2042',
-  OnePlus: '#64748B',
+  Apple: '#1C1917',
+  OnePlus: '#78716C',
   Xiaomi: '#10B981',
   Realme: '#10B981',
   Vivo: '#8B5CF6',
@@ -27,7 +27,7 @@ const toShare = (rows, colors) =>
     label: row.label,
     value: row.value,
     formattedValue: compactINR(row.value),
-    color: colors[row.key] ?? '#64748B',
+    color: colors[row.key] ?? '#78716C',
   }));
 
 export const adminDashboardService = {

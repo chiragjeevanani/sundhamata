@@ -59,15 +59,15 @@ export const ReportsPage = () => {
   return (
     <div className="space-y-7 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Reports & Analytics</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Revenue velocity, OEM brand market share, and hourly peak volume.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Reports & Analytics</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Revenue velocity, OEM brand market share, and hourly peak volume.</p>
         </div>
 
         <button
           onClick={() => alert('Exporting store sales report as CSV...')}
-          className="py-2 px-3.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs"
+          className="py-2 px-3.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Export CSV</span>
@@ -79,30 +79,30 @@ export const ReportsPage = () => {
       )}
 
       {/* Fluid Open Metrics Strip */}
-      <div className="bg-white rounded-xl border border-slate-200/80 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 grid grid-cols-2 lg:grid-cols-4 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 divide-y sm:divide-y-0 sm:divide-x divide-stone-100 grid grid-cols-2 lg:grid-cols-4 shadow-2xs">
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Gross Revenue</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Gross Revenue</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {formatINR(data.totalSales)}
           </div>
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Invoices Billed</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Invoices Billed</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {data.totalOrders.toLocaleString('en-IN')}
           </div>
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Customer Base</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Customer Base</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {data.totalCustomers.toLocaleString('en-IN')}
           </div>
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Points Distributed</span>
+          <span className="text-xs font-medium text-stone-500">Points Distributed</span>
           <div className="text-2xl font-semibold text-brand-700 tabular-nums mt-1">
             {data.pointsIssued >= 100000
               ? `${(data.pointsIssued / 100000).toFixed(2)}L`
@@ -112,7 +112,7 @@ export const ReportsPage = () => {
       </div>
 
       {/* Visual Analytics Strip (Un-boxed, clean surface) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-stone-100 shadow-2xs">
         <div className="lg:col-span-7 p-5 flex flex-col justify-between">
           <AreaLineChart
             data={revenueTrends[activeRange] ?? []}
@@ -140,7 +140,7 @@ export const ReportsPage = () => {
       </div>
 
       {/* Hourly Sales Bar Chart */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs">
+      <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs">
         <BarChartGroup
           data={hourlyFootfall}
           title="Hourly Sales Volume"

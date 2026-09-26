@@ -17,7 +17,7 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+          className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs"
         />
 
         {/* Modal Card */}
@@ -26,7 +26,7 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 z-10 overflow-hidden p-5 space-y-4"
+          className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl border border-stone-200 z-10 overflow-hidden p-5 space-y-4"
         >
           {/* Header */}
           <div className="flex items-start justify-between">
@@ -35,7 +35,7 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
             </div>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -46,10 +46,10 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
             <span className="text-[10px] font-bold uppercase tracking-wider text-brand-700 block">
               Sundhamata Rewards
             </span>
-            <h3 className="text-base font-extrabold text-[#0F2042] tracking-tight">
+            <h3 className="text-base font-extrabold text-ink-900 tracking-tight">
               Redeem at the store counter
             </h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+            <p className="text-xs text-stone-500 leading-relaxed font-normal">
               Tell our staff you want to use your points when you buy. They come straight off your bill
               {loyalty?.rupeeValuePerPoint ? ` — each point is worth ${formatINR(loyalty.rupeeValuePerPoint)}` : ''}
               {loyalty?.minRedeemPoints > 0 ? `, from ${loyalty.minRedeemPoints.toLocaleString('en-IN')} points at a time` : ''}.
@@ -57,17 +57,17 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
           </div>
 
           {/* Current Balance Summary Box */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80 flex items-center justify-between text-xs">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+              <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider block">
                 Your Balance
               </span>
-              <span className="font-extrabold text-[#0F2042] font-mono text-sm tabular-nums">
+              <span className="font-extrabold text-ink-900 font-mono text-sm tabular-nums">
                 {points.toLocaleString('en-IN')} Points
               </span>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+              <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider block">
                 Approx. Value
               </span>
               <span className="font-bold text-emerald-700 font-mono text-sm tabular-nums">
@@ -79,7 +79,7 @@ export const RedemptionModal = ({ isOpen, onClose, points = 0, estimatedValue = 
           {/* Confirm Button */}
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-[#0F2042] hover:bg-[#162B56] text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-ink-900 hover:bg-ink-800 text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
           >
             Got it
           </button>

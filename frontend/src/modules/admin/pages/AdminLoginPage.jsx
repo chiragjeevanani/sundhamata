@@ -67,7 +67,7 @@ export const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-8 bg-[#0F2042] text-slate-100 select-none">
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-8 bg-ink-900 text-stone-100 select-none">
       {/* Top Header */}
       <div className="flex items-center justify-between max-w-5xl mx-auto w-full">
         <BrandLogo size="md" light={true} />
@@ -82,16 +82,16 @@ export const AdminLoginPage = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="bg-white rounded-2xl p-6 sm:p-7 shadow-2xl text-slate-900 border border-slate-100 space-y-5"
+          className="bg-white rounded-2xl p-6 sm:p-7 shadow-2xl text-stone-900 border border-stone-100 space-y-5"
         >
           <div className="space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-brand-700 block">
               Sundhamata Mobile
             </span>
-            <h1 className="text-xl sm:text-2xl font-black text-[#0F2042] tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-ink-900 tracking-tight">
               Admin Portal
             </h1>
-            <p className="text-xs text-slate-500 font-normal">
+            <p className="text-xs text-stone-500 font-normal">
               Sign in with your store staff credentials to record purchases and manage customers.
             </p>
           </div>
@@ -107,12 +107,12 @@ export const AdminLoginPage = () => {
             <div className="space-y-1">
               <label
                 htmlFor="identifier-input"
-                className="block text-xs font-bold text-slate-700"
+                className="block text-xs font-bold text-stone-700"
               >
                 Mobile / Email
               </label>
-              <div className="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
-                <span className="pl-3 text-slate-400">
+              <div className="relative flex items-center rounded-xl border border-stone-300 focus-within:border-ink-900 focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
+                <span className="pl-3 text-stone-400">
                   <Mail className="w-4 h-4" />
                 </span>
                 <input
@@ -124,7 +124,7 @@ export const AdminLoginPage = () => {
                     if (error) setError('');
                   }}
                   placeholder="admin@sundhamatamobile.com"
-                  className="w-full px-2.5 py-2.5 text-xs text-slate-900 font-semibold placeholder:text-slate-300 focus:outline-hidden"
+                  className="w-full px-2.5 py-2.5 text-xs text-stone-900 font-semibold placeholder:text-stone-300 focus:outline-hidden"
                   autoFocus
                 />
               </div>
@@ -135,7 +135,7 @@ export const AdminLoginPage = () => {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password-input"
-                  className="block text-xs font-bold text-slate-700"
+                  className="block text-xs font-bold text-stone-700"
                 >
                   Password
                 </label>
@@ -153,8 +153,8 @@ export const AdminLoginPage = () => {
                   Forgot password?
                 </button>
               </div>
-              <div className="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#0F2042] focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
-                <span className="pl-3 text-slate-400">
+              <div className="relative flex items-center rounded-xl border border-stone-300 focus-within:border-ink-900 focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
+                <span className="pl-3 text-stone-400">
                   <Lock className="w-4 h-4" />
                 </span>
                 <input
@@ -166,7 +166,7 @@ export const AdminLoginPage = () => {
                     if (error) setError('');
                   }}
                   placeholder="••••••••"
-                  className="w-full px-2.5 py-2.5 text-xs text-slate-900 font-semibold placeholder:text-slate-300 focus:outline-hidden font-mono"
+                  className="w-full px-2.5 py-2.5 text-xs text-stone-900 font-semibold placeholder:text-stone-300 focus:outline-hidden font-mono"
                 />
               </div>
             </div>
@@ -178,11 +178,11 @@ export const AdminLoginPage = () => {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer"
+                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-stone-300 cursor-pointer"
               />
               <label
                 htmlFor="remember"
-                className="text-xs text-slate-600 font-medium select-none cursor-pointer"
+                className="text-xs text-stone-600 font-medium select-none cursor-pointer"
               >
                 Remember this device
               </label>
@@ -192,7 +192,7 @@ export const AdminLoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 rounded-xl bg-[#0F2042] hover:bg-[#162B56] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-60"
+              className="w-full mt-2 py-3 px-4 rounded-xl bg-ink-900 hover:bg-ink-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-60"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export const AdminLoginPage = () => {
 
           {/* Instant Demo Helper (development builds only) */}
           {import.meta.env.DEV && (
-          <div className="pt-2 border-t border-slate-100 text-center">
+          <div className="pt-2 border-t border-stone-100 text-center">
             <button
               type="button"
               onClick={handleQuickDemo}
@@ -225,7 +225,7 @@ export const AdminLoginPage = () => {
       </div>
 
       {/* Footer Notice */}
-      <div className="text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+      <div className="text-center text-stone-400 text-xs flex items-center justify-center gap-2">
         <ShieldCheck className="w-4 h-4 text-emerald-400" />
         <span>Authorized Staff Only • Sundhamata Mobile Retail OS</span>
       </div>

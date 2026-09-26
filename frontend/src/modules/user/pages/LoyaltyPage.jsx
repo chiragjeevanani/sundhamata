@@ -87,7 +87,7 @@ export const LoyaltyPage = () => {
           <>
             {/* Customer Greeting Row */}
             <div className="flex items-center justify-between pt-0.5">
-              <h1 className="text-xl font-black text-[#0F2042] tracking-tight">
+              <h1 className="text-xl font-black text-ink-900 tracking-tight">
                 Loyalty Points
               </h1>
 
@@ -103,9 +103,9 @@ export const LoyaltyPage = () => {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.15 }}
-              className="bg-[#0F2042] text-white rounded-2xl p-4 border border-[#1E365D] shadow-[0_2px_8px_rgba(15,32,66,0.12)] text-center relative overflow-hidden"
+              className="bg-ink-900 text-white rounded-2xl p-4 border border-ink-700 shadow-[0_2px_8px_rgba(15,32,66,0.12)] text-center relative overflow-hidden"
             >
-              <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block leading-none">
+              <span className="text-[10px] uppercase font-bold text-stone-300 tracking-wider block leading-none">
                 Current Balance
               </span>
 
@@ -120,7 +120,7 @@ export const LoyaltyPage = () => {
               </div>
 
               {/* Approximate Rupee Value */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-slate-200 text-[11px] font-semibold">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-stone-200 text-[11px] font-semibold">
                 <span>≈ {formatINR(summary?.estimatedValue || summary?.currentBalance || 0)} value</span>
               </div>
 
@@ -133,7 +133,7 @@ export const LoyaltyPage = () => {
               <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center gap-2">
                 <button
                   onClick={() => setShowRedeemModal(true)}
-                  className="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-[#0F2042] font-bold text-xs uppercase tracking-wider transition-colors active:scale-[0.98] cursor-pointer shadow-2xs"
+                  className="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-stone-100 text-ink-900 font-bold text-xs uppercase tracking-wider transition-colors active:scale-[0.98] cursor-pointer shadow-2xs"
                 >
                   Redeem Points
                 </button>
@@ -147,17 +147,17 @@ export const LoyaltyPage = () => {
             </motion.div>
 
             {/* Point Summary: Clean 3-Column Layout */}
-            <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)]">
-              <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)]">
+              <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-stone-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
                   This Month
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 divide-x divide-slate-100 text-center">
+              <div className="grid grid-cols-3 divide-x divide-stone-100 text-center">
                 {/* Earned */}
                 <div className="px-1">
-                  <span className="text-[9.5px] uppercase font-bold text-slate-400 block leading-tight">
+                  <span className="text-[9.5px] uppercase font-bold text-stone-400 block leading-tight">
                     Earned
                   </span>
                   <span className="text-sm font-extrabold text-emerald-700 font-mono tabular-nums mt-0.5 block">
@@ -167,20 +167,20 @@ export const LoyaltyPage = () => {
 
                 {/* Redeemed */}
                 <div className="px-1">
-                  <span className="text-[9.5px] uppercase font-bold text-slate-400 block leading-tight">
+                  <span className="text-[9.5px] uppercase font-bold text-stone-400 block leading-tight">
                     Redeemed
                   </span>
-                  <span className="text-sm font-extrabold text-slate-700 font-mono tabular-nums mt-0.5 block">
+                  <span className="text-sm font-extrabold text-stone-700 font-mono tabular-nums mt-0.5 block">
                     -{summary?.redeemedThisMonth?.toLocaleString('en-IN') || 0}
                   </span>
                 </div>
 
                 {/* Net */}
                 <div className="px-1">
-                  <span className="text-[9.5px] uppercase font-bold text-slate-400 block leading-tight">
+                  <span className="text-[9.5px] uppercase font-bold text-stone-400 block leading-tight">
                     Net
                   </span>
-                  <span className="text-sm font-extrabold text-[#0F2042] font-mono tabular-nums mt-0.5 block">
+                  <span className="text-sm font-extrabold text-ink-900 font-mono tabular-nums mt-0.5 block">
                     {(summary?.netThisMonth ?? 0) >= 0 ? '+' : '−'}
                     {Math.abs(summary?.netThisMonth ?? 0).toLocaleString('en-IN')}
                   </span>
@@ -190,7 +190,7 @@ export const LoyaltyPage = () => {
 
             {/* How You Earn Points (Informational Cards) */}
             <section className="space-y-1.5 pt-0.5">
-              <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">
+              <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-stone-500">
                 How You Earn Points
               </h3>
 
@@ -198,18 +198,18 @@ export const LoyaltyPage = () => {
                 {programInfo?.earningMethods?.map((method) => (
                   <div
                     key={method.id}
-                    className="bg-white rounded-xl p-2.5 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.02)] flex flex-col justify-between"
+                    className="bg-white rounded-xl p-2.5 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.02)] flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <h4 className="text-[12px] font-bold text-slate-900 leading-tight">
+                        <h4 className="text-[12px] font-bold text-stone-900 leading-tight">
                           {method.title}
                         </h4>
                         <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-brand-50 text-brand-800 border border-brand-100 shrink-0">
                           {method.tag}
                         </span>
                       </div>
-                      <p className="text-[10.5px] text-slate-500 leading-snug font-normal">
+                      <p className="text-[10.5px] text-stone-500 leading-snug font-normal">
                         {method.description}
                       </p>
                     </div>
@@ -222,13 +222,13 @@ export const LoyaltyPage = () => {
             <section className="space-y-2 pt-1">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500 block">
+                  <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-stone-500 block">
                     Points Activity
                   </h3>
                 </div>
 
                 {/* Segmented Filter Control */}
-                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
+                <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200/80">
                   {['all', 'earned', 'redeemed'].map((f) => {
                     const active = filter === f;
                     return (
@@ -237,8 +237,8 @@ export const LoyaltyPage = () => {
                         onClick={() => setFilter(f)}
                         className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold capitalize transition-all cursor-pointer ${
                           active
-                            ? 'bg-white text-[#0F2042] shadow-2xs'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white text-ink-900 shadow-2xs'
+                            : 'text-stone-500 hover:text-stone-800'
                         }`}
                       >
                         {f}
@@ -268,7 +268,7 @@ export const LoyaltyPage = () => {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.04, duration: 0.15 }}
                           onClick={() => setSelectedTxn(txn)}
-                          className="bg-white rounded-xl p-2.5 px-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.02)] hover:border-slate-300 transition-all flex items-center justify-between cursor-pointer group"
+                          className="bg-white rounded-xl p-2.5 px-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.02)] hover:border-stone-300 transition-all flex items-center justify-between cursor-pointer group"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {/* Direction Icon Box */}
@@ -287,13 +287,13 @@ export const LoyaltyPage = () => {
                             </div>
 
                             <div className="min-w-0">
-                              <h4 className="text-[12.5px] font-bold text-slate-900 group-hover:text-brand-700 transition-colors truncate">
+                              <h4 className="text-[12.5px] font-bold text-stone-900 group-hover:text-brand-700 transition-colors truncate">
                                 {txn.title}
                               </h4>
-                              <p className="text-[10.5px] text-slate-500 truncate">
+                              <p className="text-[10.5px] text-stone-500 truncate">
                                 {txn.description}
                               </p>
-                              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
+                              <div className="flex items-center gap-1.5 text-[10px] text-stone-400 mt-0.5">
                                 <span>{txn.formattedDate}</span>
                                 {txn.invoiceNumber && (
                                   <>
@@ -308,12 +308,12 @@ export const LoyaltyPage = () => {
                           <div className="text-right shrink-0 pl-2">
                             <span
                               className={`font-mono font-extrabold text-[13.5px] tabular-nums block ${
-                                isEarned ? 'text-emerald-700' : 'text-slate-700'
+                                isEarned ? 'text-emerald-700' : 'text-stone-700'
                               }`}
                             >
                               {isEarned ? `+${txn.points.toLocaleString('en-IN')}` : `-${txn.points.toLocaleString('en-IN')}`}
                             </span>
-                            <span className="text-[9.5px] text-slate-400 font-mono block">
+                            <span className="text-[9.5px] text-stone-400 font-mono block">
                               Bal: {txn.balanceAfter.toLocaleString('en-IN')}
                             </span>
                           </div>
@@ -328,11 +328,11 @@ export const LoyaltyPage = () => {
             {/* How Loyalty Points Work (3-Step Educational Section) */}
             <section
               ref={howItWorksRef}
-              className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-2.5 pt-3"
+              className="bg-white rounded-xl p-3.5 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-2.5 pt-3"
             >
-              <div className="flex items-center gap-1.5 pb-1 border-b border-slate-100">
+              <div className="flex items-center gap-1.5 pb-1 border-b border-stone-100">
                 <HelpCircle className="w-3.5 h-3.5 text-brand-700" />
-                <h3 className="text-xs font-bold text-[#0F2042] uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-ink-900 uppercase tracking-wider">
                   How Loyalty Points Work
                 </h3>
               </div>
@@ -344,8 +344,8 @@ export const LoyaltyPage = () => {
                       {item.step}
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-900">{item.title}</h4>
-                      <p className="text-[11px] text-slate-500 font-normal mt-0.5 leading-snug">
+                      <h4 className="font-bold text-stone-900">{item.title}</h4>
+                      <p className="text-[11px] text-stone-500 font-normal mt-0.5 leading-snug">
                         {item.description}
                       </p>
                     </div>
@@ -354,8 +354,8 @@ export const LoyaltyPage = () => {
               </div>
 
               {/* Policy Disclaimer */}
-              <div className="pt-2 border-t border-slate-100 flex items-start gap-1.5 text-[10px] text-slate-400 leading-relaxed font-normal">
-                <Info className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+              <div className="pt-2 border-t border-stone-100 flex items-start gap-1.5 text-[10px] text-stone-400 leading-relaxed font-normal">
+                <Info className="w-3 h-3 text-stone-400 shrink-0 mt-0.5" />
                 <span>{programInfo?.termsDisclaimer}</span>
               </div>
             </section>

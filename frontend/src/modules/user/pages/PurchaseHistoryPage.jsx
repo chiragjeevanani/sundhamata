@@ -55,27 +55,27 @@ export const PurchaseHistoryPage = () => {
       <div className="p-3.5 sm:p-4 space-y-2.5">
         {/* Title */}
         <div className="pt-0.5">
-          <h1 className="text-xl font-black text-[#0F2042] tracking-tight">
+          <h1 className="text-xl font-black text-ink-900 tracking-tight">
             Purchase History
           </h1>
         </div>
 
         {/* Compact Search Bar */}
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-3.5 h-3.5 text-slate-400" />
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-stone-400">
+            <Search className="w-3.5 h-3.5 text-stone-400" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search purchases..."
-            className="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#0F2042] focus:ring-1 focus:ring-[#0F2042] transition-all shadow-2xs font-medium"
+            className="w-full pl-8 pr-7 py-1.5 bg-white border border-stone-300 rounded-lg text-xs text-stone-900 placeholder:text-stone-400 focus:outline-hidden focus:border-ink-900 focus:ring-1 focus:ring-ink-900 transition-all shadow-2xs font-medium"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute inset-y-0 right-0 pr-2 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
@@ -92,8 +92,8 @@ export const PurchaseHistoryPage = () => {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all select-none cursor-pointer ${
                   isSelected
-                    ? 'bg-[#0F2042] text-white shadow-2xs'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/90'
+                    ? 'bg-ink-900 text-white shadow-2xs'
+                    : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/90'
                 }`}
               >
                 {cat.label}
@@ -130,7 +130,7 @@ export const PurchaseHistoryPage = () => {
             )
           ) : (
             <div className="space-y-2">
-              <div className="text-[10.5px] font-medium text-slate-400 px-0.5">
+              <div className="text-[10.5px] font-medium text-stone-400 px-0.5">
                 <span>{purchases.length} {purchases.length === 1 ? 'purchase' : 'purchases'}</span>
               </div>
 

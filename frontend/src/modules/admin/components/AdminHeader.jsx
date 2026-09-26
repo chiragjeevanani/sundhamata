@@ -55,13 +55,13 @@ export const AdminHeader = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 h-14 flex items-center justify-between px-3 sm:px-6 select-none">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 h-14 flex items-center justify-between px-3 sm:px-6 select-none">
       {/* Left Section: Sidebar Toggle Buttons & Global Search */}
       <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-lg">
         {/* Mobile Hamburger */}
         <button
           onClick={onMobileMenuToggle}
-          className="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          className="lg:hidden p-2 text-stone-600 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
           aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />
@@ -70,27 +70,27 @@ export const AdminHeader = ({
         {/* Desktop Sidebar Toggle */}
         <button
           onClick={onToggleSidebarCollapse}
-          className="hidden lg:flex p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          className="hidden lg:flex p-2 text-stone-500 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
           title={isSidebarCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
           aria-label="Toggle sidebar collapse"
         >
           {isSidebarCollapsed ? (
-            <PanelLeftOpen className="w-4.5 h-4.5 text-slate-600" />
+            <PanelLeftOpen className="w-4.5 h-4.5 text-stone-600" />
           ) : (
-            <PanelLeftClose className="w-4.5 h-4.5 text-slate-600" />
+            <PanelLeftClose className="w-4.5 h-4.5 text-stone-600" />
           )}
         </button>
 
         {/* Global Search Bar Trigger */}
         <button
           onClick={onOpenSearchModal}
-          className="flex-1 max-w-sm sm:max-w-md py-1.5 px-3 bg-slate-50 hover:bg-slate-100/90 border border-slate-200 rounded-lg text-left text-xs text-slate-400 flex items-center justify-between transition-colors cursor-pointer group"
+          className="flex-1 max-w-sm sm:max-w-md py-1.5 px-3 bg-stone-50 hover:bg-stone-100/90 border border-stone-200 rounded-lg text-left text-xs text-stone-400 flex items-center justify-between transition-colors cursor-pointer group"
         >
           <div className="flex items-center gap-2 truncate">
-            <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 shrink-0" />
+            <Search className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 shrink-0" />
             <span className="truncate font-normal">Search customer, mobile, invoice...</span>
           </div>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-mono text-slate-400 font-medium shadow-2xs">
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-white border border-stone-200 text-[10px] font-mono text-stone-400 font-medium shadow-2xs">
             ⌘K
           </kbd>
         </button>
@@ -110,7 +110,7 @@ export const AdminHeader = ({
         {/* Notifications Icon Button */}
         <button
           onClick={onOpenNotifications}
-          className="relative p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          className="relative p-2 text-stone-600 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
           aria-label="View notifications"
         >
           <Bell className="w-4.5 h-4.5" />
@@ -123,30 +123,30 @@ export const AdminHeader = ({
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setProfileDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-2 p-1 pl-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            className="flex items-center gap-2 p-1 pl-2 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
           >
-            <div className="w-7 h-7 rounded-md bg-[#0B1528] text-white font-medium text-xs flex items-center justify-center">
+            <div className="w-7 h-7 rounded-md bg-ink-950 text-white font-medium text-xs flex items-center justify-center">
               {admin?.avatarInitials}
             </div>
             <div className="hidden md:block text-left leading-tight">
-              <span className="text-xs font-semibold text-slate-800 block truncate max-w-[120px]">
+              <span className="text-xs font-semibold text-stone-800 block truncate max-w-[120px]">
                 {admin?.name}
               </span>
-              <span className="text-[10px] text-slate-500 font-normal block truncate">
+              <span className="text-[10px] text-stone-500 font-normal block truncate">
                 {admin?.roleLabel || admin?.role}
               </span>
             </div>
-            <ChevronDown className="hidden md:block w-3.5 h-3.5 text-slate-400" />
+            <ChevronDown className="hidden md:block w-3.5 h-3.5 text-stone-400" />
           </button>
 
           {/* Dropdown Menu */}
           {profileDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 z-40 text-xs animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-2 border-b border-slate-100">
-                <p className="font-semibold text-slate-900 truncate">
+            <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-stone-200 shadow-lg py-1.5 z-40 text-xs animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 border-b border-stone-100">
+                <p className="font-semibold text-stone-900 truncate">
                   {admin?.name}
                 </p>
-                <p className="text-[11px] text-slate-500 font-normal truncate">
+                <p className="text-[11px] text-stone-500 font-normal truncate">
                   {admin?.email}
                 </p>
               </div>
@@ -157,9 +157,9 @@ export const AdminHeader = ({
                     setProfileDropdownOpen(false);
                     navigate('/admin/settings');
                   }}
-                  className="w-full px-3 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                  className="w-full px-3 py-2 text-left hover:bg-stone-50 text-stone-700 flex items-center gap-2 cursor-pointer font-medium"
                 >
-                  <Settings className="w-4 h-4 text-slate-400" />
+                  <Settings className="w-4 h-4 text-stone-400" />
                   <span>Store Settings</span>
                 </button>
 
@@ -168,17 +168,17 @@ export const AdminHeader = ({
                     setProfileDropdownOpen(false);
                     navigate('/home');
                   }}
-                  className="w-full px-3 py-2 text-left hover:bg-slate-50 text-slate-700 flex items-center justify-between cursor-pointer font-medium"
+                  className="w-full px-3 py-2 text-left hover:bg-stone-50 text-stone-700 flex items-center justify-between cursor-pointer font-medium"
                 >
                   <span className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-slate-400" />
+                    <User className="w-4 h-4 text-stone-400" />
                     <span>Customer App</span>
                   </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                  <ExternalLink className="w-3.5 h-3.5 text-stone-400" />
                 </button>
               </div>
 
-              <div className="pt-1 border-t border-slate-100">
+              <div className="pt-1 border-t border-stone-100">
                 <button
                   onClick={() => {
                     setProfileDropdownOpen(false);

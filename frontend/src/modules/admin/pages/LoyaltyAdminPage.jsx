@@ -143,10 +143,10 @@ export const LoyaltyAdminPage = () => {
   return (
     <div className="space-y-7 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Loyalty Program</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Points distribution ledger, customer reward tiers, and balance management.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Loyalty Program</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Points distribution ledger, customer reward tiers, and balance management.</p>
         </div>
 
         <button
@@ -159,10 +159,10 @@ export const LoyaltyAdminPage = () => {
       </div>
 
       {/* Fluid Open Metrics Strip */}
-      <div className="bg-white rounded-xl border border-slate-200/80 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 grid grid-cols-2 lg:grid-cols-4 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 divide-y sm:divide-y-0 sm:divide-x divide-stone-100 grid grid-cols-2 lg:grid-cols-4 shadow-2xs">
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Total Points Issued</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Total Points Issued</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {overview.totalPointsIssued >= 100000
               ? `${(overview.totalPointsIssued / 100000).toFixed(2)}L`
               : overview.totalPointsIssued.toLocaleString('en-IN')}
@@ -170,7 +170,7 @@ export const LoyaltyAdminPage = () => {
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Points Redeemed</span>
+          <span className="text-xs font-medium text-stone-500">Points Redeemed</span>
           <div className="text-2xl font-semibold text-rose-700 tabular-nums mt-1">
             {overview.pointsRedeemed >= 100000
               ? `${(overview.pointsRedeemed / 100000).toFixed(2)}L`
@@ -179,7 +179,7 @@ export const LoyaltyAdminPage = () => {
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Active Balance Pool</span>
+          <span className="text-xs font-medium text-stone-500">Active Balance Pool</span>
           <div className="text-2xl font-semibold text-emerald-700 tabular-nums mt-1">
             {overview.pointsOutstanding >= 100000
               ? `${(overview.pointsOutstanding / 100000).toFixed(2)}L`
@@ -188,15 +188,15 @@ export const LoyaltyAdminPage = () => {
         </div>
 
         <div className="p-4 sm:p-5">
-          <span className="text-xs font-medium text-slate-500">Enrolled Customers</span>
-          <div className="text-2xl font-semibold text-slate-900 tabular-nums mt-1">
+          <span className="text-xs font-medium text-stone-500">Enrolled Customers</span>
+          <div className="text-2xl font-semibold text-stone-900 tabular-nums mt-1">
             {overview.customersWithPoints.toLocaleString('en-IN')}
           </div>
         </div>
       </div>
 
       {/* Visual Analytics Strip (Un-boxed, clean surface) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 shadow-2xs">
+      <div className="bg-white rounded-xl border border-stone-200/80 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-stone-100 shadow-2xs">
         <div className="lg:col-span-7 p-5 flex flex-col justify-between">
           <AreaLineChart
             data={overview.issuedTrend?.[activeTimeframe] ?? []}
@@ -225,22 +225,22 @@ export const LoyaltyAdminPage = () => {
       </div>
 
       {/* Transaction Activity Ledger (Clean Enterprise Data Sheet) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Points Activity Ledger</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Audit log of customer points earned and deducted</p>
+            <h3 className="text-sm font-semibold text-stone-900">Points Activity Ledger</h3>
+            <p className="text-xs text-stone-500 mt-0.5">Audit log of customer points earned and deducted</p>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+          <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg">
             {['all', 'earned', 'redeemed'].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-1 rounded-md text-xs font-medium capitalize transition-all cursor-pointer ${
                   filter === f
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white text-stone-900 shadow-2xs'
+                    : 'text-stone-500 hover:text-stone-800'
                 }`}
               >
                 {f}
@@ -255,7 +255,7 @@ export const LoyaltyAdminPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/60 border-b border-slate-100 text-xs font-medium text-slate-500">
+                <tr className="bg-stone-50/60 border-b border-stone-100 text-xs font-medium text-stone-500">
                   <th className="py-2.5 px-5">Customer</th>
                   <th className="py-2.5 px-4">Description</th>
                   <th className="py-2.5 px-4 text-right">Points</th>
@@ -264,19 +264,19 @@ export const LoyaltyAdminPage = () => {
                   <th className="py-2.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-stone-100 text-stone-700">
                 {transactions.map((t) => {
                   const isEarned = t.isCredit;
                   return (
-                    <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={t.id} className="hover:bg-stone-50/70 transition-colors">
                       <td className="py-3 px-5">
-                        <span className="font-medium text-slate-900 block">{t.customerName || 'Customer'}</span>
-                        <span className="text-[11px] text-slate-400 font-mono font-normal">{t.customerCode}</span>
+                        <span className="font-medium text-stone-900 block">{t.customerName || 'Customer'}</span>
+                        <span className="text-[11px] text-stone-400 font-mono font-normal">{t.customerCode}</span>
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="font-medium text-slate-800 block">{t.title}</span>
-                        <span className="text-xs text-slate-400 truncate max-w-[220px] block font-normal">{t.description}</span>
+                        <span className="font-medium text-stone-800 block">{t.title}</span>
+                        <span className="text-xs text-stone-400 truncate max-w-[220px] block font-normal">{t.description}</span>
                       </td>
 
                       <td className="py-3 px-4 text-right font-medium text-xs tabular-nums whitespace-nowrap">
@@ -285,11 +285,11 @@ export const LoyaltyAdminPage = () => {
                         </span>
                       </td>
 
-                      <td className="py-3 px-4 text-slate-500 font-normal whitespace-nowrap">
+                      <td className="py-3 px-4 text-stone-500 font-normal whitespace-nowrap">
                         {t.formattedDate || t.date}
                       </td>
 
-                      <td className="py-3 px-4 text-right text-slate-800 tabular-nums whitespace-nowrap font-normal">
+                      <td className="py-3 px-4 text-right text-stone-800 tabular-nums whitespace-nowrap font-normal">
                         {t.balanceAfter?.toLocaleString('en-IN') || 0} pts
                       </td>
 
@@ -297,12 +297,12 @@ export const LoyaltyAdminPage = () => {
                         {t.purchaseId ? (
                           <button
                             onClick={() => navigate(`/admin/purchases/${t.purchaseId}`)}
-                            className="py-1 px-2.5 rounded-md text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                            className="py-1 px-2.5 rounded-md text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                           >
                             Invoice
                           </button>
                         ) : (
-                          <span className="text-[11px] text-slate-400 font-normal">Manual</span>
+                          <span className="text-[11px] text-stone-400 font-normal">Manual</span>
                         )}
                       </td>
                     </tr>
@@ -316,13 +316,13 @@ export const LoyaltyAdminPage = () => {
 
       {/* Adjustment Modal */}
       {adjustModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-xl max-w-sm w-full p-5 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-900">Adjust Loyalty Points</h3>
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+              <h3 className="text-sm font-semibold text-stone-900">Adjust Loyalty Points</h3>
               <button
                 onClick={() => setAdjustModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-xs font-normal cursor-pointer"
+                className="text-stone-400 hover:text-stone-700 text-xs font-normal cursor-pointer"
               >
                 ✕
               </button>
@@ -330,10 +330,10 @@ export const LoyaltyAdminPage = () => {
 
             <form onSubmit={handleAdjustSubmit} className="space-y-3.5 text-xs">
               <div className="space-y-1">
-                <label className="font-medium text-slate-700 block">Customer</label>
+                <label className="font-medium text-stone-700 block">Customer</label>
                 {selectedCustomer ? (
-                  <div className="flex justify-between items-center p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-                    <span className="font-medium text-slate-900">{selectedCustomer.name}</span>
+                  <div className="flex justify-between items-center p-2.5 rounded-lg bg-stone-50 border border-stone-200">
+                    <span className="font-medium text-stone-900">{selectedCustomer.name}</span>
                     <button
                       type="button"
                       onClick={() => setSelectedCustomer(null)}
@@ -348,11 +348,11 @@ export const LoyaltyAdminPage = () => {
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
                     placeholder="Search customer name or phone..."
-                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                    className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
                   />
                 )}
                 {customerSearchResults.length > 0 && !selectedCustomer && (
-                  <div className="border border-slate-200 rounded-lg bg-white max-h-36 overflow-y-auto divide-y divide-slate-100 shadow-md">
+                  <div className="border border-stone-200 rounded-lg bg-white max-h-36 overflow-y-auto divide-y divide-stone-100 shadow-md">
                     {customerSearchResults.map((c) => (
                       <div
                         key={c.id}
@@ -360,10 +360,10 @@ export const LoyaltyAdminPage = () => {
                           setSelectedCustomer(c);
                           setCustomerSearchResults([]);
                         }}
-                        className="p-2.5 hover:bg-slate-50 cursor-pointer flex justify-between"
+                        className="p-2.5 hover:bg-stone-50 cursor-pointer flex justify-between"
                       >
-                        <span className="font-medium text-slate-900">{c.name}</span>
-                        <span className="text-slate-400 font-normal">{c.phone || c.mobile}</span>
+                        <span className="font-medium text-stone-900">{c.name}</span>
+                        <span className="text-stone-400 font-normal">{c.phone || c.mobile}</span>
                       </div>
                     ))}
                   </div>
@@ -377,7 +377,7 @@ export const LoyaltyAdminPage = () => {
                   className={`py-1.5 px-3 rounded-lg font-medium border transition-colors cursor-pointer ${
                     adjustType === 'add'
                       ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-white text-slate-700 border-slate-200'
+                      : 'bg-white text-stone-700 border-stone-200'
                   }`}
                 >
                   + Add Points
@@ -388,7 +388,7 @@ export const LoyaltyAdminPage = () => {
                   className={`py-1.5 px-3 rounded-lg font-medium border transition-colors cursor-pointer ${
                     adjustType === 'deduct'
                       ? 'bg-rose-600 text-white border-rose-600'
-                      : 'bg-white text-slate-700 border-slate-200'
+                      : 'bg-white text-stone-700 border-stone-200'
                   }`}
                 >
                   - Deduct Points
@@ -396,22 +396,22 @@ export const LoyaltyAdminPage = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium text-slate-700 block">Points</label>
+                <label className="font-medium text-stone-700 block">Points</label>
                 <input
                   type="number"
                   value={adjustPoints}
                   onChange={(e) => setAdjustPoints(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium text-slate-700 block">Reason</label>
+                <label className="font-medium text-stone-700 block">Reason</label>
                 <input
                   type="text"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 shadow-2xs"
                 />
               </div>
 
@@ -419,7 +419,7 @@ export const LoyaltyAdminPage = () => {
                 <button
                   type="button"
                   onClick={() => setAdjustModalOpen(false)}
-                  className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer"
+                  className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer"
                 >
                   Cancel
                 </button>

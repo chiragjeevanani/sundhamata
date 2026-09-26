@@ -77,7 +77,7 @@ export const HomePage = () => {
           <>
             {/* Greeting */}
             <div className="pt-0.5">
-              <h1 className="text-xl font-black text-[#0F2042] tracking-tight">
+              <h1 className="text-xl font-black text-ink-900 tracking-tight">
                 Hello, {customerFirstName}
               </h1>
             </div>
@@ -86,13 +86,13 @@ export const HomePage = () => {
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => navigate('/purchases')}
-                className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] hover:border-slate-300 transition-all text-left cursor-pointer flex items-center justify-between group"
+                className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] hover:border-stone-300 transition-all text-left cursor-pointer flex items-center justify-between group"
               >
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
                     Purchases
                   </span>
-                  <span className="text-lg font-extrabold text-[#0F2042] font-mono tabular-nums leading-tight mt-0.5 block">
+                  <span className="text-lg font-extrabold text-ink-900 font-mono tabular-nums leading-tight mt-0.5 block">
                     {summary?.totalPurchases || 0}
                   </span>
                 </div>
@@ -103,13 +103,13 @@ export const HomePage = () => {
 
               <button
                 onClick={() => navigate('/loyalty')}
-                className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] hover:border-slate-300 transition-all text-left cursor-pointer flex items-center justify-between group"
+                className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] hover:border-stone-300 transition-all text-left cursor-pointer flex items-center justify-between group"
               >
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">
                     Points
                   </span>
-                  <span className="text-lg font-extrabold text-[#0F2042] font-mono tabular-nums leading-tight mt-0.5 block">
+                  <span className="text-lg font-extrabold text-ink-900 font-mono tabular-nums leading-tight mt-0.5 block">
                     {loyaltySummary?.currentBalance?.toLocaleString('en-IN') || 0}
                   </span>
                 </div>
@@ -123,19 +123,19 @@ export const HomePage = () => {
             {latestPurchase && (
               <section className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
                     Latest Purchase
                   </h2>
                 </div>
 
-                <div className="bg-[#0F2042] text-white rounded-xl p-3.5 border border-[#1E365D] shadow-[0_1px_4px_rgba(15,32,66,0.08)]">
+                <div className="bg-ink-900 text-white rounded-xl p-3.5 border border-ink-700 shadow-[0_1px_4px_rgba(15,32,66,0.08)]">
                   <div className="flex flex-col gap-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-[14.5px] font-extrabold text-white tracking-tight leading-snug truncate">
                           {latestPurchase.product.name}
                         </h3>
-                        <p className="text-[11.5px] text-slate-300 mt-0.5 font-medium truncate">
+                        <p className="text-[11.5px] text-stone-300 mt-0.5 font-medium truncate">
                           {[latestPurchase.product.variant, latestPurchase.product.color].filter(Boolean).join(' • ')}
                         </p>
                       </div>
@@ -147,7 +147,7 @@ export const HomePage = () => {
 
                     {/* Date and Amount */}
                     <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                      <span className="text-xs text-slate-200 font-medium">
+                      <span className="text-xs text-stone-200 font-medium">
                         {latestPurchase.formattedDate || formatDate(latestPurchase.purchaseDate)}
                       </span>
 
@@ -159,7 +159,7 @@ export const HomePage = () => {
                     {/* View Details Button */}
                     <button
                       onClick={() => navigate(`/purchases/${latestPurchase.id}`)}
-                      className="mt-0.5 w-full py-2 px-3 rounded-lg bg-white hover:bg-slate-100 text-[#0F2042] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98] cursor-pointer"
+                      className="mt-0.5 w-full py-2 px-3 rounded-lg bg-white hover:bg-stone-100 text-ink-900 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98] cursor-pointer"
                     >
                       <span>View Details</span>
                       <ArrowRight className="w-3.5 h-3.5 text-[#B55B1F]" />
@@ -173,7 +173,7 @@ export const HomePage = () => {
             {previousPurchases.length > 0 && (
               <section className="space-y-1.5 pt-0.5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
                     Previous Purchases
                   </h2>
                   <button
@@ -195,15 +195,15 @@ export const HomePage = () => {
 
             {/* Zero Purchases State for Newly Registered Customers */}
             {!latestPurchase && previousPurchases.length === 0 && (
-              <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] text-center space-y-2">
+              <div className="bg-white rounded-xl p-4 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] text-center space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-brand-50 text-[#B55B1F] mx-auto flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div className="space-y-0.5">
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-stone-900">
                     No purchases recorded yet
                   </h3>
-                  <p className="text-xs text-slate-500 font-normal max-w-xs mx-auto">
+                  <p className="text-xs text-stone-500 font-normal max-w-xs mx-auto">
                     Your device purchases and warranty invoices will appear here once billed at our store.
                   </p>
                 </div>
@@ -214,23 +214,23 @@ export const HomePage = () => {
             <section className="pt-0.5">
               <div
                 onClick={onOpenStoreInfo}
-                className="bg-white rounded-xl p-2.5 px-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-all group"
+                className="bg-white rounded-xl p-2.5 px-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] flex items-center justify-between cursor-pointer hover:border-stone-300 transition-all group"
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
                     <PhoneCall className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h3 className="text-[11.5px] font-bold text-slate-900 group-hover:text-brand-700 transition-colors leading-tight">
+                    <h3 className="text-[11.5px] font-bold text-stone-900 group-hover:text-brand-700 transition-colors leading-tight">
                       Need help with your purchase?
                     </h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5 font-normal">
+                    <p className="text-[10px] text-stone-500 mt-0.5 font-normal">
                       Contact Sundhamata Mobile store team
                     </p>
                   </div>
                 </div>
 
-                <span className="w-6 h-6 rounded-full bg-slate-50 group-hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors shrink-0">
+                <span className="w-6 h-6 rounded-full bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center text-stone-400 transition-colors shrink-0">
                   <ChevronRight className="w-3.5 h-3.5" />
                 </span>
               </div>

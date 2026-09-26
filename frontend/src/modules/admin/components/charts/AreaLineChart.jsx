@@ -16,7 +16,7 @@ export const AreaLineChart = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 text-xs text-slate-400 font-medium">
+      <div className="flex items-center justify-center h-48 text-xs text-stone-400 font-medium">
         No chart data available
       </div>
     );
@@ -60,12 +60,12 @@ export const AreaLineChart = ({
       {/* Chart Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h3>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-stone-900 tracking-tight">{title}</h3>
+          {subtitle && <p className="text-xs text-stone-500 mt-0.5">{subtitle}</p>}
         </div>
 
         {timeframes && timeframes.length > 0 && (
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
+          <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg self-start sm:self-auto">
             {timeframes.map((tf) => (
               <button
                 key={tf}
@@ -73,8 +73,8 @@ export const AreaLineChart = ({
                 onClick={() => onTimeframeChange && onTimeframeChange(tf)}
                 className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${
                   activeTimeframe === tf
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'bg-white text-stone-900 shadow-2xs'
+                    : 'text-stone-500 hover:text-stone-900'
                 }`}
               >
                 {tf}
@@ -122,7 +122,7 @@ export const AreaLineChart = ({
                   y1={y}
                   x2={width - paddingX}
                   y2={y}
-                  stroke="#E2E8F0"
+                  stroke="#E7E5E4"
                   strokeDasharray="4 4"
                   strokeWidth="1"
                 />
@@ -131,7 +131,7 @@ export const AreaLineChart = ({
                   y={y + 3.5}
                   textAnchor="end"
                   fontSize="9.5"
-                  fill="#94A3B8"
+                  fill="#A8A29E"
                   fontFamily="monospace"
                   fontWeight="600"
                 >
@@ -162,7 +162,7 @@ export const AreaLineChart = ({
                 y={height - 10}
                 textAnchor="middle"
                 fontSize="10"
-                fill={hoveredIndex === i ? '#0F2042' : '#64748B'}
+                fill={hoveredIndex === i ? '#1C1917' : '#78716C'}
                 fontWeight={hoveredIndex === i ? '700' : '600'}
                 fontFamily="sans-serif"
               >
@@ -211,20 +211,20 @@ export const AreaLineChart = ({
         {/* Hover Tooltip Card */}
         {hoveredPoint && (
           <div
-            className="absolute pointer-events-none z-20 bg-[#0F2042] text-white px-3 py-2 rounded-xl shadow-xl border border-slate-700 text-xs transform -translate-x-1/2 -translate-y-full transition-all duration-100"
+            className="absolute pointer-events-none z-20 bg-ink-900 text-white px-3 py-2 rounded-xl shadow-xl border border-stone-700 text-xs transform -translate-x-1/2 -translate-y-full transition-all duration-100"
             style={{
               left: `${(hoveredPoint.x / width) * 100}%`,
               top: `${Math.max(hoveredPoint.y - 10, 30)}px`,
             }}
           >
-            <div className="font-bold text-slate-300 text-[10px] uppercase tracking-wider">
+            <div className="font-bold text-stone-300 text-[10px] uppercase tracking-wider">
               {hoveredPoint.label} {hoveredPoint.sublabel ? `• ${hoveredPoint.sublabel}` : ''}
             </div>
             <div className="text-sm font-black text-amber-400 font-mono mt-0.5">
               {isCurrency ? formatINR(hoveredPoint.value) : hoveredPoint.value.toLocaleString('en-IN')}
             </div>
             {hoveredPoint.secondary && (
-              <div className="text-[10px] text-slate-300 font-medium">
+              <div className="text-[10px] text-stone-300 font-medium">
                 {hoveredPoint.secondary}
               </div>
             )}

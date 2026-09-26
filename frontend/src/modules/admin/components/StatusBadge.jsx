@@ -5,8 +5,8 @@ export const StatusBadge = ({ status, size = 'sm' }) => {
 
   const s = status.toLowerCase();
 
-  let styles = 'bg-slate-100 text-slate-700 border-slate-200/80';
-  let dotColor = 'bg-slate-400';
+  let styles = 'bg-stone-100 text-stone-700 border-stone-200/80';
+  let dotColor = 'bg-stone-400';
 
   if (s === 'paid' || s === 'purchased' || s === 'completed' || s === 'active' || s === 'earned') {
     styles = 'bg-emerald-50/80 text-emerald-800 border-emerald-200/70';

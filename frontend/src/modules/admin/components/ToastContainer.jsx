@@ -24,10 +24,10 @@ export const ToastContainer = () => {
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
               className={`pointer-events-auto rounded-xl border p-3 shadow-lg flex items-start gap-2.5 bg-white ${
                 isSuccess
-                  ? 'border-emerald-200 text-slate-900 shadow-emerald-950/5'
+                  ? 'border-emerald-200 text-stone-900 shadow-emerald-950/5'
                   : isError
-                  ? 'border-rose-200 text-slate-900 shadow-rose-950/5'
-                  : 'border-brand-200 text-slate-900 shadow-brand-950/5'
+                  ? 'border-rose-200 text-stone-900 shadow-rose-950/5'
+                  : 'border-brand-200 text-stone-900 shadow-brand-950/5'
               }`}
             >
               <div
@@ -49,11 +49,11 @@ export const ToastContainer = () => {
               </div>
 
               <div className="flex-1 min-w-0 pr-1">
-                <h4 className="text-xs font-bold text-slate-900 leading-tight">
+                <h4 className="text-xs font-bold text-stone-900 leading-tight">
                   {toast.title}
                 </h4>
                 {toast.message && (
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-snug">
+                  <p className="text-[11px] text-stone-500 font-medium mt-0.5 leading-snug">
                     {toast.message}
                   </p>
                 )}
@@ -61,7 +61,7 @@ export const ToastContainer = () => {
 
               <button
                 onClick={() => removeToast(toast.id)}
-                className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer transition-colors shrink-0"
+                className="text-stone-400 hover:text-stone-600 p-0.5 rounded cursor-pointer transition-colors shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

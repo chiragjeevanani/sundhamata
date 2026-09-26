@@ -17,7 +17,7 @@ export const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+          className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs"
         />
 
         {/* Modal Card */}
@@ -26,16 +26,16 @@ export const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 z-10 overflow-hidden p-5 space-y-4"
+          className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl border border-stone-200 z-10 overflow-hidden p-5 space-y-4"
         >
           {/* Top Bar */}
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
               Transaction Details
             </span>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -60,38 +60,38 @@ export const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
             <div>
               <span
                 className={`text-xl font-extrabold font-mono tabular-nums leading-none block ${
-                  isEarned ? 'text-emerald-700' : 'text-slate-800'
+                  isEarned ? 'text-emerald-700' : 'text-stone-800'
                 }`}
               >
                 {isEarned ? `+${transaction.points.toLocaleString('en-IN')}` : `-${transaction.points.toLocaleString('en-IN')}`} Points
               </span>
-              <span className="text-xs font-semibold text-slate-500 mt-0.5 block">
+              <span className="text-xs font-semibold text-stone-500 mt-0.5 block">
                 {transaction.title}
               </span>
             </div>
           </div>
 
           {/* Details Table */}
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-2 text-xs divide-y divide-slate-200/60">
+          <div className="bg-stone-50 rounded-xl p-3 border border-stone-200/80 space-y-2 text-xs divide-y divide-stone-200/60">
             {transaction.description && (
               <div className="flex items-center justify-between pt-0.5">
-                <span className="text-slate-500 font-medium">Activity</span>
-                <span className="font-semibold text-slate-900 text-right truncate max-w-[180px]">
+                <span className="text-stone-500 font-medium">Activity</span>
+                <span className="font-semibold text-stone-900 text-right truncate max-w-[180px]">
                   {transaction.description}
                 </span>
               </div>
             )}
 
             <div className="flex items-center justify-between pt-1.5">
-              <span className="text-slate-500 font-medium">Date</span>
-              <span className="font-medium text-slate-800">
+              <span className="text-stone-500 font-medium">Date</span>
+              <span className="font-medium text-stone-800">
                 {transaction.formattedDate || formatLongDate(transaction.date)}
               </span>
             </div>
 
             {transaction.invoiceNumber && (
               <div className="flex items-center justify-between pt-1.5">
-                <span className="text-slate-500 font-medium">Linked Invoice</span>
+                <span className="text-stone-500 font-medium">Linked Invoice</span>
                 <span className="font-mono font-bold text-brand-700 tabular-nums">
                   {transaction.invoiceNumber}
                 </span>
@@ -100,23 +100,23 @@ export const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
 
             {transaction.voucherCode && (
               <div className="flex items-center justify-between pt-1.5">
-                <span className="text-slate-500 font-medium">Voucher Code</span>
-                <span className="font-mono font-bold text-slate-800 tabular-nums">
+                <span className="text-stone-500 font-medium">Voucher Code</span>
+                <span className="font-mono font-bold text-stone-800 tabular-nums">
                   {transaction.voucherCode}
                 </span>
               </div>
             )}
 
             <div className="flex items-center justify-between pt-1.5">
-              <span className="text-slate-500 font-medium">Points {isEarned ? 'Earned' : 'Deducted'}</span>
-              <span className={`font-mono font-bold tabular-nums ${isEarned ? 'text-emerald-700' : 'text-slate-800'}`}>
+              <span className="text-stone-500 font-medium">Points {isEarned ? 'Earned' : 'Deducted'}</span>
+              <span className={`font-mono font-bold tabular-nums ${isEarned ? 'text-emerald-700' : 'text-stone-800'}`}>
                 {transaction.points.toLocaleString('en-IN')}
               </span>
             </div>
 
             <div className="flex items-center justify-between pt-1.5">
-              <span className="text-slate-500 font-medium">Balance After</span>
-              <span className="font-mono font-extrabold text-[#0F2042] tabular-nums">
+              <span className="text-stone-500 font-medium">Balance After</span>
+              <span className="font-mono font-extrabold text-ink-900 tabular-nums">
                 {transaction.balanceAfter.toLocaleString('en-IN')} Points
               </span>
             </div>
@@ -125,7 +125,7 @@ export const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
           {/* Footer close */}
           <button
             onClick={onClose}
-            className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            className="w-full py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
           >
             Close
           </button>

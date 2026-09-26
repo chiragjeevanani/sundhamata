@@ -18,18 +18,18 @@ export const ErrorState = ({
         <AlertCircle className="w-6 h-6" />
       </div>
 
-      <h3 className="text-sm font-bold text-slate-900 tracking-tight mb-1">
+      <h3 className="text-sm font-bold text-stone-900 tracking-tight mb-1">
         {title}
       </h3>
 
-      <p className="text-xs text-slate-500 max-w-xs leading-relaxed mb-4">
+      <p className="text-xs text-stone-500 max-w-xs leading-relaxed mb-4">
         {description}
       </p>
 
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-xs active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 transition-colors shadow-xs active:scale-[0.98]"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Try Again</span>

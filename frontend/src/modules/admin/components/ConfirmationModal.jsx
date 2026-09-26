@@ -20,13 +20,13 @@ export const ConfirmationModal = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.16 }}
-          className="w-full max-w-sm bg-white rounded-2xl p-5 border border-slate-200 shadow-2xl space-y-4"
+          className="w-full max-w-sm bg-white rounded-2xl p-5 border border-stone-200 shadow-2xl space-y-4"
         >
           <div className="flex items-start justify-between">
             <div
@@ -50,17 +50,17 @@ export const ConfirmationModal = ({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
+              className="text-stone-400 hover:text-stone-600 p-1 rounded-lg transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">
+            <h3 className="text-base font-bold text-stone-900 tracking-tight">
               {title}
             </h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+            <p className="text-xs text-stone-500 leading-relaxed font-normal">
               {message}
             </p>
           </div>
@@ -70,7 +70,7 @@ export const ConfirmationModal = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="flex-1 py-2 px-3 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               {cancelText}
             </button>
@@ -83,7 +83,7 @@ export const ConfirmationModal = ({
                   ? 'bg-rose-600 hover:bg-rose-700'
                   : isWarning
                   ? 'bg-amber-600 hover:bg-amber-700'
-                  : 'bg-[#0F2042] hover:bg-[#162B56]'
+                  : 'bg-ink-900 hover:bg-ink-800'
               }`}
             >
               {isLoading ? (

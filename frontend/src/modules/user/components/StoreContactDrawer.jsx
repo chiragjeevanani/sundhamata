@@ -16,7 +16,7 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity"
         />
 
         {/* Drawer content */}
@@ -25,21 +25,21 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 z-10 overflow-hidden max-h-[88vh] flex flex-col"
+          className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 z-10 overflow-hidden max-h-[88vh] flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/70 select-none">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-100 bg-stone-50/70 select-none">
             <div>
               <span className="text-[9.5px] font-bold uppercase tracking-wider text-brand-700 block">
                 Official Retail Store
               </span>
-              <h3 className="text-sm font-extrabold text-[#0F2042]">
+              <h3 className="text-sm font-extrabold text-ink-900">
                 {store?.name}
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full bg-slate-200/70 hover:bg-slate-300 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-full bg-stone-200/70 hover:bg-stone-300 flex items-center justify-center text-stone-700 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -51,7 +51,7 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-2 gap-2.5">
               <a
                 href={`tel:${store?.phone ?? ''}`}
-                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#0F2042] hover:bg-[#162B56] text-white text-xs font-bold transition-colors shadow-2xs active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-ink-900 hover:bg-ink-800 text-white text-xs font-bold transition-colors shadow-2xs active:scale-[0.98]"
               >
                 <Phone className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Call Store</span>
@@ -69,16 +69,16 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
             </div>
 
             {/* Address Card */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80">
               <div className="flex items-start gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0 text-brand-700 mt-0.5">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-slate-800">
+                  <h4 className="text-xs font-bold text-stone-800">
                     Store Location
                   </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed mt-0.5">
+                  <p className="text-xs text-stone-600 leading-relaxed mt-0.5">
                     {formatStoreAddress(store)}
                   </p>
                   <a
@@ -95,27 +95,27 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
             </div>
 
             {/* Timings & Support */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-              <div className="flex items-center gap-2.5 text-xs text-slate-700">
-                <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 space-y-2">
+              <div className="flex items-center gap-2.5 text-xs text-stone-700">
+                <Clock className="w-4 h-4 text-stone-400 shrink-0" />
                 <div>
-                  <span className="font-semibold text-slate-900 block">Store Hours</span>
-                  <span className="text-slate-500">{store?.hours}</span>
+                  <span className="font-semibold text-stone-900 block">Store Hours</span>
+                  <span className="text-stone-500">{store?.hours}</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-200/60 text-xs text-slate-500">
+              <div className="pt-2 border-t border-stone-200/60 text-xs text-stone-500">
                 <span>GSTIN: </span>
-                <span className="font-mono font-semibold text-slate-700 tabular-nums">{store?.gstin}</span>
+                <span className="font-mono font-semibold text-stone-700 tabular-nums">{store?.gstin}</span>
               </div>
             </div>
           </div>
 
           {/* Footer close */}
-          <div className="p-3 bg-slate-50 border-t border-slate-100">
+          <div className="p-3 bg-stone-50 border-t border-stone-100">
             <button
               onClick={onClose}
-              className="w-full py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+              className="w-full py-2 rounded-xl border border-stone-300 text-stone-700 text-xs font-bold hover:bg-stone-100 transition-colors cursor-pointer"
             >
               Close
             </button>

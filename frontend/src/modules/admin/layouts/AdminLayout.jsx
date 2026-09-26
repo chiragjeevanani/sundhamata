@@ -60,8 +60,8 @@ export const AdminLayout = () => {
   // Protect admin routes
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="w-8 h-8 border-2 border-stone-300 border-t-stone-900 rounded-full animate-spin" />
       </div>
     );
   }
@@ -83,7 +83,7 @@ export const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#FAFAFC] text-slate-900 font-sans antialiased selection:bg-brand-100 selection:text-brand-900">
+    <div className="min-h-screen flex bg-cream-50 text-stone-900 font-sans antialiased selection:bg-brand-100 selection:text-brand-900">
       {/* Sidebar (Desktop Sticky Collapsible + Mobile Drawer) */}
       <AdminSidebar
         isMobileOpen={mobileSidebarOpen}

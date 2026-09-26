@@ -321,59 +321,59 @@ export const RecordPurchasePage = () => {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Purchase Recorded</h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Invoice <span className="font-mono font-medium text-slate-800">{successRecord.invoiceNumber}</span> created for {successRecord.customerName}.
+          <h2 className="text-xl font-semibold text-stone-900">Purchase Recorded</h2>
+          <p className="text-xs text-stone-500 mt-1">
+            Invoice <span className="font-mono font-medium text-stone-800">{successRecord.invoiceNumber}</span> created for {successRecord.customerName}.
           </p>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-slate-200/80 text-left text-xs space-y-2.5 shadow-2xs">
-          <div className="flex justify-between text-slate-500">
+        <div className="bg-white rounded-xl p-5 border border-stone-200/80 text-left text-xs space-y-2.5 shadow-2xs">
+          <div className="flex justify-between text-stone-500">
             <span>Product</span>
-            <span className="font-medium text-slate-900">{successRecord.product?.name}</span>
+            <span className="font-medium text-stone-900">{successRecord.product?.name}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-stone-500">
             <span>Amount Paid</span>
-            <span className="font-medium text-slate-900 tabular-nums">{formatINR(successRecord.amount)}</span>
+            <span className="font-medium text-stone-900 tabular-nums">{formatINR(successRecord.amount)}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-stone-500">
             <span>Warranty</span>
-            <span className="font-medium text-slate-900 text-right">
+            <span className="font-medium text-stone-900 text-right">
               {successRecord.warranty
                 ? `${successRecord.warranty.type} · until ${successRecord.warranty.validUntil}`
                 : 'No warranty'}
             </span>
           </div>
           {successRecord.loyalty?.pointsRedeemed > 0 && (
-            <div className="flex justify-between text-amber-800 font-medium pt-2 border-t border-slate-100">
+            <div className="flex justify-between text-amber-800 font-medium pt-2 border-t border-stone-100">
               <span>Points Redeemed</span>
               <span className="tabular-nums">
                 −{successRecord.loyalty.pointsRedeemed.toLocaleString('en-IN')} pts ({formatINR(successRecord.pricing.loyaltyDiscount)} off)
               </span>
             </div>
           )}
-          <div className="flex justify-between text-emerald-700 font-medium pt-2 border-t border-slate-100">
+          <div className="flex justify-between text-emerald-700 font-medium pt-2 border-t border-stone-100">
             <span>Points Credited</span>
             <span className="tabular-nums">+{successRecord.loyalty?.pointsEarned || 0} pts</span>
           </div>
           {successRecord.customerLoyaltyBalance !== undefined && (
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-stone-500">
               <span>New Points Balance</span>
-              <span className="font-medium text-slate-900 tabular-nums">
+              <span className="font-medium text-stone-900 tabular-nums">
                 {successRecord.customerLoyaltyBalance.toLocaleString('en-IN')} pts
               </span>
             </div>
           )}
           {successRecord.imageStatus && !successRecord.imageStatus.ok && (
-            <div className="flex justify-between gap-3 pt-2 border-t border-slate-100 text-rose-700">
+            <div className="flex justify-between gap-3 pt-2 border-t border-stone-100 text-rose-700">
               <span>Product photo</span>
               <span className="font-medium text-right">Not uploaded — add it from the invoice page</span>
             </div>
           )}
           {successRecord.billStatus && (
             <div
-              className={`flex justify-between gap-3 pt-2 border-t border-slate-100 ${
-                successRecord.billStatus.ok ? 'text-slate-500' : 'text-rose-700'
+              className={`flex justify-between gap-3 pt-2 border-t border-stone-100 ${
+                successRecord.billStatus.ok ? 'text-stone-500' : 'text-rose-700'
               }`}
             >
               <span>Bill</span>
@@ -395,7 +395,7 @@ export const RecordPurchasePage = () => {
           </button>
           <button
             onClick={handleReset}
-            className="py-2 px-4 rounded-lg border border-slate-300 text-slate-700 text-xs font-medium hover:bg-slate-50 cursor-pointer transition-colors"
+            className="py-2 px-4 rounded-lg border border-stone-300 text-stone-700 text-xs font-medium hover:bg-stone-50 cursor-pointer transition-colors"
           >
             Record Another
           </button>
@@ -407,15 +407,15 @@ export const RecordPurchasePage = () => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Record Purchase</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Bill a retail counter sale, register device identifiers, and credit loyalty points.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Record Purchase</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Bill a retail counter sale, register device identifiers, and credit loyalty points.</p>
         </div>
 
         <button
           onClick={() => navigate('/admin/purchases')}
-          className="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto transition-colors"
+          className="text-xs font-medium text-stone-500 hover:text-stone-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>All Purchases</span>
@@ -424,13 +424,13 @@ export const RecordPurchasePage = () => {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left (8 Cols): Unified Billing Sheet */}
-        <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+        <div className="lg:col-span-8 bg-white rounded-xl border border-stone-200/80 shadow-2xs divide-y divide-stone-100 overflow-hidden">
           {/* Section 1: Customer Selection */}
           <div className="p-5 sm:p-6 space-y-3.5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">1. Customer Details</h3>
-                <p className="text-xs text-slate-400 font-normal">Select customer to associate with sale</p>
+                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">1. Customer Details</h3>
+                <p className="text-xs text-stone-400 font-normal">Select customer to associate with sale</p>
               </div>
               {!selectedCustomer && (
                 <button
@@ -445,13 +445,13 @@ export const RecordPurchasePage = () => {
 
             {!selectedCustomer ? (
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search customer by name or 10-digit mobile number..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-normal text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:bg-white focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs font-normal text-stone-900 placeholder:text-stone-400 focus:outline-hidden focus:bg-white focus:border-brand-600 transition-all shadow-2xs"
                   autoFocus
                 />
 
@@ -460,7 +460,7 @@ export const RecordPurchasePage = () => {
                 )}
 
                 {searchResults.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 z-20 bg-white border border-slate-200 rounded-lg shadow-lg max-h-52 overflow-y-auto divide-y divide-slate-100">
+                  <div className="absolute left-0 right-0 top-full mt-1.5 z-20 bg-white border border-stone-200 rounded-lg shadow-lg max-h-52 overflow-y-auto divide-y divide-stone-100">
                     {searchResults.map((c) => (
                       <div
                         key={c.id}
@@ -471,11 +471,11 @@ export const RecordPurchasePage = () => {
                           setSearchQuery('');
                           setFormErrors((prev) => ({ ...prev, customer: '' }));
                         }}
-                        className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                        className="p-3 hover:bg-stone-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
                       >
                         <div>
-                          <span className="font-medium text-slate-900">{c.name}</span>
-                          <span className="text-slate-400 ml-2 font-normal">{c.phone || c.mobile}</span>
+                          <span className="font-medium text-stone-900">{c.name}</span>
+                          <span className="text-stone-400 ml-2 font-normal">{c.phone || c.mobile}</span>
                         </div>
                         <span className="text-xs font-medium text-amber-700 tabular-nums">{c.loyaltyPoints || 0} pts</span>
                       </div>
@@ -484,10 +484,10 @@ export const RecordPurchasePage = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50/80 border border-slate-200/80 text-xs">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-stone-50/80 border border-stone-200/80 text-xs">
                 <div>
-                  <span className="font-medium text-slate-900 text-sm block">{selectedCustomer.name}</span>
-                  <span className="text-slate-500 font-normal">{selectedCustomer.phone || selectedCustomer.mobile}</span>
+                  <span className="font-medium text-stone-900 text-sm block">{selectedCustomer.name}</span>
+                  <span className="text-stone-500 font-normal">{selectedCustomer.phone || selectedCustomer.mobile}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md tabular-nums">
@@ -496,7 +496,7 @@ export const RecordPurchasePage = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedCustomer(null)}
-                    className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                    className="text-stone-400 hover:text-stone-700 p-1 cursor-pointer"
                     title="Change customer"
                   >
                     <X className="w-4 h-4" />
@@ -510,19 +510,19 @@ export const RecordPurchasePage = () => {
           <div className="p-5 sm:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">2. Product & Hardware</h3>
-                <p className="text-xs text-slate-400 font-normal">Specify item name, category, and serial details</p>
+                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">2. Product & Hardware</h3>
+                <p className="text-xs text-stone-400 font-normal">Specify item name, category, and serial details</p>
               </div>
 
               {/* Quick Presets */}
               <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
-                <span className="text-slate-400 hidden sm:inline text-[11px]">Popular:</span>
+                <span className="text-stone-400 hidden sm:inline text-[11px]">Popular:</span>
                 {presets.map((p) => (
                   <button
                     key={p.name}
                     type="button"
                     onClick={() => handleApplyPreset(p)}
-                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-[11px] cursor-pointer whitespace-nowrap transition-colors"
+                    className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer whitespace-nowrap transition-colors"
                   >
                     {p.name.split(' ')[0]} {p.name.split(' ')[1] || ''}
                   </button>
@@ -532,7 +532,7 @@ export const RecordPurchasePage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Product Name *</label>
+                <label className="text-xs font-medium text-stone-700 block">Product Name *</label>
                 <input
                   type="text"
                   value={productName}
@@ -541,7 +541,7 @@ export const RecordPurchasePage = () => {
                     if (formErrors.productName) setFormErrors((prev) => ({ ...prev, productName: '' }));
                   }}
                   placeholder="e.g. Samsung Galaxy S24 Ultra 256GB"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
                 {formErrors.productName && (
                   <p className="text-[11px] text-rose-600">{formErrors.productName}</p>
@@ -549,11 +549,11 @@ export const RecordPurchasePage = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Category</label>
+                <label className="text-xs font-medium text-stone-700 block">Category</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="phones">Smartphones</option>
                   <option value="accessories">Accessories</option>
@@ -563,77 +563,77 @@ export const RecordPurchasePage = () => {
 
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Brand</label>
+                <label className="text-xs font-medium text-stone-700 block">Brand</label>
                 <input
                   type="text"
                   value={brand}
                   maxLength={80}
                   onChange={(e) => setBrand(e.target.value)}
                   placeholder="e.g. Samsung (auto-detected if empty)"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Model</label>
+                <label className="text-xs font-medium text-stone-700 block">Model</label>
                 <input
                   type="text"
                   value={model}
                   maxLength={80}
                   onChange={(e) => setModel(e.target.value)}
                   placeholder="e.g. SM-S938B / Galaxy S25 Ultra"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Variant</label>
+                <label className="text-xs font-medium text-stone-700 block">Variant</label>
                 <input
                   type="text"
                   value={variant}
                   maxLength={80}
                   onChange={(e) => setVariant(e.target.value)}
                   placeholder="e.g. 12GB + 256GB"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Colour</label>
+                <label className="text-xs font-medium text-stone-700 block">Colour</label>
                 <input
                   type="text"
                   value={color}
                   maxLength={80}
                   onChange={(e) => setColor(e.target.value)}
                   placeholder="e.g. Titanium Black"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">IMEI / Serial Number</label>
+                <label className="text-xs font-medium text-stone-700 block">IMEI / Serial Number</label>
                 <input
                   type="text"
                   value={imei}
                   onChange={(e) => setImei(e.target.value)}
                   placeholder="15-digit IMEI or serial number for warranty registration"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs text-slate-900 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-mono text-xs text-stone-900 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
               <div className="sm:col-span-3 space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Product Photo</label>
+                <label className="text-xs font-medium text-stone-700 block">Product Photo</label>
                 <div className="flex items-center gap-3">
-                  <div className="w-16 h-16 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                  <div className="w-16 h-16 rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center overflow-hidden shrink-0">
                     {imagePreview ? (
                       <img src={imagePreview} alt="Product preview" className="w-full h-full object-contain" />
                     ) : (
-                      <ImageIcon className="w-5 h-5 text-slate-300" />
+                      <ImageIcon className="w-5 h-5 text-stone-300" />
                     )}
                   </div>
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <label className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer">
+                      <label className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer">
                         {imageFile ? 'Change photo' : 'Choose photo'}
                         <input
                           type="file"
@@ -647,12 +647,12 @@ export const RecordPurchasePage = () => {
                         />
                       </label>
                       {imageFile && (
-                        <button type="button" onClick={clearImage} className="text-slate-500 hover:text-slate-800 cursor-pointer">
+                        <button type="button" onClick={clearImage} className="text-stone-500 hover:text-stone-800 cursor-pointer">
                           Remove
                         </button>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-400 truncate">
+                    <p className="text-[11px] text-stone-400 truncate">
                       {imageFile ? `${imageFile.name} • ${formatFileSize(imageFile.size)}` : 'Optional. Shown to the customer in their app. JPG, PNG, WebP or GIF, up to 5 MB.'}
                     </p>
                     {imageError && <p className="text-[11px] text-rose-600">{imageError}</p>}
@@ -665,13 +665,13 @@ export const RecordPurchasePage = () => {
           {/* Section 3: Invoice, Purchase Date & Warranty */}
           <div className="p-5 sm:p-6 space-y-4">
             <div>
-              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">3. Invoice, Date & Warranty</h3>
-              <p className="text-xs text-slate-400 font-normal">Use the same number as on the printed bill, in any format</p>
+              <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">3. Invoice, Date & Warranty</h3>
+              <p className="text-xs text-stone-400 font-normal">Use the same number as on the printed bill, in any format</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Invoice / Bill Number *</label>
+                <label className="text-xs font-medium text-stone-700 block">Invoice / Bill Number *</label>
                 <input
                   type="text"
                   value={invoiceNumber}
@@ -681,13 +681,13 @@ export const RecordPurchasePage = () => {
                     if (formErrors.invoiceNumber) setFormErrors((prev) => ({ ...prev, invoiceNumber: '' }));
                   }}
                   placeholder="e.g. SM/2026-27/0042"
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs font-mono text-xs ${formErrors.invoiceNumber ? 'border-rose-400' : 'border-slate-300'}`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs font-mono text-xs ${formErrors.invoiceNumber ? 'border-rose-400' : 'border-stone-300'}`}
                 />
                 {formErrors.invoiceNumber && <p className="text-[11px] text-rose-600">{formErrors.invoiceNumber}</p>}
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Purchase Date *</label>
+                <label className="text-xs font-medium text-stone-700 block">Purchase Date *</label>
                 <input
                   type="date"
                   value={purchaseDate}
@@ -696,13 +696,13 @@ export const RecordPurchasePage = () => {
                     setPurchaseDate(e.target.value);
                     if (formErrors.purchaseDate) setFormErrors((prev) => ({ ...prev, purchaseDate: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs ${formErrors.purchaseDate ? 'border-rose-400' : 'border-slate-300'}`}
+                  className={`w-full px-3 py-2 bg-white border rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs ${formErrors.purchaseDate ? 'border-rose-400' : 'border-stone-300'}`}
                 />
                 {formErrors.purchaseDate && <p className="text-[11px] text-rose-600">{formErrors.purchaseDate}</p>}
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Warranty</label>
+                <label className="text-xs font-medium text-stone-700 block">Warranty</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -714,7 +714,7 @@ export const RecordPurchasePage = () => {
                       setWarrantyDuration(e.target.value);
                       if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
                     }}
-                    className={`px-3 py-2 bg-white border rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs tabular-nums w-20 shrink-0 ${formErrors.warranty ? 'border-rose-400' : 'border-slate-300'}`}
+                    className={`px-3 py-2 bg-white border rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs tabular-nums w-20 shrink-0 ${formErrors.warranty ? 'border-rose-400' : 'border-stone-300'}`}
                   />
                   <select
                     value={warrantyUnit}
@@ -723,7 +723,7 @@ export const RecordPurchasePage = () => {
                       setWarrantyUnit(e.target.value);
                       if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
                     }}
-                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
+                    className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="months">Months</option>
                     <option value="years">Years</option>
@@ -732,10 +732,10 @@ export const RecordPurchasePage = () => {
                 {formErrors.warranty ? (
                   <p className="text-[11px] text-rose-600">{formErrors.warranty}</p>
                 ) : (
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-stone-500">
                     {warrantyUntil ? (
                       <>
-                        Valid until <span className="font-medium text-slate-800">{warrantyUntil}</span>
+                        Valid until <span className="font-medium text-stone-800">{warrantyUntil}</span>
                       </>
                     ) : warrantyValid && warrantyMonths === 0 ? (
                       'No warranty'
@@ -749,13 +749,13 @@ export const RecordPurchasePage = () => {
           {/* Section 4: Pricing & Payment Terms */}
           <div className="p-5 sm:p-6 space-y-4">
             <div>
-              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">4. Pricing & Payment</h3>
-              <p className="text-xs text-slate-400 font-normal">Enter retail price, discount, and settlement mode</p>
+              <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">4. Pricing & Payment</h3>
+              <p className="text-xs text-stone-400 font-normal">Enter retail price, discount, and settlement mode</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Price (₹) *</label>
+                <label className="text-xs font-medium text-stone-700 block">Price (₹) *</label>
                 <input
                   type="number"
                   value={purchaseAmount}
@@ -764,7 +764,7 @@ export const RecordPurchasePage = () => {
                     if (formErrors.purchaseAmount) setFormErrors((prev) => ({ ...prev, purchaseAmount: '' }));
                   }}
                   placeholder="e.g. 124999"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
                 {formErrors.purchaseAmount && (
                   <p className="text-[11px] text-rose-600">{formErrors.purchaseAmount}</p>
@@ -772,22 +772,22 @@ export const RecordPurchasePage = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Discount (₹)</label>
+                <label className="text-xs font-medium text-stone-700 block">Discount (₹)</label>
                 <input
                   type="number"
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
                   placeholder="0"
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">Payment Mode</label>
+                <label className="text-xs font-medium text-stone-700 block">Payment Mode</label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-800 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-800 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="UPI">UPI</option>
                   <option value="Cash">Cash</option>
@@ -800,11 +800,11 @@ export const RecordPurchasePage = () => {
             {/* Loyalty points redemption */}
             <div className="rounded-lg border border-amber-200/70 bg-amber-50/50 p-3.5 space-y-2 text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="redeem-points" className="font-medium text-slate-800 flex items-center gap-1.5">
+                <label htmlFor="redeem-points" className="font-medium text-stone-800 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                   <span>Redeem Loyalty Points</span>
                 </label>
-                <span className="text-slate-500">
+                <span className="text-stone-500">
                   {selectedCustomer ? (
                     <>
                       Available: <span className="font-medium text-amber-800 tabular-nums">{availablePoints.toLocaleString('en-IN')} pts</span>
@@ -818,7 +818,7 @@ export const RecordPurchasePage = () => {
               </div>
 
               {selectedCustomer && !canRedeem ? (
-                <p className="text-slate-500">
+                <p className="text-stone-500">
                   {rupeeValuePerPoint > 0
                     ? `Not enough points to redeem yet (minimum ${Math.max(minRedeemPoints, 1).toLocaleString('en-IN')}).`
                     : 'Point redemption is switched off in Settings.'}
@@ -837,8 +837,8 @@ export const RecordPurchasePage = () => {
                       if (formErrors.redeemPoints) setFormErrors((prev) => ({ ...prev, redeemPoints: '' }));
                     }}
                     placeholder="0"
-                    className={`w-36 px-3 py-2 bg-white border rounded-lg font-medium text-slate-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs disabled:bg-slate-100 ${
-                      redemptionError ? 'border-rose-400' : 'border-slate-300'
+                    className={`w-36 px-3 py-2 bg-white border rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs disabled:bg-stone-100 ${
+                      redemptionError ? 'border-rose-400' : 'border-stone-300'
                     }`}
                   />
                   <button
@@ -853,7 +853,7 @@ export const RecordPurchasePage = () => {
                     <button
                       type="button"
                       onClick={() => setRedeemPoints('')}
-                      className="py-2 px-2 text-slate-500 hover:text-slate-800 cursor-pointer"
+                      className="py-2 px-2 text-stone-500 hover:text-stone-800 cursor-pointer"
                     >
                       Clear
                     </button>
@@ -872,25 +872,25 @@ export const RecordPurchasePage = () => {
           {/* Section 5: Bill / Invoice File (optional) */}
           <div className="p-5 sm:p-6 space-y-3">
             <div>
-              <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">5. Bill / Invoice File</h3>
-              <p className="text-xs text-slate-400 font-normal">
+              <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">5. Bill / Invoice File</h3>
+              <p className="text-xs text-stone-400 font-normal">
                 Optional. The customer can download it from their purchase. {BILL_HINT}.
               </p>
             </div>
 
             {billFile ? (
-              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-slate-50/80 border border-slate-200/80 text-xs">
+              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-stone-50/80 border border-stone-200/80 text-xs">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <FileText className="w-4 h-4 text-brand-600 shrink-0" />
                   <div className="min-w-0">
-                    <span className="font-medium text-slate-900 block truncate">{billFile.name}</span>
-                    <span className="text-slate-400">{formatFileSize(billFile.size)}</span>
+                    <span className="font-medium text-stone-900 block truncate">{billFile.name}</span>
+                    <span className="text-stone-400">{formatFileSize(billFile.size)}</span>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setBillFile(null)}
-                  className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                  className="text-stone-400 hover:text-stone-700 p-1 cursor-pointer"
                   title="Remove file"
                 >
                   <X className="w-4 h-4" />
@@ -909,12 +909,12 @@ export const RecordPurchasePage = () => {
                   chooseBillFile(e.dataTransfer.files?.[0]);
                 }}
                 className={`flex flex-col items-center justify-center gap-1.5 py-6 px-4 rounded-lg border border-dashed text-center cursor-pointer transition-colors ${
-                  dragOver ? 'border-brand-500 bg-brand-50/60' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50'
+                  dragOver ? 'border-brand-500 bg-brand-50/60' : 'border-stone-300 bg-stone-50/50 hover:bg-stone-50'
                 }`}
               >
-                <Paperclip className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-medium text-slate-700">Click to choose a file, or drag it here</span>
-                <span className="text-[11px] text-slate-400">{BILL_HINT}</span>
+                <Paperclip className="w-4 h-4 text-stone-400" />
+                <span className="text-xs font-medium text-stone-700">Click to choose a file, or drag it here</span>
+                <span className="text-[11px] text-stone-400">{BILL_HINT}</span>
                 <input
                   type="file"
                   accept={BILL_ACCEPT}
@@ -931,48 +931,48 @@ export const RecordPurchasePage = () => {
         </div>
 
         {/* Right (4 Cols): Sleek Order Summary Panel */}
-        <div className="lg:col-span-4 bg-white rounded-xl p-5 border border-slate-200/80 shadow-2xs space-y-4 sticky top-20">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs">
-            <span className="font-medium text-slate-500">Invoice Number</span>
+        <div className="lg:col-span-4 bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs space-y-4 sticky top-20">
+          <div className="flex items-center justify-between pb-3 border-b border-stone-100 text-xs">
+            <span className="font-medium text-stone-500">Invoice Number</span>
             <span className="font-mono text-xs font-medium text-brand-700 truncate max-w-[170px]">{invoiceNumber.trim() || '—'}</span>
           </div>
 
           <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-stone-500">
               <span>Customer</span>
-              <span className="font-medium text-slate-900 truncate max-w-[150px]">
+              <span className="font-medium text-stone-900 truncate max-w-[150px]">
                 {selectedCustomer?.name || '—'}
               </span>
             </div>
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-stone-500">
               <span>Product</span>
-              <span className="font-medium text-slate-900 truncate max-w-[150px]">
+              <span className="font-medium text-stone-900 truncate max-w-[150px]">
                 {productName || '—'}
               </span>
             </div>
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-stone-500">
               <span>Payment Mode</span>
-              <span className="font-medium text-slate-800">{paymentMethod}</span>
+              <span className="font-medium text-stone-800">{paymentMethod}</span>
             </div>
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-stone-500">
               <span>Purchase Date</span>
-              <span className="font-medium text-slate-800">{purchaseDate ? formatDate(`${purchaseDate}T12:00:00`) : '—'}</span>
+              <span className="font-medium text-stone-800">{purchaseDate ? formatDate(`${purchaseDate}T12:00:00`) : '—'}</span>
             </div>
-            <div className="flex justify-between text-slate-500">
+            <div className="flex justify-between text-stone-500">
               <span>Warranty Until</span>
-              <span className="font-medium text-slate-800">{warrantyUntil || (warrantyValid ? 'No warranty' : '—')}</span>
+              <span className="font-medium text-stone-800">{warrantyUntil || (warrantyValid ? 'No warranty' : '—')}</span>
             </div>
 
             {(numericDiscount > 0 || (pointsToRedeem > 0 && !redemptionError)) && (
-              <div className="pt-3 border-t border-slate-100 space-y-1.5">
-                <div className="flex justify-between text-slate-500">
+              <div className="pt-3 border-t border-stone-100 space-y-1.5">
+                <div className="flex justify-between text-stone-500">
                   <span>Price</span>
-                  <span className="tabular-nums text-slate-800">{formatINR(numericAmount)}</span>
+                  <span className="tabular-nums text-stone-800">{formatINR(numericAmount)}</span>
                 </div>
                 {numericDiscount > 0 && (
-                  <div className="flex justify-between text-slate-500">
+                  <div className="flex justify-between text-stone-500">
                     <span>Discount</span>
-                    <span className="tabular-nums text-slate-800">− {formatINR(numericDiscount)}</span>
+                    <span className="tabular-nums text-stone-800">− {formatINR(numericDiscount)}</span>
                   </div>
                 )}
                 {pointsToRedeem > 0 && !redemptionError && (
@@ -984,9 +984,9 @@ export const RecordPurchasePage = () => {
               </div>
             )}
 
-            <div className="pt-3 border-t border-slate-100 flex justify-between items-baseline">
-              <span className="font-medium text-slate-600">Total Billed</span>
-              <span className="text-xl font-semibold text-slate-900 tabular-nums">
+            <div className="pt-3 border-t border-stone-100 flex justify-between items-baseline">
+              <span className="font-medium text-stone-600">Total Billed</span>
+              <span className="text-xl font-semibold text-stone-900 tabular-nums">
                 {formatINR(finalAmount)}
               </span>
             </div>

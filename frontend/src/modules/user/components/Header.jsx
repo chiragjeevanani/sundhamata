@@ -19,23 +19,23 @@ export const Header = ({
   const isHome = location.pathname === '/home';
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 select-none">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/80 select-none">
       <div className="max-w-md mx-auto px-3.5 sm:px-4 h-12 flex items-center justify-between gap-2.5">
         {showBack ? (
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => (typeof backTo === 'string' ? navigate(backTo) : navigate(-1))}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition-all -ml-1 cursor-pointer"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-stone-700 hover:bg-stone-100 active:scale-95 transition-all -ml-1 cursor-pointer"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-4.5 h-4.5 text-[#0F2042]" />
+              <ArrowLeft className="w-4.5 h-4.5 text-ink-900" />
             </button>
             <div className="min-w-0 leading-tight">
-              <h1 className="text-xs sm:text-sm font-bold text-[#0F2042] tracking-tight truncate">
+              <h1 className="text-xs sm:text-sm font-bold text-ink-900 tracking-tight truncate">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-[10px] font-mono text-slate-500 font-medium truncate">
+                <p className="text-[10px] font-mono text-stone-500 font-medium truncate">
                   {subtitle}
                 </p>
               )}
@@ -56,7 +56,7 @@ export const Header = ({
               {onOpenStoreInfo && (
                 <button
                   onClick={onOpenStoreInfo}
-                  className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-[11px] font-semibold transition-colors cursor-pointer"
+                  className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200/80 text-stone-700 text-[11px] font-semibold transition-colors cursor-pointer"
                 >
                   <PhoneCall className="w-3 h-3 text-[#B55B1F]" />
                   <span>Store</span>
@@ -65,13 +65,13 @@ export const Header = ({
 
               <button
                 onClick={() => navigate('/profile')}
-                className="flex items-center gap-1.5 p-0.5 pl-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 p-0.5 pl-2 rounded-full bg-stone-50 hover:bg-stone-100 border border-stone-200/80 transition-all active:scale-95 cursor-pointer"
                 aria-label="View Customer Profile"
               >
-                <span className="text-[11px] font-bold text-slate-800 max-w-[65px] truncate">
+                <span className="text-[11px] font-bold text-stone-800 max-w-[65px] truncate">
                   {user?.name ? user.name.split(' ')[0] : ''}
                 </span>
-                <div className="w-5.5 h-5.5 rounded-full bg-[#0F2042] text-white flex items-center justify-center text-[9px] font-bold ring-1 ring-white">
+                <div className="w-5.5 h-5.5 rounded-full bg-ink-900 text-white flex items-center justify-center text-[9px] font-bold ring-1 ring-white">
                   {user?.name
                     ? user.name
                         .split(' ')
@@ -85,10 +85,10 @@ export const Header = ({
           ) : (
             <button
               onClick={() => navigate('/profile')}
-              className="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 transition-transform active:scale-95 cursor-pointer"
+              className="w-7 h-7 rounded-full bg-stone-50 hover:bg-stone-100 border border-stone-200/80 flex items-center justify-center text-stone-700 transition-transform active:scale-95 cursor-pointer"
               aria-label="Account Profile"
             >
-              <User className="w-3.5 h-3.5 text-[#0F2042]" />
+              <User className="w-3.5 h-3.5 text-ink-900" />
             </button>
           )}
         </div>

@@ -22,7 +22,7 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs print:hidden"
+          className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs print:hidden"
         />
 
         {/* Invoice Modal Box */}
@@ -31,11 +31,11 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 z-10 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none"
+          className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-stone-200 z-10 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none"
         >
           {/* Action Toolbar */}
-          <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 print:hidden select-none">
-            <span className="text-xs font-bold text-[#0F2042]">
+          <div className="flex items-center justify-between px-5 py-3 bg-stone-50 border-b border-stone-200 print:hidden select-none">
+            <span className="text-xs font-bold text-ink-900">
               Tax Invoice Preview
             </span>
             <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
               </button>
               <button
                 onClick={onClose}
-                className="w-7 h-7 rounded-full bg-slate-200/70 hover:bg-slate-300 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-full bg-stone-200/70 hover:bg-stone-300 flex items-center justify-center text-stone-700 transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -56,50 +56,50 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
           </div>
 
           {/* Printable Invoice Body */}
-          <div className="p-6 overflow-y-auto space-y-5 text-slate-800 text-xs leading-normal">
+          <div className="p-6 overflow-y-auto space-y-5 text-stone-800 text-xs leading-normal">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+            <div className="flex items-start justify-between border-b border-stone-200 pb-4">
               <div>
                 <BrandLogo size="md" />
-                <p className="text-[10.5px] text-slate-500 mt-2 max-w-[210px] leading-relaxed">
+                <p className="text-[10.5px] text-stone-500 mt-2 max-w-[210px] leading-relaxed">
                   {store?.legalName || store?.name}
                   <br />
                   {formatStoreAddress(store, { includeState: false })}
                   <br />
-                  GSTIN: <span className="font-mono font-semibold text-slate-800">{store?.gstin}</span>
+                  GSTIN: <span className="font-mono font-semibold text-stone-800">{store?.gstin}</span>
                 </p>
               </div>
 
               <div className="text-right">
-                <span className="inline-block px-2 py-0.5 rounded bg-slate-100 font-bold text-[9.5px] uppercase tracking-wider text-slate-700 mb-1">
+                <span className="inline-block px-2 py-0.5 rounded bg-stone-100 font-bold text-[9.5px] uppercase tracking-wider text-stone-700 mb-1">
                   Original for Buyer
                 </span>
-                <h4 className="text-xs font-black text-slate-900 mt-0.5 tracking-tight">TAX INVOICE</h4>
+                <h4 className="text-xs font-black text-stone-900 mt-0.5 tracking-tight">TAX INVOICE</h4>
                 <p className="font-mono text-xs font-bold text-brand-800 mt-0.5 tabular-nums">
                   {purchase.invoiceNumber}
                 </p>
-                <p className="text-[10.5px] text-slate-500 mt-0.5">
+                <p className="text-[10.5px] text-stone-500 mt-0.5">
                   Date: {formatLongDate(purchase.purchaseDate)}
                 </p>
               </div>
             </div>
 
             {/* Customer Billed To */}
-            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+            <div className="grid grid-cols-2 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
               <div>
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-stone-400 block mb-0.5">
                   Billed To
                 </span>
-                <p className="font-bold text-slate-900">{customer?.name}</p>
-                <p className="text-slate-600 font-mono text-[11px] tabular-nums">{customer?.phone}</p>
-                <p className="text-slate-500 text-[10.5px]">{customer?.email}</p>
+                <p className="font-bold text-stone-900">{customer?.name}</p>
+                <p className="text-stone-600 font-mono text-[11px] tabular-nums">{customer?.phone}</p>
+                <p className="text-stone-500 text-[10.5px]">{customer?.email}</p>
               </div>
               <div>
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-stone-400 block mb-0.5">
                   Payment Ref
                 </span>
-                <p className="text-slate-800 font-semibold">{purchase.paymentMethod}</p>
-                <p className="font-mono text-[10px] text-slate-500 truncate tabular-nums">
+                <p className="text-stone-800 font-semibold">{purchase.paymentMethod}</p>
+                <p className="font-mono text-[10px] text-stone-500 truncate tabular-nums">
                   {purchase.transactionId}
                 </p>
                 <span className="inline-flex items-center gap-1 text-emerald-700 font-bold text-[10.5px] mt-1">
@@ -110,10 +110,10 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
             </div>
 
             {/* Line Items Table */}
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <div className="border border-stone-200 rounded-xl overflow-hidden">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                  <tr className="bg-stone-100 text-stone-700 font-bold border-b border-stone-200 text-[11px]">
                     <th className="p-2">Description</th>
                     <th className="p-2 text-center">HSN</th>
                     <th className="p-2 text-center">Qty</th>
@@ -121,30 +121,30 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
                     <th className="p-2 text-right">Total (₹)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-stone-100">
                   <tr>
                     <td className="p-2">
-                      <p className="font-bold text-slate-900">{purchase.product.name}</p>
-                      <p className="text-[10.5px] text-slate-500">
+                      <p className="font-bold text-stone-900">{purchase.product.name}</p>
+                      <p className="text-[10.5px] text-stone-500">
                         {[purchase.product.variant, purchase.product.color].filter(Boolean).join(' • ')}
                       </p>
                       {purchase.product.imei1 && (
-                        <p className="font-mono text-[10px] text-slate-500 mt-0.5 tabular-nums">
+                        <p className="font-mono text-[10px] text-stone-500 mt-0.5 tabular-nums">
                           IMEI: {purchase.product.imei1}
                         </p>
                       )}
                       {purchase.product.serialNumber && (
-                        <p className="font-mono text-[10px] text-slate-500 tabular-nums">
+                        <p className="font-mono text-[10px] text-stone-500 tabular-nums">
                           S/N: {purchase.product.serialNumber}
                         </p>
                       )}
                     </td>
-                    <td className="p-2 text-center font-mono text-[10.5px] text-slate-600">8517</td>
+                    <td className="p-2 text-center font-mono text-[10.5px] text-stone-600">8517</td>
                     <td className="p-2 text-center font-medium">1</td>
-                    <td className="p-2 text-right font-mono text-slate-600 tabular-nums">
+                    <td className="p-2 text-right font-mono text-stone-600 tabular-nums">
                       {formatINR(purchase.baseAmount)}
                     </td>
-                    <td className="p-2 text-right font-mono font-bold text-slate-900 tabular-nums">
+                    <td className="p-2 text-right font-mono font-bold text-stone-900 tabular-nums">
                       {formatINR(purchase.amount)}
                     </td>
                   </tr>
@@ -152,28 +152,28 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
               </table>
 
               {/* Tax Summary Breakdown */}
-              <div className="bg-slate-50/90 p-3 border-t border-slate-200 flex flex-col items-end gap-1">
+              <div className="bg-stone-50/90 p-3 border-t border-stone-200 flex flex-col items-end gap-1">
                 {purchase.pricing?.discount > 0 && (
-                  <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
+                  <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
                     <span>Discount:</span>
                     <span className="font-mono tabular-nums">−{formatINR(purchase.pricing.discount)}</span>
                   </div>
                 )}
                 {purchase.pricing?.loyaltyDiscount > 0 && (
-                  <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
+                  <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
                     <span>Points ({purchase.loyalty.pointsRedeemed}):</span>
                     <span className="font-mono tabular-nums">−{formatINR(purchase.pricing.loyaltyDiscount)}</span>
                   </div>
                 )}
-                <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
+                <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
                   <span>Taxable Value:</span>
                   <span className="font-mono tabular-nums">{formatINR(purchase.baseAmount)}</span>
                 </div>
-                <div className="w-44 flex justify-between text-[10.5px] text-slate-600">
+                <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
                   <span>GST (18%):</span>
                   <span className="font-mono tabular-nums">{formatINR(purchase.taxAmount)}</span>
                 </div>
-                <div className="w-44 flex justify-between text-xs font-black text-[#0F2042] pt-1 border-t border-slate-300">
+                <div className="w-44 flex justify-between text-xs font-black text-ink-900 pt-1 border-t border-stone-300">
                   <span>Grand Total:</span>
                   <span className="font-mono tabular-nums">{formatINR(purchase.amount)}</span>
                 </div>
@@ -181,9 +181,9 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
             </div>
 
             {/* Official Store Footer & Seal */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+            <div className="flex items-center justify-between pt-2 border-t border-stone-200 text-[10px] text-stone-500">
               <div>
-                <p className="font-semibold text-slate-700">Thank you for shopping at Sundhamata Mobile!</p>
+                <p className="font-semibold text-stone-700">Thank you for shopping at Sundhamata Mobile!</p>
                 <p>Helpline: {store?.supportPhone || store?.phone}</p>
               </div>
 
@@ -198,17 +198,17 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
           </div>
 
           {/* Modal Bottom Actions */}
-          <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center gap-2.5 print:hidden">
+          <div className="p-3.5 bg-stone-50 border-t border-stone-100 flex items-center gap-2.5 print:hidden">
             <button
               onClick={handlePrint}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0F2042] text-white text-xs font-bold hover:bg-[#162B56] transition-colors cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-900 text-white text-xs font-bold hover:bg-ink-800 transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Tax Invoice</span>
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-bold hover:bg-stone-100 transition-colors cursor-pointer"
             >
               Close
             </button>

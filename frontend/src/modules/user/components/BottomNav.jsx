@@ -46,7 +46,7 @@ export const BottomNav = () => {
       <div className="w-full max-w-md pointer-events-auto">
         <nav
           aria-label="Bottom Navigation"
-          className="bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-1px_6px_rgba(15,32,66,0.04)] px-4 pt-1 pb-1.5 sm:pb-2 flex items-center justify-around select-none"
+          className="bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-[0_-1px_6px_rgba(15,32,66,0.04)] px-4 pt-1 pb-1.5 sm:pb-2 flex items-center justify-around select-none"
         >
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -57,7 +57,7 @@ export const BottomNav = () => {
                 key={item.id}
                 onClick={() => navigate(item.path)}
                 className={`relative flex-1 py-0.5 flex flex-col items-center justify-center gap-0.5 transition-colors cursor-pointer ${
-                  active ? 'text-[#0F2042]' : 'text-slate-400 hover:text-slate-600'
+                  active ? 'text-ink-900' : 'text-stone-400 hover:text-stone-600'
                 }`}
               >
                 {/* Active Indicator Top Notch */}
@@ -79,7 +79,7 @@ export const BottomNav = () => {
 
                 <span
                   className={`text-[9.5px] tracking-tight leading-none ${
-                    active ? 'font-bold text-[#0F2042]' : 'font-medium text-slate-500'
+                    active ? 'font-bold text-ink-900' : 'font-medium text-stone-500'
                   }`}
                 >
                   {item.label}

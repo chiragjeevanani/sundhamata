@@ -39,10 +39,10 @@ export const PurchasesListPage = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Invoices & Purchases</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Billing ledger, sales invoices, payment methods, and loyalty distribution.</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Invoices & Purchases</h1>
+          <p className="text-xs text-stone-500 mt-0.5">Billing ledger, sales invoices, payment methods, and loyalty distribution.</p>
         </div>
 
         <button
@@ -57,33 +57,33 @@ export const PurchasesListPage = () => {
       {/* Seamless Open Toolbar (Search & Filter) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search invoice number, product, or customer..."
-            className="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 font-normal placeholder:text-slate-400 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+            className="w-full pl-8 pr-7 py-2 bg-white border border-stone-200 rounded-lg text-stone-900 font-normal placeholder:text-stone-400 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2.5 top-2.5 text-stone-400 hover:text-stone-600 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg self-start sm:self-auto">
           {['all', 'paid', 'pending'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1 rounded-md text-xs font-medium capitalize transition-all cursor-pointer ${
                 statusFilter === st
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white text-stone-900 shadow-2xs'
+                  : 'text-stone-500 hover:text-stone-800'
               }`}
             >
               {st}
@@ -93,18 +93,18 @@ export const PurchasesListPage = () => {
       </div>
 
       {/* Purchases Data Table (Clean Enterprise Data Sheet) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
         {loading ? (
           <TableSkeleton rows={6} cols={7} />
         ) : purchases.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-400">
+          <div className="py-16 text-center text-xs text-stone-400">
             No invoices found matching your search.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/60 border-b border-slate-100 text-xs font-medium text-slate-500">
+                <tr className="bg-stone-50/60 border-b border-stone-100 text-xs font-medium text-stone-500">
                   <th className="py-2.5 px-5">Invoice #</th>
                   <th className="py-2.5 px-4">Customer</th>
                   <th className="py-2.5 px-4">Product</th>
@@ -115,27 +115,27 @@ export const PurchasesListPage = () => {
                   <th className="py-2.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-stone-100 text-stone-700">
                 {purchases.map((p) => (
                   <tr
                     key={p.id}
-                    className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                    className="hover:bg-stone-50/70 transition-colors cursor-pointer group"
                     onClick={() => navigate(`/admin/purchases/${p.id}`)}
                   >
-                    <td className="py-3 px-5 font-mono text-xs font-medium text-slate-900 group-hover:text-brand-700">
+                    <td className="py-3 px-5 font-mono text-xs font-medium text-stone-900 group-hover:text-brand-700">
                       {p.invoiceNumber}
                     </td>
 
                     <td className="py-3 px-4">
-                      <span className="font-medium text-slate-900 block">{p.customerName || 'Customer'}</span>
-                      <span className="text-xs text-slate-400 font-normal">{p.customerMobile}</span>
+                      <span className="font-medium text-stone-900 block">{p.customerName || 'Customer'}</span>
+                      <span className="text-xs text-stone-400 font-normal">{p.customerMobile}</span>
                     </td>
 
                     <td className="py-3 px-4">
-                      <span className="font-normal text-slate-800 truncate max-w-[220px] block">{p.product?.name}</span>
+                      <span className="font-normal text-stone-800 truncate max-w-[220px] block">{p.product?.name}</span>
                     </td>
 
-                    <td className="py-3 px-4 font-medium text-slate-900 tabular-nums whitespace-nowrap">
+                    <td className="py-3 px-4 font-medium text-stone-900 tabular-nums whitespace-nowrap">
                       {formatINR(p.amount)}
                     </td>
 
@@ -143,7 +143,7 @@ export const PurchasesListPage = () => {
                       +{p.loyalty?.pointsEarned ?? 0} pts
                     </td>
 
-                    <td className="py-3 px-4 text-slate-500 font-normal whitespace-nowrap">
+                    <td className="py-3 px-4 text-stone-500 font-normal whitespace-nowrap">
                       {p.formattedDate}
                     </td>
 
@@ -157,7 +157,7 @@ export const PurchasesListPage = () => {
                           e.stopPropagation();
                           navigate(`/admin/purchases/${p.id}`);
                         }}
-                        className="py-1 px-2.5 rounded-md text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="py-1 px-2.5 rounded-md text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                       >
                         View
                       </button>

@@ -16,7 +16,7 @@ export const BrandLogo = ({ size = 'md', showTagline = true, light = false, clas
       {/* Brand Logo Emblem */}
       <div
         className={`relative flex items-center justify-center shrink-0 rounded-xl overflow-hidden shadow-xs transition-transform ${
-          light ? 'bg-slate-900/60 ring-1 ring-white/20' : 'bg-black/90 ring-1 ring-slate-800'
+          light ? 'bg-stone-900/60 ring-1 ring-white/20' : 'bg-black/90 ring-1 ring-stone-800'
         } ${imgSizeClass}`}
       >
         <img
@@ -31,7 +31,7 @@ export const BrandLogo = ({ size = 'md', showTagline = true, light = false, clas
         <div className="flex items-center gap-1.5">
           <span
             className={`font-black tracking-tight font-sans ${
-              light ? 'text-white' : 'text-[#0F2042]'
+              light ? 'text-white' : 'text-ink-900'
             } ${isSm ? 'text-[15px]' : isLg ? 'text-xl' : 'text-base'}`}
           >
             SUNDHAMATA
@@ -48,7 +48,7 @@ export const BrandLogo = ({ size = 'md', showTagline = true, light = false, clas
         {showTagline && (
           <span
             className={`font-semibold tracking-[0.14em] uppercase mt-1 ${
-              light ? 'text-slate-300' : 'text-slate-500'
+              light ? 'text-stone-300' : 'text-stone-500'
             } ${isSm ? 'text-[7.5px]' : isLg ? 'text-[9.5px]' : 'text-[8.5px]'}`}
           >
             Smart Phones • Smart People
