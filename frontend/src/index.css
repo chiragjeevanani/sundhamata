@@ -67,6 +67,35 @@ html, body {
   accent-color: var(--color-brand-600);
 }
 
+/* Printing / "Save as PDF" from the tax invoice: only the invoice, full page, no scrolling box */
+@media print {
+  body:has(.invoice-print-root) #root {
+    display: none !important;
+  }
+  html:has(.invoice-print-root),
+  body:has(.invoice-print-root) {
+    background: #fff !important;
+  }
+  .invoice-print-root {
+    position: static !important;
+    display: block !important;
+  }
+  .invoice-print-root .invoice-sheet {
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .invoice-print-root .invoice-body {
+    overflow: visible !important;
+  }
+  .invoice-print-root * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Tabular figures for numbers, currency and serial codes */
 .tabular-nums {
   font-variant-numeric: tabular-nums;

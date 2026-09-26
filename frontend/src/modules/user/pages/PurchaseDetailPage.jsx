@@ -3,7 +3,6 @@ import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import {
   Copy,
   Check,
-  Download,
   PhoneCall,
   Calendar,
   FileText,
@@ -11,6 +10,8 @@ import {
   MapPin,
   Smartphone,
   Share2,
+  Paperclip,
+  ChevronRight,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { StatusBadge } from '../components/StatusBadge';
@@ -18,9 +19,10 @@ import { PurchaseDetailSkeleton } from '../components/SkeletonLoader';
 import { ErrorState } from '../components/ErrorState';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { ImageViewerModal } from '../components/ImageViewerModal';
+import { BillViewerModal } from '../components/BillViewerModal';
 import { purchaseService } from '../../../services/purchaseService';
 import { formatINR, formatLongDate, formatDate } from '../../../utils/formatters';
-import { formatFileSize, saveBlob } from '../../../utils/billFile';
+import { formatFileSize } from '../../../utils/billFile';
 import { useAuth } from '../context/AuthContext';
 import { useStoreInfo, formatStoreAddress } from '../hooks/useStoreInfo';
 
@@ -36,8 +38,8 @@ export const PurchaseDetailPage = () => {
   const [error, setError] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [billDownloading, setBillDownloading] = useState(false);
-  const [billError, setBillError] = useState('');
+  const [showBill, setShowBill] = useState(false);
+  const closeBill = useCallback(() => setShowBill(false), []);
   const [imgError, setImgError] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const closeImageViewer = useCallback(() => setShowImageViewer(false), []);
@@ -58,18 +60,6 @@ export const PurchaseDetailPage = () => {
   useEffect(() => {
     fetchDetail();
   }, [id]);
-
-  const downloadBill = async () => {
-    setBillDownloading(true);
-    setBillError('');
-    try {
-      saveBlob(await purchaseService.downloadBill(purchase.id), purchase.bill.filename);
-    } catch (err) {
-      setBillError(err.message || 'Could not download the bill. Please try again.');
-    } finally {
-      setBillDownloading(false);
-    }
-  };
 
   const copyToClipboard = (text, key) => {
     navigator.clipboard?.writeText(text);
@@ -368,33 +358,33 @@ export const PurchaseDetailPage = () => {
               </div>
             </div>
 
-            {/* Action: Download the bill uploaded by the store */}
-            {purchase.bill && (
-              <div className="pt-0.5 space-y-1">
-                <button
-                  onClick={downloadBill}
-                  disabled={billDownloading}
-                  className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-ink-900 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
-                >
-                  <Download className="w-3.5 h-3.5 text-brand-700" />
-                  <span>{billDownloading ? 'Downloading...' : 'Download Bill'}</span>
-                </button>
-                <p className="text-[10.5px] text-stone-400 text-center truncate">
-                  {purchase.bill.filename} • {formatFileSize(purchase.bill.size)}
-                </p>
-                {billError && <p className="text-[11px] text-rose-600 text-center">{billError}</p>}
-              </div>
-            )}
-
-            {/* Action: Download Tax Invoice */}
-            <div className="pt-0.5 pb-2">
+            {/* Actions: the invoice generated from this purchase, and (only if the store uploaded one) the store's bill */}
+            <div className="pt-0.5 pb-2 space-y-2">
               <button
                 onClick={() => setShowInvoiceModal(true)}
                 className="w-full py-2.5 px-3 rounded-xl bg-ink-900 hover:bg-ink-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 text-brand-200" />
-                <span>Download Tax Invoice</span>
+                <FileText className="w-3.5 h-3.5 text-brand-200" />
+                <span>View Invoice</span>
               </button>
+
+              {purchase.bill && (
+                <button
+                  onClick={() => setShowBill(true)}
+                  className="w-full py-2 px-3 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-left flex items-center gap-2.5 transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center shrink-0">
+                    <Paperclip className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-xs font-bold text-ink-900 uppercase tracking-wider">View Store Bill</span>
+                    <span className="block text-[10.5px] text-stone-400 truncate">
+                      {purchase.bill.filename} • {formatFileSize(purchase.bill.size)}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-stone-400 shrink-0" />
+                </button>
+              )}
             </div>
           </>
         )}
@@ -410,6 +400,9 @@ export const PurchaseDetailPage = () => {
           caption={[purchase.product.brand, purchase.product.name].filter(Boolean).join(' · ')}
         />
       )}
+
+      {/* Bill uploaded by the store */}
+      {purchase?.bill && <BillViewerModal isOpen={showBill} onClose={closeBill} purchase={purchase} />}
 
       {/* Tax Invoice Modal */}
       <InvoiceModal
