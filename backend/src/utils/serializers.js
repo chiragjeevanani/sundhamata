@@ -2,6 +2,9 @@
 import { ROLE_LABELS } from '../config/permissions.js';
 import { getLoyaltyTier, pointsToRupees } from './loyalty.js';
 
+/** Date → "YYYY-MM-DD" (calendar dates are stored at 00:00 UTC) */
+const toDateOnly = (d) => (d ? new Date(d).toISOString().slice(0, 10) : null);
+
 const idOf = (value) => (value?._id ?? value)?.toString() ?? null;
 const isPopulated = (value) => Boolean(value && typeof value === 'object' && value.name !== undefined);
 
@@ -22,6 +25,9 @@ export const serializeCustomer = (c) => ({
   city: c.city ?? null,
   pincode: c.pincode ?? null,
   profileImage: c.profileImage ?? null,
+  dob: toDateOnly(c.dob),
+  anniversaryDate: toDateOnly(c.anniversaryDate),
+  gender: c.gender ?? null,
   loyaltyPoints: c.loyaltyPoints,
   loyaltyTier: tierOf(c.loyaltyPoints),
   memberSince: c.createdAt,

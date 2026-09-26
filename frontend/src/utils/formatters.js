@@ -90,3 +90,21 @@ export const formatRelativeTime = (dateInput) => {
   if (days < 7) return `${days} days ago`;
   return formatDate(dateInput);
 };
+
+/**
+ * Calendar date "YYYY-MM-DD" (birthday, anniversary) → "17 Aug 1994", without time-zone shifting
+ * @param {string} value
+ * @returns {string}
+ */
+export const formatCalendarDate = (value) => {
+  if (!value) return '';
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+export const GENDER_LABELS = Object.freeze({
+  male: 'Male',
+  female: 'Female',
+  other: 'Other',
+  prefer_not_to_say: 'Prefer not to say',
+});

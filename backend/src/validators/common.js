@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { normalizeIndianMobile } from '../utils/mobile.js';
 import { isObjectId } from '../utils/query.js';
-import { CUSTOMER_INTERESTS } from '../models/Customer.js';
+import { CUSTOMER_GENDERS, CUSTOMER_INTERESTS } from '../models/Customer.js';
 
 /** Accepts any common Indian mobile formatting and outputs E.164 ("+91XXXXXXXXXX"). */
 export const mobileSchema = z
@@ -59,6 +59,40 @@ export const optionalPincodeSchema = z.preprocess(
 export const optionalUrlSchema = z.preprocess(
   (v) => (typeof v === 'string' ? emptyToNull(v.trim()) : emptyToNull(v)),
   z.url({ protocol: /^https?$/, error: 'Must be a valid http(s) URL' }).max(500).nullable()
+);
+
+/**
+ * Optional calendar date "YYYY-MM-DD" in the past (birthdays, anniversaries).
+ * Stored as 00:00 UTC so the day never shifts with time zones. "" / null clears it.
+ */
+export const optionalPastDateSchema = (label) =>
+  z.preprocess(
+    (v) => (v === '' || v === undefined ? null : v),
+    z
+      .string({ error: `${label} must be a date (YYYY-MM-DD)` })
+      .regex(/^\d{4}-\d{2}-\d{2}$/, `${label} must be a date (YYYY-MM-DD)`)
+      .transform((v, ctx) => {
+        const date = new Date(`${v}T00:00:00.000Z`);
+        if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== v) {
+          ctx.addIssue({ code: 'custom', message: `${label} is not a valid date` });
+          return z.NEVER;
+        }
+        if (date.getUTCFullYear() < 1900) {
+          ctx.addIssue({ code: 'custom', message: `${label} is too far in the past` });
+          return z.NEVER;
+        }
+        if (date.getTime() > Date.now()) {
+          ctx.addIssue({ code: 'custom', message: `${label} cannot be in the future` });
+          return z.NEVER;
+        }
+        return date;
+      })
+      .nullable()
+  );
+
+export const optionalGenderSchema = z.preprocess(
+  (v) => (v === '' || v === undefined ? null : v),
+  z.enum(CUSTOMER_GENDERS, { error: `Gender must be one of: ${CUSTOMER_GENDERS.join(', ')}` }).nullable()
 );
 
 export const paginationSchema = {

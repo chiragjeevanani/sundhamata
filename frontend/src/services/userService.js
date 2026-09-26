@@ -28,7 +28,7 @@ export const userService = {
     return storeInfoRequest;
   },
 
-  /** PATCH /customer/me — name, email, address, city, pincode, interest, budget */
+  /** PATCH /customer/me — name, email, dob, gender, anniversaryDate, address, city, pincode, interest, budget */
   async updateProfile(updates) {
     const data = await customerApi.patch('/customer/me', updates);
     const user = toUiCustomer(data.customer);

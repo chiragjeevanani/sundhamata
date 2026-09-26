@@ -10,7 +10,7 @@ import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminLoyaltyService } from '../../../services/adminLoyaltyService';
 import { StatusBadge } from '../components/StatusBadge';
 import { DetailsSkeleton } from '../components/SkeletonLoaders';
-import { formatINR } from '../../../utils/formatters';
+import { GENDER_LABELS, formatCalendarDate, formatINR } from '../../../utils/formatters';
 import { useToast } from '../context/ToastContext';
 import { AreaLineChart } from '../components/charts/AreaLineChart';
 
@@ -157,6 +157,30 @@ export const CustomerDetailPage = () => {
             {currentPoints.toLocaleString('en-IN')} pts
           </div>
         </div>
+      </div>
+
+      {/* Customer Profile Details (filled by the customer from the app) */}
+      <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-stone-100">
+          <h3 className="text-sm font-semibold text-stone-900">Profile Details</h3>
+        </div>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 p-5 text-xs">
+          {[
+            ['Email', customer.email],
+            ['Date of Birth', formatCalendarDate(customer.dob)],
+            ['Gender', GENDER_LABELS[customer.gender]],
+            ['Anniversary', formatCalendarDate(customer.anniversaryDate)],
+            ['Interest', customer.interest],
+            ['Address', [customer.address, customer.city, customer.pincode].filter(Boolean).join(', ')],
+          ].map(([label, value]) => (
+            <div key={label} className="min-w-0">
+              <dt className="font-medium text-stone-500">{label}</dt>
+              <dd className={`mt-0.5 break-words ${value ? 'text-stone-900 font-medium' : 'text-stone-400'}`}>
+                {value || '—'}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       {/* Spend Trajectory Chart */}

@@ -200,6 +200,9 @@ Resends the OTP for whichever flow is in progress (login or registration, keepin
       "city": "Jaipur",
       "pincode": null,
       "profileImage": null,
+      "dob": "1994-08-17",
+      "anniversaryDate": null,
+      "gender": "male",
       "loyaltyPoints": 2450,
       "loyaltyTier": { "key": "silver", "label": "Silver Member" },
       "memberSince": "2024-10-14T00:00:00.000Z",
@@ -274,10 +277,10 @@ Returns `data.customer` (shape as in `verify-otp`).
 
 ### `PATCH /customer/me`
 
-Updatable: `name`, `email`, `interest`, `budget`, `address`, `city`, `pincode`, `profileImage`. Empty strings clear a field. `mobile` and `loyaltyPoints` cannot be changed here (422).
+Updatable: `name`, `email`, `interest`, `budget`, `address`, `city`, `pincode`, `profileImage`, `dob`, `anniversaryDate`, `gender`. Empty strings clear a field. `dob` and `anniversaryDate` are calendar dates `YYYY-MM-DD` (from 1900, not in the future); `gender` is one of `male`, `female`, `other`, `prefer_not_to_say`. `mobile` and `loyaltyPoints` cannot be changed here (422).
 
 ```json
-{ "email": "rohit@gmail.com", "city": "Jaipur", "pincode": "302019" }
+{ "email": "rohit@gmail.com", "dob": "1994-08-17", "gender": "male", "city": "Jaipur", "pincode": "302019" }
 ```
 
 ### `GET /customer/purchases`
@@ -412,7 +415,7 @@ All require an admin token.
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/admin/customers` | `search` (name, mobile in any format, email, customer code), `status` (`all`/`active`/`inactive`), `sort` (`createdAt`, `name`, `loyaltyPoints`, prefix `-` for descending; default `-createdAt`), `page`, `limit` |
-| POST | `/admin/customers` | `name`, `mobile`, `interest` required; optional `budget`, `email`, `address`, `city`, `pincode`. 409 on duplicate mobile |
+| POST | `/admin/customers` | `name`, `mobile`, `interest` required; optional `budget`, `email`, `address`, `city`, `pincode`, `dob`, `anniversaryDate`, `gender`. 409 on duplicate mobile |
 | GET | `/admin/customers/:id` | Customer + `stats` |
 | PATCH | `/admin/customers/:id` | Profile fields, `mobile` (409 if taken), `isActive`. Loyalty points are not editable here |
 | GET | `/admin/customers/:id/purchases` | Same filters as `/admin/purchases` |

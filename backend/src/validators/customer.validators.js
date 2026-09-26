@@ -5,6 +5,8 @@ import {
   nameSchema,
   optionalBudgetSchema,
   optionalEmailSchema,
+  optionalGenderSchema,
+  optionalPastDateSchema,
   optionalPincodeSchema,
   optionalTextSchema,
   optionalUrlSchema,
@@ -18,6 +20,9 @@ const profileFields = {
   city: optionalTextSchema(80).optional(),
   pincode: optionalPincodeSchema.optional(),
   budget: optionalBudgetSchema.optional(),
+  dob: optionalPastDateSchema('Date of birth').optional(),
+  anniversaryDate: optionalPastDateSchema('Anniversary date').optional(),
+  gender: optionalGenderSchema.optional(),
 };
 
 const requireAtLeastOneField = (obj) => Object.keys(obj).length > 0;

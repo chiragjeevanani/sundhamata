@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export const CUSTOMER_INTERESTS = Object.freeze(['Mobile', 'Accessories', 'Service']);
+export const CUSTOMER_GENDERS = Object.freeze(['male', 'female', 'other', 'prefer_not_to_say']);
 
 const customerSchema = new mongoose.Schema(
   {
@@ -16,6 +17,10 @@ const customerSchema = new mongoose.Schema(
     city: { type: String, trim: true, maxlength: 80, default: null },
     pincode: { type: String, match: /^\d{6}$/, default: null },
     profileImage: { type: String, trim: true, maxlength: 500, default: null },
+    // Calendar dates stored at 00:00 UTC; always read/written as "YYYY-MM-DD".
+    dob: { type: Date, default: null },
+    anniversaryDate: { type: Date, default: null },
+    gender: { type: String, enum: [...CUSTOMER_GENDERS, null], default: null },
 
     // Cached balance for fast reads. Only ever changed by services/loyalty.service.js,
     // always together with a LoyaltyTransaction (the source of truth).

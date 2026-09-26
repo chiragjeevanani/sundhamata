@@ -10,10 +10,17 @@ import {
   LogOut,
   ChevronRight,
   X,
+  Pencil,
+  Mail,
+  Cake,
+  Heart,
+  User,
+  Home,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useStoreInfo } from '../hooks/useStoreInfo';
+import { GENDER_LABELS, formatCalendarDate } from '../../../utils/formatters';
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
@@ -46,6 +53,15 @@ export const ProfilePage = () => {
   const email = user?.email || '';
   const interest = user?.interest || '';
   const points = user?.loyaltyPoints ?? 0;
+
+  const fullAddress = [user?.address, user?.city, user?.pincode].filter(Boolean).join(', ');
+  const details = [
+    { icon: Mail, label: 'Email', value: email },
+    { icon: Cake, label: 'Date of Birth', value: formatCalendarDate(user?.dob) },
+    { icon: User, label: 'Gender', value: GENDER_LABELS[user?.gender] },
+    { icon: Heart, label: 'Anniversary', value: formatCalendarDate(user?.anniversaryDate) },
+    { icon: Home, label: 'Address', value: fullAddress },
+  ];
 
   const initials = name
     .split(' ')
@@ -90,6 +106,45 @@ export const ProfilePage = () => {
               ) : null}
             </div>
           </div>
+
+          <button
+            onClick={() => navigate('/profile/edit')}
+            className="shrink-0 px-2.5 py-1.5 rounded-lg border border-brand-200 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <Pencil className="w-3 h-3" />
+            Edit
+          </button>
+        </div>
+
+        {/* Personal Details */}
+        <div className="bg-white rounded-xl border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] overflow-hidden">
+          <div className="px-3 py-2 bg-stone-50/80 border-b border-stone-100 flex items-center justify-between">
+            <h3 className="text-[10.5px] font-bold uppercase tracking-wider text-stone-600">
+              Personal Details
+            </h3>
+            <button
+              onClick={() => navigate('/profile/edit')}
+              className="text-[10.5px] font-bold text-brand-700 hover:text-brand-800 cursor-pointer"
+            >
+              Edit Profile
+            </button>
+          </div>
+
+          <dl className="divide-y divide-stone-100 text-xs">
+            {details.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="px-3 py-2 flex items-start gap-2.5">
+                <div className="w-6.5 h-6.5 rounded bg-cream-100 text-brand-700 flex items-center justify-center shrink-0">
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <dt className="text-[10px] font-semibold text-stone-400 leading-tight">{label}</dt>
+                  <dd className={`leading-snug break-words ${value ? 'font-semibold text-stone-800' : 'text-stone-400 italic'}`}>
+                    {value || 'Not added'}
+                  </dd>
+                </div>
+              </div>
+            ))}
+          </dl>
         </div>
 
         {/* Section 2: My Account Shortcuts */}
