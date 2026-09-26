@@ -88,6 +88,10 @@ export const verifyOtpAndSignIn = async (mobile, otp) => {
 
   if (!customer.isActive) throw accountDisabled();
 
+  // First sign-in to an account the store created (e.g. while billing a purchase to this
+  // number): the app asks the customer to confirm the name and details the store entered.
+  const needsProfileReview = !isNewUser && !customer.mobileVerifiedAt;
+
   customer.lastLoginAt = new Date();
   customer.mobileVerifiedAt ??= new Date();
   await customer.save();
@@ -95,5 +99,5 @@ export const verifyOtpAndSignIn = async (mobile, otp) => {
   const { token, expiresAt } = signCustomerToken(customer);
   logger.info({ customerId: customer.id, mobile: maskMobile(mobile), isNewUser }, 'Customer authenticated');
 
-  return { token, expiresAt, isNewUser, customer: serializeCustomer(customer) };
+  return { token, expiresAt, isNewUser, needsProfileReview, customer: serializeCustomer(customer) };
 };

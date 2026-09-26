@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, Lock } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Check, Lock, PartyPopper } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../../../services/userService';
 import { GENDER_LABELS } from '../../../utils/formatters';
@@ -73,8 +73,12 @@ const Section = ({ title, children }) => (
 
 export const EditProfilePage = () => {
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
-  const [form, setForm] = useState(() => toForm(user));
+  const { user, refreshUser, finishProfileReview } = useAuth();
+  // Arriving right after the first sign-in to an account the store created while billing
+  const [searchParams] = useSearchParams();
+  const welcome = searchParams.get('welcome') === '1';
+  const placeholderName = user?.name === 'Customer';
+  const [form, setForm] = useState(() => ({ ...toForm(user), name: placeholderName ? '' : user?.name ?? '' }));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -87,7 +91,10 @@ export const EditProfilePage = () => {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const goBack = () => navigate('/profile', { replace: true });
+  const goBack = () => {
+    if (welcome) finishProfileReview();
+    navigate(welcome ? '/home' : '/profile', { replace: true });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -143,6 +150,20 @@ export const EditProfilePage = () => {
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="p-3.5 sm:p-4 space-y-3 pb-6">
+        {welcome && (
+          <div className="rounded-xl bg-brand-50 border border-brand-200/80 p-3 flex gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white text-brand-600 flex items-center justify-center shrink-0 border border-brand-100">
+              <PartyPopper className="w-4 h-4" />
+            </div>
+            <div className="text-[12px] leading-snug">
+              <p className="font-bold text-ink-900">Welcome to Sundhamata Mobile!</p>
+              <p className="text-stone-600 mt-0.5">
+                Your purchases and loyalty points from the store are already here. Please confirm your name and
+                add any details you like.
+              </p>
+            </div>
+          </div>
+        )}
         <Section title="Basic Details">
           <Field label="Full Name" error={errors.name}>
             <input
@@ -301,7 +322,7 @@ export const EditProfilePage = () => {
             onClick={goBack}
             className="flex-1 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-700 font-bold text-xs hover:bg-stone-50 transition-colors cursor-pointer"
           >
-            Cancel
+            {welcome ? 'Skip for now' : 'Cancel'}
           </button>
           <button
             type="submit"
@@ -313,7 +334,7 @@ export const EditProfilePage = () => {
             ) : (
               <Check className="w-3.5 h-3.5" />
             )}
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? 'Saving…' : welcome ? 'Save & Continue' : 'Save Changes'}
           </button>
         </div>
       </form>

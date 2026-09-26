@@ -9,7 +9,7 @@ import { calculatePurchasePoints } from '../utils/loyalty.js';
 import { buildPagination, containsRegex, paginated, parseSort } from '../utils/query.js';
 import { serializePurchase } from '../utils/serializers.js';
 import { runAtomic } from '../utils/transaction.js';
-import { buildCustomerSearchFilter } from './customer.service.js';
+import { buildCustomerSearchFilter, createCustomer } from './customer.service.js';
 import { applyPointsChange } from './loyalty.service.js';
 import { getSettings } from './settings.service.js';
 
@@ -28,6 +28,58 @@ const KNOWN_BRANDS = [
 ];
 
 const inferBrand = (productName) => KNOWN_BRANDS.find(([, pattern]) => pattern.test(productName))?.[0] ?? null;
+
+// Name used when the store records a purchase for a new number without asking the name.
+// The customer is asked to confirm their details the first time they sign in.
+export const PLACEHOLDER_CUSTOMER_NAME = 'Customer';
+const INTEREST_BY_CATEGORY = { phones: 'Mobile', accessories: 'Accessories', service: 'Service' };
+
+/**
+ * The customer a new purchase belongs to: an existing one by id, or, for a mobile number
+ * given as `newCustomer`, the customer with that number (created now if they are new).
+ * Runs inside the purchase transaction, so a failed purchase never leaves a stray customer.
+ */
+const resolvePurchaseCustomer = async (input, admin, ctx) => {
+  const { session } = ctx;
+  let customer;
+  let customerCreated = false;
+
+  if (input.customerId) {
+    customer = await Customer.findById(input.customerId).session(session).lean();
+    if (!customer) throw ApiError.notFound('Customer not found');
+  } else {
+    const { mobile, name } = input.newCustomer;
+    customer = await Customer.findOne({ mobile }).session(session).lean();
+    if (!customer) {
+      try {
+        const created = await createCustomer(
+          {
+            name: name ?? PLACEHOLDER_CUSTOMER_NAME,
+            mobile,
+            interest: INTEREST_BY_CATEGORY[input.category] ?? 'Mobile',
+          },
+          { source: 'admin', createdBy: admin },
+          ctx
+        );
+        customer = created.toObject();
+        customerCreated = true;
+      } catch (err) {
+        // Another counter recorded a purchase for this number at the same moment
+        if (err?.code === 11000 || err?.statusCode === 409) {
+          throw ApiError.conflict('This customer was just added by someone else. Please record the purchase again.');
+        }
+        throw err;
+      }
+    }
+  }
+
+  if (!customer.isActive) {
+    throw ApiError.unprocessable('Cannot record a purchase for an inactive customer', [
+      { field: 'customerId', message: 'Customer is inactive' },
+    ]);
+  }
+  return { customer, customerCreated };
+};
 
 const roundMoney = (value) => Math.round(value * 100) / 100;
 
@@ -81,15 +133,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
   const result = await runAtomic(async (ctx) => {
     const { session, onRollback } = ctx;
 
-    const customer = await Customer.findById(input.customerId).session(session).lean();
-    if (!customer) {
-      throw ApiError.notFound('Customer not found');
-    }
-    if (!customer.isActive) {
-      throw ApiError.unprocessable('Cannot record a purchase for an inactive customer', [
-        { field: 'customerId', message: 'Customer is inactive' },
-      ]);
-    }
+    const { customer, customerCreated } = await resolvePurchaseCustomer(input, admin, ctx);
 
     if (await invoiceTaken(input.invoiceNumber, { session })) throw duplicateInvoice();
 
@@ -196,7 +240,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       ));
     }
 
-    return { purchaseId: purchase._id, pointsEarned, pointsRedeemed, balance };
+    return { purchaseId: purchase._id, pointsEarned, pointsRedeemed, balance, customerCreated };
   });
 
   logger.info(
@@ -205,12 +249,17 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       adminId: admin.id,
       pointsEarned: result.pointsEarned,
       pointsRedeemed: result.pointsRedeemed,
+      customerCreated: result.customerCreated,
     },
     'Purchase created'
   );
 
   const purchase = await findPurchaseForAdmin(result.purchaseId);
-  return { purchase: serializePurchase(purchase), customerLoyaltyBalance: result.balance };
+  return {
+    purchase: serializePurchase(purchase),
+    customerLoyaltyBalance: result.balance,
+    customerCreated: result.customerCreated,
+  };
 };
 
 const toSetPaths = (patch) => {

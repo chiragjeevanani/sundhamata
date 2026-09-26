@@ -125,6 +125,14 @@ export const CustomersListPage = () => {
                         {c.name}
                       </span>
                       <span className="text-[11px] text-stone-400 font-mono font-normal">{c.customerCode}</span>
+                      {c.mobileVerified === false && (
+                        <span
+                          className="ml-1.5 text-[10px] font-medium text-stone-500 bg-stone-100 border border-stone-200 rounded px-1 py-px"
+                          title="Added by the store. Purchases appear in the app once they sign in with this number."
+                        >
+                          Not on app yet
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3 px-4 font-normal text-stone-700 whitespace-nowrap">

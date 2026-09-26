@@ -12,23 +12,33 @@ const formatCustomerCode = (seq) => `CUS${String(seq).padStart(5, '0')}`;
  * Creates a customer. Used by self-registration (after OTP) and by admins.
  * @param {object} data validated fields (mobile already normalized)
  * @param {{ source: 'self'|'admin'|'seed', createdBy?: object, verified?: boolean }} options
+ * @param {{ session?: import('mongoose').ClientSession|null, onRollback?: Function }} [ctx]
+ *   pass the runAtomic context to create the customer as part of a larger workflow
  */
-export const createCustomer = async (data, { source, createdBy = null, verified = false }) => {
-  if (await Customer.exists({ mobile: data.mobile })) {
+export const createCustomer = async (data, { source, createdBy = null, verified = false }, ctx = {}) => {
+  const session = ctx.session ?? null;
+  if (await Customer.exists({ mobile: data.mobile }).session(session)) {
     throw ApiError.conflict('A customer with this mobile number already exists', [
       { field: 'mobile', message: 'Already registered' },
     ]);
   }
+  // Outside the transaction on purpose: a rolled-back workflow only leaves a gap in the codes.
   const customerCode = formatCustomerCode(await nextSequence('customerCode'));
   // The unique index on mobile still guards the race between the check and the insert.
-  const customer = await Customer.create({
-    ...data,
-    customerCode,
-    loyaltyPoints: 0,
-    registrationSource: source,
-    createdBy: createdBy?._id ?? null,
-    mobileVerifiedAt: verified ? new Date() : null,
-  });
+  const [customer] = await Customer.create(
+    [
+      {
+        ...data,
+        customerCode,
+        loyaltyPoints: 0,
+        registrationSource: source,
+        createdBy: createdBy?._id ?? null,
+        mobileVerifiedAt: verified ? new Date() : null,
+      },
+    ],
+    { session }
+  );
+  ctx.onRollback?.(() => Customer.deleteOne({ _id: customer._id }));
   logger.info({ customerId: customer.id, mobile: maskMobile(customer.mobile), source }, 'Customer created');
   return customer;
 };

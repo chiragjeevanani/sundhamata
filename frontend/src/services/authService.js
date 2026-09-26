@@ -45,6 +45,8 @@ export const authService = {
       expiresAt: Date.parse(data.expiresAt),
       user: toUiCustomer(data.customer),
       isNewUser: data.isNewUser,
+      // First sign-in to an account the store created while billing: ask them to confirm their details
+      needsProfileReview: Boolean(data.needsProfileReview),
     };
     customerSession.set(session);
     return session;

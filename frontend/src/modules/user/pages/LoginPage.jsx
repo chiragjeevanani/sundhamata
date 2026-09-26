@@ -18,10 +18,13 @@ import { maskPhone, formatPhone } from '../../../utils/formatters';
 export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, checkCustomer, sendOtp, resendOtp, registerCustomer, loginWithOtp } =
+  const { isAuthenticated, checkCustomer, sendOtp, resendOtp, registerCustomer, loginWithOtp, needsProfileReview } =
     useAuth();
 
-  const destination = location.state?.from?.pathname || '/home';
+  // Accounts the store created while billing a purchase first confirm their name and details
+  const destination = needsProfileReview
+    ? '/profile/edit?welcome=1'
+    : location.state?.from?.pathname || '/home';
 
   // If already authenticated, redirect immediately
   useEffect(() => {

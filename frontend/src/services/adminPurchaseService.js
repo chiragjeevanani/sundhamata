@@ -38,10 +38,11 @@ export const adminPurchaseService = {
    * Records a sale. Loyalty points are calculated by the server — any client
    * estimate is display-only and never sent.
    */
-  async createPurchase({ customerId, invoiceNumber, product, purchaseDate, warranty, paymentMethod, paymentStatus = 'Paid', pricing, pointsToRedeem = 0, notes }) {
+  async createPurchase({ customerId, newCustomer, invoiceNumber, product, purchaseDate, warranty, paymentMethod, paymentStatus = 'Paid', pricing, pointsToRedeem = 0, notes }) {
     const identifier = (product.imei || '').replace(/[\s-]/g, '');
     const data = await adminApi.post('/admin/purchases', {
-      customerId,
+      // An existing customer, or { mobile, name? } of someone who has not signed up yet
+      ...(newCustomer ? { newCustomer } : { customerId }),
       invoiceNumber: invoiceNumber.trim(),
       category: product.category || 'phones',
       product: {
@@ -61,7 +62,11 @@ export const adminPurchaseService = {
       ...(pointsToRedeem > 0 ? { loyaltyRedemption: { points: pointsToRedeem } } : {}),
       ...(notes ? { notes } : {}),
     });
-    return { ...toUiPurchase(data.purchase), customerLoyaltyBalance: data.customerLoyaltyBalance };
+    return {
+      ...toUiPurchase(data.purchase),
+      customerLoyaltyBalance: data.customerLoyaltyBalance,
+      customerCreated: data.customerCreated,
+    };
   },
 
   /**

@@ -13,6 +13,8 @@ import {
   Paperclip,
   FileText,
   Image as ImageIcon,
+  UserPlus,
+  Users,
 } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
@@ -34,6 +36,13 @@ import {
   validateImageFile,
 } from '../../../utils/billFile';
 
+// Indian mobile: last 10 digits of whatever was typed ("+91 98290-55443" → "9829055443")
+const toTenDigits = (value) => {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.length > 10 ? digits.slice(-10) : digits;
+};
+const isValidMobile = (digits) => /^[6-9]\d{9}$/.test(digits);
+
 export const RecordPurchasePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,6 +54,12 @@ export const RecordPurchasePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  // "New customer": just the mobile number (name optional). The purchase is saved under that
+  // number and shows up in the app when they sign up with it, so no registration step is needed.
+  const [customerMode, setCustomerMode] = useState('existing'); // 'existing' | 'new'
+  const [newMobile, setNewMobile] = useState('');
+  const [newName, setNewName] = useState('');
+  const newMobileDigits = toTenDigits(newMobile);
 
   // Product Info
   const [productName, setProductName] = useState('');
@@ -195,8 +210,14 @@ export const RecordPurchasePage = () => {
     e.preventDefault();
     const errors = {};
 
-    if (!selectedCustomer) {
-      errors.customer = 'Please select a customer.';
+    if (customerMode === 'existing' && !selectedCustomer) {
+      errors.customer = 'Please select a customer, or choose New customer.';
+    }
+    if (customerMode === 'new') {
+      if (!isValidMobile(newMobileDigits)) errors.newMobile = 'Enter a valid 10-digit mobile number.';
+      if (newName.trim() && !/^[\p{L}\p{M}][\p{L}\p{M} .'-]{1,79}$/u.test(newName.trim())) {
+        errors.newName = 'Use letters only (at least 2), or leave it empty.';
+      }
     }
     if (!productName.trim()) {
       errors.productName = 'Product name is required.';
@@ -228,7 +249,9 @@ export const RecordPurchasePage = () => {
     try {
       // Loyalty points and the warranty expiry date are calculated by the server.
       const recorded = await adminPurchaseService.createPurchase({
-        customerId: selectedCustomer.id,
+        ...(customerMode === 'existing'
+          ? { customerId: selectedCustomer.id }
+          : { newCustomer: { mobile: newMobileDigits, ...(newName.trim() ? { name: newName.trim() } : {}) } }),
         invoiceNumber,
         product: {
           name: productName.trim(),
@@ -293,6 +316,9 @@ export const RecordPurchasePage = () => {
     setSuccessRecord(null);
     setSelectedCustomer(null);
     setSearchQuery('');
+    setCustomerMode('existing');
+    setNewMobile('');
+    setNewName('');
     setProductName('');
     setImei('');
     setBrand('');
@@ -323,8 +349,15 @@ export const RecordPurchasePage = () => {
         <div>
           <h2 className="text-xl font-semibold text-stone-900">Purchase Recorded</h2>
           <p className="text-xs text-stone-500 mt-1">
-            Invoice <span className="font-mono font-medium text-stone-800">{successRecord.invoiceNumber}</span> created for {successRecord.customerName}.
+            Invoice <span className="font-mono font-medium text-stone-800">{successRecord.invoiceNumber}</span> created for{' '}
+            {successRecord.customerName === 'Customer' ? successRecord.customerMobile : successRecord.customerName}.
           </p>
+          {successRecord.customerCreated && (
+            <p className="mt-3 text-xs text-stone-600 bg-brand-50 border border-brand-100 rounded-lg px-3 py-2 text-left">
+              New customer saved under <span className="font-medium text-stone-900">{successRecord.customerMobile}</span>.
+              When they sign up in the Sundhamata app with this number, they will see this purchase and their points.
+            </p>
+          )}
         </div>
 
         <div className="bg-white rounded-xl p-5 border border-stone-200/80 text-left text-xs space-y-2.5 shadow-2xs">
@@ -427,23 +460,99 @@ export const RecordPurchasePage = () => {
         <div className="lg:col-span-8 bg-white rounded-xl border border-stone-200/80 shadow-2xs divide-y divide-stone-100 overflow-hidden">
           {/* Section 1: Customer Selection */}
           <div className="p-5 sm:p-6 space-y-3.5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">1. Customer Details</h3>
-                <p className="text-xs text-stone-400 font-normal">Select customer to associate with sale</p>
+                <p className="text-xs text-stone-400 font-normal">
+                  {customerMode === 'new'
+                    ? 'Only the mobile number is needed. No sign-up required.'
+                    : 'Search by name or mobile number'}
+                </p>
               </div>
-              {!selectedCustomer && (
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin/customers/new')}
-                  className="text-xs font-medium text-brand-600 hover:text-brand-800 hover:underline cursor-pointer"
-                >
-                  + Add New Customer
-                </button>
-              )}
+              <div className="inline-flex p-0.5 rounded-lg bg-stone-100 border border-stone-200 text-xs self-start sm:self-auto" role="tablist">
+                {[
+                  { id: 'existing', label: 'Existing customer', icon: Users },
+                  { id: 'new', label: 'New customer', icon: UserPlus },
+                ].map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={customerMode === id}
+                    onClick={() => {
+                      setCustomerMode(id);
+                      setRedeemPoints('');
+                      setFormErrors((prev) => ({ ...prev, customer: '', newMobile: '', newName: '' }));
+                    }}
+                    className={`px-3 py-1.5 rounded-md font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      customerMode === id ? 'bg-white text-stone-900 shadow-2xs' : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {!selectedCustomer ? (
+            {customerMode === 'new' ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-1">
+                    <label htmlFor="new-customer-mobile" className="font-medium text-stone-700 block">
+                      Mobile Number <span className="text-rose-500">*</span>
+                    </label>
+                    <div
+                      className={`flex items-center bg-white border rounded-lg shadow-2xs focus-within:border-brand-600 ${
+                        formErrors.newMobile ? 'border-rose-400' : 'border-stone-300'
+                      }`}
+                    >
+                      <span className="pl-3 pr-2 text-stone-500 font-medium border-r border-stone-200">+91</span>
+                      <input
+                        id="new-customer-mobile"
+                        type="tel"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        value={newMobile}
+                        onChange={(e) => {
+                          setNewMobile(e.target.value.replace(/[^\d\s+-]/g, '').slice(0, 16));
+                          if (formErrors.newMobile) setFormErrors((prev) => ({ ...prev, newMobile: '' }));
+                        }}
+                        placeholder="98290 55443"
+                        className="flex-1 min-w-0 px-2.5 py-2 bg-transparent font-medium text-stone-900 tabular-nums focus:outline-hidden"
+                        autoFocus
+                      />
+                    </div>
+                    {formErrors.newMobile && <p className="text-[11px] text-rose-600">{formErrors.newMobile}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="new-customer-name" className="font-medium text-stone-700 block">
+                      Customer Name <span className="text-stone-400 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      id="new-customer-name"
+                      type="text"
+                      value={newName}
+                      onChange={(e) => {
+                        setNewName(e.target.value);
+                        if (formErrors.newName) setFormErrors((prev) => ({ ...prev, newName: '' }));
+                      }}
+                      maxLength={80}
+                      placeholder="e.g. Amit Verma"
+                      className={`w-full px-3 py-2 bg-white border rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs ${
+                        formErrors.newName ? 'border-rose-400' : 'border-stone-300'
+                      }`}
+                    />
+                    {formErrors.newName && <p className="text-[11px] text-rose-600">{formErrors.newName}</p>}
+                  </div>
+                </div>
+                <p className="text-[11px] text-stone-500 leading-relaxed">
+                  The purchase and loyalty points are saved under this number. When the customer signs up in the
+                  Sundhamata app with it, they will see everything and can add their own details. If the number
+                  already belongs to a customer, the purchase is added to their account.
+                </p>
+              </div>
+            ) : !selectedCustomer ? (
               <div className="relative">
                 <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
                 <input
@@ -459,8 +568,8 @@ export const RecordPurchasePage = () => {
                   <p className="text-[11px] text-rose-600 mt-1">{formErrors.customer}</p>
                 )}
 
-                {searchResults.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 z-20 bg-white border border-stone-200 rounded-lg shadow-lg max-h-52 overflow-y-auto divide-y divide-stone-100">
+                {(searchResults.length > 0 || isValidMobile(toTenDigits(searchQuery))) && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 z-20 bg-white border border-stone-200 rounded-lg shadow-lg max-h-60 overflow-y-auto divide-y divide-stone-100">
                     {searchResults.map((c) => (
                       <div
                         key={c.id}
@@ -480,6 +589,32 @@ export const RecordPurchasePage = () => {
                         <span className="text-xs font-medium text-amber-700 tabular-nums">{c.loyaltyPoints || 0} pts</span>
                       </div>
                     ))}
+                    {/* A full mobile number nobody has yet: bill it straight away as a new customer */}
+                    {isValidMobile(toTenDigits(searchQuery)) &&
+                      !searchResults.some((c) => toTenDigits(c.mobile) === toTenDigits(searchQuery)) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomerMode('new');
+                            setNewMobile(toTenDigits(searchQuery));
+                            setSearchQuery('');
+                            setSearchResults([]);
+                            setRedeemPoints('');
+                            setFormErrors((prev) => ({ ...prev, customer: '' }));
+                          }}
+                          className="w-full p-3 text-left hover:bg-brand-50/60 cursor-pointer flex items-center gap-2.5 text-xs transition-colors"
+                        >
+                          <span className="w-7 h-7 rounded-md bg-brand-50 text-brand-700 flex items-center justify-center shrink-0">
+                            <UserPlus className="w-3.5 h-3.5" />
+                          </span>
+                          <span>
+                            <span className="font-medium text-stone-900 block">
+                              Bill to new customer +91 {toTenDigits(searchQuery)}
+                            </span>
+                            <span className="text-stone-500">No sign-up needed. They see it when they join the app.</span>
+                          </span>
+                        </button>
+                      )}
                   </div>
                 )}
               </div>
@@ -812,7 +947,7 @@ export const RecordPurchasePage = () => {
                       {minRedeemPoints > 0 && <> · min {minRedeemPoints.toLocaleString('en-IN')} pts</>}
                     </>
                   ) : (
-                    'Select a customer first'
+                    customerMode === 'new' ? 'New customer: no points to redeem yet' : 'Select a customer first'
                   )}
                 </span>
               </div>
@@ -941,7 +1076,9 @@ export const RecordPurchasePage = () => {
             <div className="flex justify-between text-stone-500">
               <span>Customer</span>
               <span className="font-medium text-stone-900 truncate max-w-[150px]">
-                {selectedCustomer?.name || '—'}
+                {customerMode === 'new'
+                  ? newName.trim() || (newMobileDigits ? `+91 ${newMobileDigits}` : '—')
+                  : selectedCustomer?.name || '—'}
               </span>
             </div>
             <div className="flex justify-between text-stone-500">

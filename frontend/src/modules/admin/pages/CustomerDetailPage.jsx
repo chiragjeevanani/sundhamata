@@ -115,6 +115,14 @@ export const CustomerDetailPage = () => {
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">{customer.name}</h1>
             <span className="text-xs font-normal text-stone-500">({customer.phone || customer.mobile})</span>
+            {customer.mobileVerified === false && (
+              <span
+                className="text-[11px] font-medium text-stone-500 bg-stone-100 border border-stone-200 rounded-md px-1.5 py-0.5"
+                title="Purchases appear in the customer app once they sign in with this number."
+              >
+                Not on app yet
+              </span>
+            )}
           </div>
         </div>
 

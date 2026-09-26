@@ -188,6 +188,9 @@ Resends the OTP for whichever flow is in progress (login or registration, keepin
     "token": "eyJhbGciOi...",
     "expiresAt": "2026-10-01T12:18:31.000Z",
     "isNewUser": false,
+    // true on the first sign-in to an account the store created (see POST /admin/purchases `newCustomer`);
+    // the app then asks the customer to confirm their name and details
+    "needsProfileReview": false,
     "customer": {
       "id": "6ab514fcb6310c16af7d7bd2",
       "customerCode": "CUS00001",
@@ -451,6 +454,8 @@ Admin customer objects add:
 | DELETE | `/admin/purchases/:id/image` | Remove the product photo |
 
 #### `POST /admin/purchases`
+
+Send **either** `customerId` (existing customer) **or** `newCustomer: { "mobile": "9829055443", "name": "Amit Verma" }` (`name` optional) to bill someone who has not signed up. The customer is found by mobile or created in the same transaction as the purchase (placeholder name "Customer" when none is given), so a failed purchase never leaves a stray customer. When that person later signs in to the app with the number (OTP), they see the purchase and points. The response includes `customerCreated: true|false`.
 
 ```json
 // request

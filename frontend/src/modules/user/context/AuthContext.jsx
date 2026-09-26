@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../../../services/authService';
+import { customerSession } from '../../../services/api/session';
 
 const AuthContext = createContext(null);
 
@@ -59,6 +60,12 @@ export const AuthProvider = ({ children }) => {
     return fresh;
   }, []);
 
+  // The store created this account (e.g. billing a purchase to the number); the review is shown once.
+  const finishProfileReview = useCallback(() => {
+    customerSession.update({ needsProfileReview: false });
+    setSession((prev) => (prev ? { ...prev, needsProfileReview: false } : prev));
+  }, []);
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -82,6 +89,8 @@ export const AuthProvider = ({ children }) => {
         registerCustomer,
         loginWithOtp,
         refreshUser,
+        needsProfileReview: Boolean(session?.needsProfileReview),
+        finishProfileReview,
         logout,
       }}
     >
