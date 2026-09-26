@@ -63,7 +63,7 @@ export const DonutPieChart = ({
                 cy={center}
                 r={radius}
                 fill="transparent"
-                stroke={slice.color || '#D77F3F'}
+                stroke={slice.color || 'var(--color-brand-500)'}
                 strokeWidth={hoveredIdx === slice.idx ? strokeWidth + 4 : strokeWidth}
                 strokeDasharray={slice.strokeDasharray}
                 strokeDashoffset={slice.strokeDashoffset}
@@ -108,7 +108,7 @@ export const DonutPieChart = ({
                 <div className="flex items-center gap-2 min-w-0">
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: item.color || '#D77F3F' }}
+                    style={{ backgroundColor: item.color || 'var(--color-brand-500)' }}
                   />
                   <span className="font-bold text-stone-800 truncate">{item.label}</span>
                 </div>
@@ -128,7 +128,7 @@ export const DonutPieChart = ({
                   className="h-full rounded-full transition-all duration-300"
                   style={{
                     width: `${item.percentage}%`,
-                    backgroundColor: item.color || '#D77F3F',
+                    backgroundColor: item.color || 'var(--color-brand-500)',
                   }}
                 />
               </div>

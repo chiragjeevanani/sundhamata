@@ -4,9 +4,9 @@
 import { adminApi } from './api/apiClient';
 import { byTimeframe, toUiPurchase } from './api/adapters';
 
-const CATEGORY_COLORS = { phones: '#B55B1F', accessories: '#E2955A', service: '#10B981' };
+const CATEGORY_COLORS = { phones: 'var(--color-brand-600)', accessories: 'var(--color-brand-400)', service: '#10B981' };
 const BRAND_COLORS = {
-  Samsung: '#B55B1F',
+  Samsung: 'var(--color-brand-600)',
   Apple: '#1C1917',
   OnePlus: '#78716C',
   Xiaomi: '#10B981',

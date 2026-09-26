@@ -21,6 +21,7 @@ const toUiSettings = (s) => ({
     minRedeemPoints: s.loyalty.minRedeemPoints,
     expiryMonths: s.loyalty.expiryMonths,
   },
+  theme: s.theme,
 });
 
 export const adminSettingsService = {

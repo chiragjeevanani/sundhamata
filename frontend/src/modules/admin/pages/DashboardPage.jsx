@@ -103,7 +103,7 @@ export const DashboardPage = () => {
             </span>
             <SparklineChart
               data={sparklines?.customers ?? []}
-              color="#D77F3F"
+              color="var(--color-brand-500)"
               width={65}
               height={22}
             />
@@ -164,7 +164,7 @@ export const DashboardPage = () => {
             </span>
             <SparklineChart
               data={sparklines?.loyaltyPoints ?? []}
-              color="#D77F3F"
+              color="var(--color-brand-500)"
               width={65}
               height={22}
             />
@@ -180,7 +180,7 @@ export const DashboardPage = () => {
             title="Revenue Trajectory"
             subtitle="Gross store sales billed across timeline"
             height={220}
-            accentColor="#D77F3F"
+            accentColor="var(--color-brand-500)"
             timeframes={['30 Days', '6 Months', '1 Year']}
             activeTimeframe={activeTimeframe}
             onTimeframeChange={(tf) => setActiveTimeframe(tf)}

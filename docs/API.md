@@ -608,6 +608,12 @@ A deduction larger than the balance is refused with 422 (`Customer has only N po
 
 Also accepted: `legalName`, `city`, `state`, `pincode`, `supportNumber`, `whatsappNumber`, `email`, `workingHours`, `loyalty.rupeeValuePerPoint`, `loyalty.minRedeemPoints`, `loyalty.expiryMonths`. Changing the loyalty rate affects future purchases only; each purchase stores the rate it was billed with.
 
+**App colours** (Settings → User & Admin Styles): `theme.customer.{primary, background, dark}` and `theme.admin.{primary, background, sidebar}`, each a hex colour `#RRGGBB` (case-insensitive, stored uppercase). `null` or `""` resets a colour to the built-in logo colour; partial updates keep the other colours. The theme is also returned by the public `GET /store`, so both apps can colour themselves before sign-in. The frontend expands each colour into the full Tailwind palette at runtime (`frontend/src/utils/theme.js`).
+
+```json
+{ "theme": { "customer": { "primary": "#1D4ED8" }, "admin": { "sidebar": "#F5F5F4" } } }
+```
+
 ### Dashboard, activity and reports
 
 #### `GET /admin/dashboard`

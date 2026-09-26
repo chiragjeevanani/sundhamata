@@ -1,5 +1,18 @@
 import { z } from 'zod';
 import { optionalEmailSchema, optionalTextSchema } from './common.js';
+import { THEME_COLOR_KEYS } from '../models/StoreSettings.js';
+
+// "#rrggbb" → "#RRGGBB"; "" or null resets the colour to the built-in default.
+const themeColor = z.preprocess(
+  (v) => (typeof v === 'string' ? v.trim().toUpperCase() || null : v ?? null),
+  z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/, 'Colour must be a hex value like #B55B1F')
+    .nullable()
+);
+
+const themeSectionSchema = (keys) =>
+  z.strictObject(Object.fromEntries(keys.map((k) => [k, themeColor.optional()]))).optional();
 
 const phoneText = z.preprocess(
   (v) => (typeof v === 'string' ? v.trim() || null : v ?? null),
@@ -47,6 +60,12 @@ export const updateSettingsSchema = z
         rupeeValuePerPoint: z.coerce.number().min(0).max(100).optional(),
         minRedeemPoints: z.coerce.number().int().min(0).max(1_000_000).optional(),
         expiryMonths: z.coerce.number().int().min(0).max(120).optional(),
+      })
+      .optional(),
+    theme: z
+      .strictObject({
+        customer: themeSectionSchema(THEME_COLOR_KEYS.customer),
+        admin: themeSectionSchema(THEME_COLOR_KEYS.admin),
       })
       .optional(),
   })

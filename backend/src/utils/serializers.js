@@ -1,5 +1,6 @@
 // Explicit allow-list serializers: only fields listed here ever leave the API.
 import { ROLE_LABELS } from '../config/permissions.js';
+import { THEME_COLOR_KEYS } from '../models/StoreSettings.js';
 import { getLoyaltyTier, pointsToRupees } from './loyalty.js';
 
 /** Date → "YYYY-MM-DD" (calendar dates are stored at 00:00 UTC) */
@@ -225,6 +226,13 @@ export const serializePublicStore = (s) => ({
     minRedeemPoints: s.loyalty.minRedeemPoints,
     expiryMonths: s.loyalty.expiryMonths,
   },
+  // Public on purpose: both apps need their colours before anyone signs in.
+  theme: Object.fromEntries(
+    Object.entries(THEME_COLOR_KEYS).map(([app, keys]) => [
+      app,
+      Object.fromEntries(keys.map((k) => [k, s.theme?.[app]?.[k] ?? null])),
+    ])
+  ),
 });
 
 export const serializeSettings = (s) => ({

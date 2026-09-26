@@ -2,6 +2,15 @@ import mongoose from 'mongoose';
 
 export const SETTINGS_KEY = 'store';
 
+// Colours the admin can customise per app, as "#RRGGBB". null = the built-in logo colours.
+export const THEME_COLOR_KEYS = Object.freeze({
+  customer: ['primary', 'background', 'dark'],
+  admin: ['primary', 'background', 'sidebar'],
+});
+
+const colorField = { type: String, match: /^#[0-9A-F]{6}$/, default: null };
+const themeSection = (keys) => Object.fromEntries(keys.map((k) => [k, colorField]));
+
 // Singleton document (key = "store").
 const storeSettingsSchema = new mongoose.Schema(
   {
@@ -30,6 +39,11 @@ const storeSettingsSchema = new mongoose.Schema(
 
     tax: {
       gstRatePercent: { type: Number, min: 0, max: 100, default: 18 },
+    },
+
+    theme: {
+      customer: themeSection(THEME_COLOR_KEYS.customer),
+      admin: themeSection(THEME_COLOR_KEYS.admin),
     },
 
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', default: null },

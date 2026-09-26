@@ -22,7 +22,7 @@ export const UserLayout = () => {
 
 
   return (
-    <div className="min-h-screen bg-cream-100 flex flex-col justify-start items-center relative overflow-x-hidden selection:bg-[#B55B1F] selection:text-white">
+    <div className="min-h-screen bg-cream-100 flex flex-col justify-start items-center relative overflow-x-hidden selection:bg-brand-600 selection:text-white">
       {/* Desktop Ambient Brand Anchor */}
       <div className="hidden lg:flex fixed top-4 left-6 items-center gap-3 z-30 select-none">
         <BrandLogo size="md" />

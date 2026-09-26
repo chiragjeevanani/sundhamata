@@ -7,7 +7,7 @@ export const AreaLineChart = ({
   subtitle = 'Monthly store sales performance',
   isCurrency = true,
   height = 240,
-  accentColor = '#D77F3F',
+  accentColor = 'var(--color-brand-500)',
   timeframes = ['30 Days', '6 Months', '1 Year'],
   activeTimeframe = '6 Months',
   onTimeframeChange,
@@ -99,9 +99,9 @@ export const AreaLineChart = ({
               <stop offset="100%" stopColor={accentColor} stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#B55B1F" />
-              <stop offset="50%" stopColor="#D77F3F" />
-              <stop offset="100%" stopColor="#E2955A" />
+              <stop offset="0%" stopColor="var(--color-brand-600)" />
+              <stop offset="50%" stopColor="var(--color-brand-500)" />
+              <stop offset="100%" stopColor="var(--color-brand-400)" />
             </linearGradient>
           </defs>
 
@@ -176,7 +176,7 @@ export const AreaLineChart = ({
                   y1={paddingTop}
                   x2={p.x}
                   y2={paddingTop + plotHeight}
-                  stroke="#E2955A"
+                  stroke="var(--color-brand-400)"
                   strokeWidth="1.5"
                   strokeDasharray="3 3"
                 />

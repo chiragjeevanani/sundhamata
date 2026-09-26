@@ -74,3 +74,46 @@ describe('Store settings', () => {
     expect(res.body.data.store).not.toHaveProperty('tax');
   });
 });
+
+describe('App colour themes', () => {
+  const NO_COLOURS = {
+    customer: { primary: null, background: null, dark: null },
+    admin: { primary: null, background: null, sidebar: null },
+  };
+
+  it('defaults to the built-in colours (all null) and is readable publicly', async () => {
+    const res = await api().get('/api/v1/store').expect(200);
+    expect(res.body.data.store.theme).toEqual(NO_COLOURS);
+  });
+
+  it('admin sets colours per app; partial updates keep the other colours', async () => {
+    const { auth } = await loginAsAdmin(app);
+    const patch = (body) => api().patch('/api/v1/admin/settings').set('Authorization', auth).send(body);
+
+    await patch({ theme: { customer: { primary: '#1d4ed8', background: '#F0F7FF' } } }).expect(200);
+    const res = await patch({ theme: { admin: { sidebar: '#0F172A' } } }).expect(200);
+    expect(res.body.data.settings.theme).toEqual({
+      customer: { primary: '#1D4ED8', background: '#F0F7FF', dark: null },
+      admin: { primary: null, background: null, sidebar: '#0F172A' },
+    });
+
+    // Customer app picks it up without signing in
+    const store = await api().get('/api/v1/store').expect(200);
+    expect(store.body.data.store.theme.customer.primary).toBe('#1D4ED8');
+
+    // Reset one colour to default with an empty value
+    const reset = await patch({ theme: { customer: { primary: '' } } }).expect(200);
+    expect(reset.body.data.settings.theme.customer).toEqual({ primary: null, background: '#F0F7FF', dark: null });
+  });
+
+  it.each([
+    [{ theme: { customer: { primary: 'red' } } }],
+    [{ theme: { customer: { primary: '#FFF' } } }],
+    [{ theme: { customer: { primary: 'url(javascript:alert(1))' } } }],
+    [{ theme: { customer: { sidebar: '#000000' } } }],
+    [{ theme: { website: { primary: '#000000' } } }],
+  ])('rejects invalid theme %j', async (body) => {
+    const { auth } = await loginAsAdmin(app);
+    await api().patch('/api/v1/admin/settings').set('Authorization', auth).send(body).expect(422);
+  });
+});

@@ -190,7 +190,7 @@ export const CustomerDetailPage = () => {
           title="Customer Purchase Progression"
           subtitle="Spend trajectory over recent retail visits"
           height={200}
-          accentColor="#D77F3F"
+          accentColor="var(--color-brand-500)"
           timeframes={[]}
         />
       </div>

@@ -58,7 +58,7 @@ export const Header = ({
                   onClick={onOpenStoreInfo}
                   className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200/80 text-stone-700 text-[11px] font-semibold transition-colors cursor-pointer"
                 >
-                  <PhoneCall className="w-3 h-3 text-[#B55B1F]" />
+                  <PhoneCall className="w-3 h-3 text-brand-600" />
                   <span>Store</span>
                 </button>
               )}

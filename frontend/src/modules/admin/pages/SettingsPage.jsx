@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import { adminSettingsService } from '../../../services/adminSettingsService';
+import { AppStylesSettings } from '../components/AppStylesSettings';
 import { useToast } from '../context/ToastContext';
 
 export const SettingsPage = () => {
@@ -24,6 +25,7 @@ export const SettingsPage = () => {
   const [pointsPerHundred, setPointsPerHundred] = useState(1);
   const [rupeeValuePerPoint, setRupeeValuePerPoint] = useState(1.0);
   const [minRedeemPoints, setMinRedeemPoints] = useState(0);
+  const [theme, setTheme] = useState(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -43,6 +45,7 @@ export const SettingsPage = () => {
         setPointsPerHundred(s.loyalty?.pointsPerHundred ?? 1);
         setRupeeValuePerPoint(s.loyalty?.rupeeValuePerPoint ?? 1.0);
         setMinRedeemPoints(s.loyalty?.minRedeemPoints ?? 0);
+        setTheme(s.theme ?? null);
       } finally {
         setLoading(false);
       }
@@ -91,7 +94,7 @@ export const SettingsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Store Settings</h1>
-          <p className="text-xs text-stone-500 mt-0.5">Configure store branding, contact parameters, and loyalty engine ratios.</p>
+          <p className="text-xs text-stone-500 mt-0.5">Configure store branding, contact parameters, loyalty engine ratios, and app colours.</p>
         </div>
 
         <button
@@ -245,6 +248,8 @@ export const SettingsPage = () => {
           </div>
         </div>
       </form>
+
+      <AppStylesSettings initialTheme={theme} />
     </div>
   );
 };

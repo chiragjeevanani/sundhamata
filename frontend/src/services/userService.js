@@ -28,6 +28,11 @@ export const userService = {
     return storeInfoRequest;
   },
 
+  /** Drops the cached store details (e.g. after an admin changes the settings) */
+  invalidateStoreInfo() {
+    storeInfoRequest = null;
+  },
+
   /** PATCH /customer/me — name, email, dob, gender, anniversaryDate, address, city, pincode, interest, budget */
   async updateProfile(updates) {
     const data = await customerApi.patch('/customer/me', updates);

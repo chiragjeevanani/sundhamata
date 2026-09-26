@@ -6,6 +6,7 @@ import { AdminAuthProvider } from './modules/admin/context/AdminAuthContext';
 import { ToastProvider } from './modules/admin/context/ToastContext';
 import { adminRoutes } from './modules/admin/routes/adminRoutes';
 import { ScrollToTop } from './modules/user/components/ScrollToTop';
+import { ThemeManager } from './components/ThemeManager';
 
 function AppRoutes() {
   const routes = useRoutes([...adminRoutes, ...userRoutes]);
@@ -19,6 +20,7 @@ export default function App() {
         <ToastProvider>
           <BrowserRouter>
             <ScrollToTop />
+            <ThemeManager />
             <AppRoutes />
           </BrowserRouter>
         </ToastProvider>

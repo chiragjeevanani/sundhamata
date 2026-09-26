@@ -119,7 +119,7 @@ export const ReportsPage = () => {
             title="Monthly Sales Velocity"
             subtitle="Store sales performance over time"
             height={220}
-            accentColor="#D77F3F"
+            accentColor="var(--color-brand-500)"
             timeframes={['30 Days', '6 Months', '1 Year']}
             activeTimeframe={activeRange}
             onTimeframeChange={(tf) => setActiveRange(tf)}

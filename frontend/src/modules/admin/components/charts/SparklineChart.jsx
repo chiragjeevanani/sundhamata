@@ -1,12 +1,14 @@
-import React from 'react';
+import { useId } from 'react';
 
 export const SparklineChart = ({
   data = [12, 14, 18, 16, 22, 26, 24, 28, 32],
-  color = '#D77F3F',
+  color = 'var(--color-brand-500)',
   width = 90,
   height = 32,
   fill = true,
 }) => {
+  // Colours may be CSS variables, so they cannot be part of the gradient id
+  const gradientId = `sparkGrad-${useId().replace(/:/g, '')}`;
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -28,12 +30,12 @@ export const SparklineChart = ({
   return (
     <svg width={width} height={height} className="overflow-visible select-none shrink-0">
       <defs>
-        <linearGradient id={`sparkGrad-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.25" />
           <stop offset="100%" stopColor={color} stopOpacity="0.0" />
         </linearGradient>
       </defs>
-      {fill && <path d={fillD} fill={`url(#sparkGrad-${color.replace('#', '')})`} />}
+      {fill && <path d={fillD} fill={`url(#${gradientId})`} />}
       <path
         d={pathD}
         fill="none"

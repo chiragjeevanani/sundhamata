@@ -31,6 +31,15 @@
   --color-cream-100: #FBEDDF;
   --color-cream-200: #F6E1CD;
 
+  /* Admin sidebar. Separate tokens so a custom sidebar colour (Settings → App Styles)
+     can switch its text to dark when the sidebar is light. See utils/theme.js. */
+  --color-sidebar: #120F0D;
+  --color-sidebar-line: #292421;
+  --color-sidebar-text: #D6D3D1;
+  --color-sidebar-muted: #A8A29E;
+  --color-sidebar-strong: #FFFFFF;
+  --color-sidebar-accent: var(--color-brand-400);
+
   --color-warm-amber: #D97706;
   --color-warm-gold: #F59E0B;
   --color-warm-accent: #FEF3C7;
@@ -43,8 +52,8 @@
 
 html, body {
   font-family: var(--font-sans);
-  background-color: #FBEDDF;
-  color: #1C1917;
+  background-color: var(--color-cream-100);
+  color: var(--color-ink-900);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
