@@ -59,7 +59,7 @@ export const AdminSidebar = ({
                   <span className="text-[10px] font-bold text-sidebar-accent">MOBILE</span>
                 </div>
                 <span className="text-[8.5px] font-semibold tracking-[0.14em] uppercase text-sidebar-muted block truncate mt-1">
-                  Store Management
+                  Store 360° Management
                 </span>
               </div>
             </div>
@@ -136,12 +136,10 @@ export const AdminSidebar = ({
               onClick={handleLinkClick}
               title={isCollapsed ? item.label : undefined}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg transition-colors ${
-                  isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2'
-                } ${
-                  isActive
-                    ? 'bg-brand-600/20 text-sidebar-strong font-semibold'
-                    : 'text-sidebar-muted hover:text-sidebar-strong hover:bg-sidebar-strong/5 font-medium'
+                `flex items-center gap-2.5 rounded-lg transition-colors ${isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2'
+                } ${isActive
+                  ? 'bg-brand-600/20 text-sidebar-strong font-semibold'
+                  : 'text-sidebar-muted hover:text-sidebar-strong hover:bg-sidebar-strong/5 font-medium'
                 }`
               }
             >
@@ -229,9 +227,8 @@ export const AdminSidebar = ({
     <>
       {/* Desktop Sticky Collapsible Sidebar */}
       <aside
-        className={`hidden lg:block shrink-0 h-screen sticky top-0 transition-all duration-300 ease-in-out select-none ${
-          isCollapsed ? 'w-16' : 'w-60'
-        }`}
+        className={`hidden lg:block shrink-0 h-screen sticky top-0 transition-all duration-300 ease-in-out select-none ${isCollapsed ? 'w-16' : 'w-60'
+          }`}
       >
         {sidebarContent}
       </aside>
