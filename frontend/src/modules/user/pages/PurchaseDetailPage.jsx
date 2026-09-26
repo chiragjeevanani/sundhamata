@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import {
   Copy,
@@ -17,6 +17,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { PurchaseDetailSkeleton } from '../components/SkeletonLoader';
 import { ErrorState } from '../components/ErrorState';
 import { InvoiceModal } from '../components/InvoiceModal';
+import { ImageViewerModal } from '../components/ImageViewerModal';
 import { purchaseService } from '../../../services/purchaseService';
 import { formatINR, formatLongDate, formatDate } from '../../../utils/formatters';
 import { formatFileSize, saveBlob } from '../../../utils/billFile';
@@ -38,6 +39,8 @@ export const PurchaseDetailPage = () => {
   const [billDownloading, setBillDownloading] = useState(false);
   const [billError, setBillError] = useState('');
   const [imgError, setImgError] = useState(false);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const closeImageViewer = useCallback(() => setShowImageViewer(false), []);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -132,12 +135,19 @@ export const PurchaseDetailPage = () => {
                 {/* Product Photography Container */}
                 <div className="w-18 h-22 rounded-xl bg-slate-50 border border-slate-100 p-1 shrink-0 flex items-center justify-center overflow-hidden">
                   {!imgError && purchase.product.imageUrl ? (
-                    <img
-                      src={purchase.product.imageUrl}
-                      alt={purchase.product.name}
-                      onError={() => setImgError(true)}
-                      className="w-full h-full object-contain mix-blend-multiply"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowImageViewer(true)}
+                      className="w-full h-full cursor-zoom-in"
+                      aria-label="View product photo"
+                    >
+                      <img
+                        src={purchase.product.imageUrl}
+                        alt={purchase.product.name}
+                        onError={() => setImgError(true)}
+                        className="w-full h-full object-contain mix-blend-multiply"
+                      />
+                    </button>
                   ) : (
                     <div className="w-full h-full rounded-lg flex items-center justify-center p-1 bg-black/90">
                       <img
@@ -389,6 +399,17 @@ export const PurchaseDetailPage = () => {
           </>
         )}
       </div>
+
+      {/* Full-screen product photo */}
+      {purchase?.product?.imageUrl && (
+        <ImageViewerModal
+          isOpen={showImageViewer}
+          onClose={closeImageViewer}
+          src={purchase.product.imageUrl}
+          alt={purchase.product.name}
+          caption={[purchase.product.brand, purchase.product.name].filter(Boolean).join(' · ')}
+        />
+      )}
 
       {/* Tax Invoice Modal */}
       <InvoiceModal
