@@ -2,6 +2,7 @@
 // Keeps the existing screens' data shapes while the API stays canonical.
 
 import { formatDate, formatPhone } from '../../utils/formatters';
+import { API_BASE_URL } from './apiClient';
 
 export const toNationalMobile = (mobile) => (mobile || '').replace(/^\+91/, '');
 
@@ -37,6 +38,8 @@ export const toUiPurchase = (purchase) => {
       ...purchase.product,
       imei1: purchase.product.imei,
       modelNumber: purchase.product.model,
+      // Product photo uploaded by the store (public link with a random key), else null
+      imageUrl: purchase.productImage ? `${API_BASE_URL}${purchase.productImage.path}` : null,
     },
     warranty: purchase.warranty
       ? { ...purchase.warranty, validUntil: formatDate(purchase.warranty.validUntil), validUntilDate: purchase.warranty.validUntil }

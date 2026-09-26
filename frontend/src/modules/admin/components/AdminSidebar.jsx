@@ -48,21 +48,23 @@ export const AdminSidebar = ({
       <div className={`h-14 border-b border-[#17253D] flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`}>
         {!isCollapsed ? (
           <>
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-black/90 p-0.5 ring-1 ring-slate-800 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
-                <img src="/logo.png" alt="Sundhamata" className="w-full h-full object-contain rounded-md" />
+                <img src="/logo.png" alt="Sundhamata Mobile" className="w-full h-full object-contain rounded-md" />
               </div>
-              <div className="truncate">
-                <span className="text-xs font-semibold text-white tracking-tight block truncate">
-                  Sundhamata
-                </span>
-                <span className="text-[10px] text-slate-400 font-normal block truncate leading-none">
+              {/* Same wordmark as the customer app's BrandLogo (light variant) */}
+              <div className="min-w-0 leading-none">
+                <div className="flex items-baseline gap-1 whitespace-nowrap">
+                  <span className="text-[13px] font-black text-white tracking-tight">SUNDHAMATA</span>
+                  <span className="text-[10px] font-bold text-amber-400">MOBILE</span>
+                </div>
+                <span className="text-[8.5px] font-semibold tracking-[0.14em] uppercase text-slate-400 block truncate mt-1">
                   Store Management
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={onToggleCollapse}
                 className="hidden lg:flex p-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
@@ -89,7 +91,7 @@ export const AdminSidebar = ({
             className="w-8 h-8 rounded-lg bg-black/90 p-0.5 ring-1 ring-slate-800 flex items-center justify-center shadow-xs hover:ring-2 hover:ring-amber-500/50 transition-all cursor-pointer overflow-hidden"
             title="Expand sidebar (Ctrl+B)"
           >
-            <img src="/logo.png" alt="Sundhamata" className="w-full h-full object-contain rounded-md" />
+            <img src="/logo.png" alt="Sundhamata Mobile" className="w-full h-full object-contain rounded-md" />
           </button>
         )}
       </div>

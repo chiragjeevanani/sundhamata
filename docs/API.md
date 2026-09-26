@@ -444,6 +444,8 @@ Admin customer objects add:
 | POST | `/admin/purchases/:id/bill?filename=...` | Attach or replace the bill (raw file body, see [Purchase bills](#purchase-bills)) |
 | GET | `/admin/purchases/:id/bill` | Download the bill |
 | DELETE | `/admin/purchases/:id/bill` | Remove the bill |
+| POST | `/admin/purchases/:id/image` | Attach or replace the product photo (raw image body; JPG, PNG, WebP or GIF, max 5 MB) |
+| DELETE | `/admin/purchases/:id/image` | Remove the product photo |
 
 #### `POST /admin/purchases`
 
@@ -530,6 +532,12 @@ curl -X POST "$API/admin/purchases/$ID/bill?filename=bill.pdf"   -H "Authorizati
 **Remove** — `DELETE /admin/purchases/:id/bill` returns the purchase with `bill: null`.
 
 Files are stored in MongoDB GridFS (`bills.files` / `bills.chunks`), so they survive redeploys on hosts with an ephemeral disk. On an Atlas free (M0) cluster mind the 512 MB storage cap.
+
+### Product photos
+
+A purchase can have one product photo, shown in the customer app. Purchases include `productImage: { path, contentType, size }` (or `null`); the photo is served **publicly** at `GET /api/v1{path}`, i.e. `/api/v1/product-images/<32-hex key>`, so it works in plain `<img>` tags on the frontend origin. A product photo is not personal data, the key is random and changes whenever the photo is replaced, and responses are `Cache-Control: immutable` with `Cross-Origin-Resource-Policy: cross-origin`. The type is detected from the bytes (HEIC, SVG and other formats are refused). Bills, by contrast, always require authentication.
+
+The product object also carries `brand`, `model`, `variant`, `color`, and `imei` or `serialNumber`, all editable later via `PATCH /admin/purchases/:id` (`product: { ... }`).
 
 ### Loyalty
 

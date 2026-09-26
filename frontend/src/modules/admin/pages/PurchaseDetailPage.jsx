@@ -20,13 +20,22 @@ import {
   Upload,
   Trash2,
   Paperclip,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { StatusBadge } from '../components/StatusBadge';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DetailsSkeleton } from '../components/SkeletonLoaders';
 import { formatINR, formatLongDate } from '../../../utils/formatters';
-import { BILL_ACCEPT, BILL_HINT, formatFileSize, saveBlob, validateBillFile } from '../../../utils/billFile';
+import {
+  BILL_ACCEPT,
+  BILL_HINT,
+  formatFileSize,
+  IMAGE_ACCEPT,
+  saveBlob,
+  validateBillFile,
+  validateImageFile,
+} from '../../../utils/billFile';
 import {
   addMonthsToDate,
   MAX_WARRANTY_MONTHS,
@@ -49,6 +58,9 @@ export const PurchaseDetailPage = () => {
   const [editPaymentStatus, setEditPaymentStatus] = useState('Paid');
   const [editPaymentMethod, setEditPaymentMethod] = useState('UPI');
   const [editNotes, setEditNotes] = useState('');
+  const [editProduct, setEditProduct] = useState({ brand: '', model: '', variant: '', color: '' });
+  const imageInputRef = useRef(null);
+  const [imageBusy, setImageBusy] = useState('');
   const [editInvoiceNumber, setEditInvoiceNumber] = useState('');
   const [editPurchaseDate, setEditPurchaseDate] = useState('');
   const [editWarrantyDuration, setEditWarrantyDuration] = useState('1');
@@ -72,6 +84,12 @@ export const PurchaseDetailPage = () => {
       setEditPaymentStatus(data.paymentStatus || 'Paid');
       setEditPaymentMethod(data.paymentMethod || 'UPI');
       setEditNotes(data.notes || '');
+      setEditProduct({
+        brand: data.product?.brand || '',
+        model: data.product?.model || '',
+        variant: data.product?.variant || '',
+        color: data.product?.color || '',
+      });
       setEditInvoiceNumber(data.invoiceNumber || '');
       setEditPurchaseDate(toDateInputValue(data.purchaseDate));
       const w = monthsToWarrantyInput(data.warranty?.months ?? (data.warranty ? 12 : 0));
@@ -110,6 +128,7 @@ export const PurchaseDetailPage = () => {
         invoiceNumber: editInvoiceNumber,
         purchaseDate: dateChanged ? editPurchaseDate : undefined,
         warranty: { duration: editWarrantyDuration, unit: editWarrantyUnit },
+        product: Object.fromEntries(Object.entries(editProduct).map(([k, v]) => [k, v.trim()])),
         paymentStatus: editPaymentStatus,
         paymentMethod: editPaymentMethod,
         notes: editNotes.trim(),
@@ -141,6 +160,38 @@ export const PurchaseDetailPage = () => {
       showError('Upload failed', err.message || 'Unable to upload the bill.');
     } finally {
       setBillBusy('');
+    }
+  };
+
+  const handleImagePicked = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const problem = validateImageFile(file);
+    if (problem) {
+      showError('Invalid image', problem);
+      return;
+    }
+    setImageBusy('upload');
+    try {
+      setPurchase(await adminPurchaseService.uploadProductImage(purchase.id, file));
+      showSuccess('Photo uploaded', 'The customer will see this photo in their app.');
+    } catch (err) {
+      showError('Upload failed', err.message || 'Unable to upload the photo.');
+    } finally {
+      setImageBusy('');
+    }
+  };
+
+  const handleImageRemove = async () => {
+    setImageBusy('remove');
+    try {
+      setPurchase(await adminPurchaseService.removeProductImage(purchase.id));
+      showSuccess('Photo removed', 'The product photo was removed.');
+    } catch (err) {
+      showError('Error', err.message || 'Unable to remove the photo.');
+    } finally {
+      setImageBusy('');
     }
   };
 
@@ -339,6 +390,51 @@ export const PurchaseDetailPage = () => {
               </p>
             </div>
 
+
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Brand</label>
+              <input
+                type="text"
+                value={editProduct.brand}
+                maxLength={80}
+                onChange={(e) => setEditProduct((prev) => ({ ...prev, brand: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Model</label>
+              <input
+                type="text"
+                value={editProduct.model}
+                maxLength={80}
+                onChange={(e) => setEditProduct((prev) => ({ ...prev, model: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Variant</label>
+              <input
+                type="text"
+                value={editProduct.variant}
+                maxLength={80}
+                onChange={(e) => setEditProduct((prev) => ({ ...prev, variant: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Colour</label>
+              <input
+                type="text"
+                value={editProduct.color}
+                maxLength={80}
+                onChange={(e) => setEditProduct((prev) => ({ ...prev, color: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-hidden"
+              />
+            </div>
+
             <div>
               <label className="block font-medium text-slate-700 mb-1">Payment Status</label>
               <select
@@ -406,25 +502,84 @@ export const PurchaseDetailPage = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="flex flex-col sm:flex-row gap-5">
+              {/* Product photo */}
+              <div className="shrink-0 space-y-2">
+                <div className="w-32 h-32 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                  {purchase.product?.imageUrl ? (
+                    <img src={purchase.product.imageUrl} alt={purchase.product.name} className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-center text-slate-300 space-y-1">
+                      <ImageIcon className="w-6 h-6 mx-auto" />
+                      <span className="text-[10px] block">No photo</span>
+                    </div>
+                  )}
+                </div>
+                <input ref={imageInputRef} type="file" accept={IMAGE_ACCEPT} aria-label="Product photo" className="sr-only" onChange={handleImagePicked} />
+                {!isCancelled && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <button
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={Boolean(imageBusy)}
+                      className="py-1 px-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                    >
+                      {imageBusy === 'upload' ? 'Uploading...' : purchase.product?.imageUrl ? 'Replace photo' : 'Upload photo'}
+                    </button>
+                    {purchase.product?.imageUrl && (
+                      <button
+                        onClick={handleImageRemove}
+                        disabled={Boolean(imageBusy)}
+                        className="p-1 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs flex-1">
               <div>
-                <span className="text-slate-400 font-normal">Model Name</span>
+                <span className="text-slate-400 font-normal">Product Name</span>
                 <p className="font-medium text-slate-900 text-sm mt-0.5">
                   {purchase.product?.name}
                 </p>
               </div>
 
+
               <div>
-                <span className="text-slate-400 font-normal">Variant & Specs</span>
-                <p className="font-medium text-slate-900 mt-0.5">
-                  {purchase.product?.variant || 'Standard'}
+                <span className="text-slate-400 font-normal">Brand</span>
+                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                  {purchase.product?.brand || '—'}
+                </p>
+              </div>
+
+              <div>
+                <span className="text-slate-400 font-normal">Model</span>
+                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                  {purchase.product?.model || '—'}
+                </p>
+              </div>
+
+              <div>
+                <span className="text-slate-400 font-normal">Variant</span>
+                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                  {purchase.product?.variant || '—'}
                 </p>
               </div>
 
               <div>
                 <span className="text-slate-400 font-normal">Colour</span>
-                <p className="font-medium text-slate-900 mt-0.5">
-                  {purchase.product?.color || 'Standard'}
+                <p className="font-medium text-slate-900 mt-0.5 break-words">
+                  {purchase.product?.color || '—'}
+                </p>
+              </div>
+
+              <div>
+                <span className="text-slate-400 font-normal">IMEI / SN</span>
+                <p className="font-mono text-xs font-normal text-slate-800 mt-0.5 break-words">
+                  {purchase.product?.imei || purchase.product?.serialNumber || 'Not recorded'}
                 </p>
               </div>
 
@@ -435,19 +590,7 @@ export const PurchaseDetailPage = () => {
                 </p>
               </div>
 
-              <div>
-                <span className="text-slate-400 font-normal">IMEI Number</span>
-                <p className="font-mono text-xs font-normal text-slate-800 mt-0.5">
-                  {purchase.product?.imei1 || purchase.product?.imei || 'Not recorded'}
-                </p>
-              </div>
-
-              <div>
-                <span className="text-slate-400 font-normal">Serial Number</span>
-                <p className="font-mono text-xs font-normal text-slate-800 mt-0.5">
-                  {purchase.product?.serialNumber || 'Not recorded'}
-                </p>
-              </div>
+            </div>
             </div>
           </div>
 

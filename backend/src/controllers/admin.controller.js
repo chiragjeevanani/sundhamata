@@ -1,5 +1,6 @@
 import * as analyticsService from '../services/analytics.service.js';
 import * as billService from '../services/bill.service.js';
+import * as productImageService from '../services/productImage.service.js';
 import * as customerService from '../services/customer.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
@@ -94,6 +95,18 @@ export const deletePurchaseBill = async (req, res) => {
 
 export const downloadPurchaseBill = async (req, res) => {
   await billService.sendBill(res, { purchaseId: req.valid.params.id });
+};
+
+export const uploadProductImage = async (req, res) => {
+  const { id } = req.valid.params;
+  await productImageService.attachProductImage(id, req.body, req.admin);
+  sendSuccess(res, { data: { purchase: await purchaseService.getPurchaseForAdmin(id) }, message: 'Product image uploaded' });
+};
+
+export const deleteProductImage = async (req, res) => {
+  const { id } = req.valid.params;
+  await productImageService.removeProductImage(id, req.admin);
+  sendSuccess(res, { data: { purchase: await purchaseService.getPurchaseForAdmin(id) }, message: 'Product image removed' });
 };
 
 // ---- Loyalty ------------------------------------------------------------

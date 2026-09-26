@@ -12,6 +12,7 @@ import {
   X,
   Paperclip,
   FileText,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
@@ -24,7 +25,14 @@ import {
   toDateInputValue,
   warrantyToMonths,
 } from '../../../utils/purchaseDates';
-import { BILL_ACCEPT, BILL_HINT, formatFileSize, validateBillFile } from '../../../utils/billFile';
+import {
+  BILL_ACCEPT,
+  BILL_HINT,
+  formatFileSize,
+  IMAGE_ACCEPT,
+  validateBillFile,
+  validateImageFile,
+} from '../../../utils/billFile';
 
 export const RecordPurchasePage = () => {
   const navigate = useNavigate();
@@ -42,6 +50,29 @@ export const RecordPurchasePage = () => {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('phones');
   const [imei, setImei] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [variant, setVariant] = useState('');
+  const [color, setColor] = useState('');
+  // Optional product photo, uploaded right after the purchase is saved
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState('');
+
+  const chooseImage = (file) => {
+    if (!file) return;
+    const problem = validateImageFile(file);
+    setImageError(problem || '');
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(problem ? null : file);
+    setImagePreview(problem ? null : URL.createObjectURL(file));
+  };
+  const clearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError('');
+  };
 
   // Purchase & Payment Info
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -202,6 +233,10 @@ export const RecordPurchasePage = () => {
         product: {
           name: productName.trim(),
           category,
+          brand,
+          model,
+          variant,
+          color,
           imei: imei.trim(),
         },
         purchaseDate,
@@ -217,6 +252,19 @@ export const RecordPurchasePage = () => {
 
       // The purchase is saved. Upload the bill separately: if that fails, the purchase must
       // still count as recorded and the bill can be attached later from the invoice page.
+      // Same for the product photo: the purchase stays recorded even if the upload fails.
+      let imageStatus = null;
+      if (imageFile) {
+        try {
+          const withImage = await adminPurchaseService.uploadProductImage(recorded.id, imageFile);
+          recorded.product = withImage.product;
+          imageStatus = { ok: true };
+        } catch (uploadErr) {
+          imageStatus = { ok: false };
+          showError('Photo not uploaded', `The purchase was recorded, but the product photo could not be uploaded: ${uploadErr.message} You can add it from the invoice page.`);
+        }
+      }
+
       let billStatus = null;
       if (billFile) {
         try {
@@ -232,7 +280,7 @@ export const RecordPurchasePage = () => {
         }
       }
 
-      setSuccessRecord({ ...recorded, billStatus });
+      setSuccessRecord({ ...recorded, billStatus, imageStatus });
       showSuccess('Purchase Recorded', `Invoice ${recorded.invoiceNumber} created.`);
     } catch (err) {
       showError('Error', err.message || 'Unable to record purchase.');
@@ -247,6 +295,11 @@ export const RecordPurchasePage = () => {
     setSearchQuery('');
     setProductName('');
     setImei('');
+    setBrand('');
+    setModel('');
+    setVariant('');
+    setColor('');
+    clearImage();
     setPurchaseAmount('');
     setDiscount('');
     setBillFile(null);
@@ -309,6 +362,12 @@ export const RecordPurchasePage = () => {
               <span className="font-medium text-slate-900 tabular-nums">
                 {successRecord.customerLoyaltyBalance.toLocaleString('en-IN')} pts
               </span>
+            </div>
+          )}
+          {successRecord.imageStatus && !successRecord.imageStatus.ok && (
+            <div className="flex justify-between gap-3 pt-2 border-t border-slate-100 text-rose-700">
+              <span>Product photo</span>
+              <span className="font-medium text-right">Not uploaded — add it from the invoice page</span>
             </div>
           )}
           {successRecord.billStatus && (
@@ -502,8 +561,57 @@ export const RecordPurchasePage = () => {
                 </select>
               </div>
 
-              <div className="sm:col-span-3 space-y-1">
-                <label className="text-xs font-medium text-slate-700 block">IMEI / Serial Number (Optional)</label>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Brand</label>
+                <input
+                  type="text"
+                  value={brand}
+                  maxLength={80}
+                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder="e.g. Samsung (auto-detected if empty)"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Model</label>
+                <input
+                  type="text"
+                  value={model}
+                  maxLength={80}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="e.g. SM-S938B / Galaxy S25 Ultra"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Variant</label>
+                <input
+                  type="text"
+                  value={variant}
+                  maxLength={80}
+                  onChange={(e) => setVariant(e.target.value)}
+                  placeholder="e.g. 12GB + 256GB"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Colour</label>
+                <input
+                  type="text"
+                  value={color}
+                  maxLength={80}
+                  onChange={(e) => setColor(e.target.value)}
+                  placeholder="e.g. Titanium Black"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-normal focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
+                />
+              </div>
+
+              <div className="sm:col-span-2 space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">IMEI / Serial Number</label>
                 <input
                   type="text"
                   value={imei}
@@ -511,6 +619,45 @@ export const RecordPurchasePage = () => {
                   placeholder="15-digit IMEI or serial number for warranty registration"
                   className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono text-xs text-slate-900 focus:outline-hidden focus:border-blue-600 transition-all shadow-2xs"
                 />
+              </div>
+
+              <div className="sm:col-span-3 space-y-1">
+                <label className="text-xs font-medium text-slate-700 block">Product Photo</label>
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Product preview" className="w-full h-full object-contain" />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-slate-300" />
+                    )}
+                  </div>
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <label className="py-1.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer">
+                        {imageFile ? 'Change photo' : 'Choose photo'}
+                        <input
+                          type="file"
+                          accept={IMAGE_ACCEPT}
+                          aria-label="Product photo"
+                          className="sr-only"
+                          onChange={(e) => {
+                            chooseImage(e.target.files?.[0]);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      {imageFile && (
+                        <button type="button" onClick={clearImage} className="text-slate-500 hover:text-slate-800 cursor-pointer">
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      {imageFile ? `${imageFile.name} • ${formatFileSize(imageFile.size)}` : 'Optional. Shown to the customer in their app. JPG, PNG, WebP or GIF, up to 5 MB.'}
+                    </p>
+                    {imageError && <p className="text-[11px] text-rose-600">{imageError}</p>}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -73,6 +73,16 @@ const purchaseSchema = new mongoose.Schema(
 
     notes: { type: String, trim: true, maxlength: 500, default: null },
 
+    // Product photo (GridFS "productImages"); served publicly under the random `key`.
+    productImage: {
+      key: { type: String },
+      fileId: { type: mongoose.Schema.Types.ObjectId },
+      contentType: { type: String },
+      size: { type: Number },
+      uploadedAt: { type: Date },
+      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    },
+
     // Bill uploaded by the store (PDF / image / Word / Excel); the file itself is in GridFS.
     bill: {
       fileId: { type: mongoose.Schema.Types.ObjectId },
@@ -104,5 +114,6 @@ purchaseSchema.index({ customerId: 1, purchaseDate: -1 });
 purchaseSchema.index({ purchaseDate: -1 });
 purchaseSchema.index({ status: 1, purchaseDate: -1 });
 purchaseSchema.index({ 'product.imei': 1 }, { sparse: true });
+purchaseSchema.index({ 'productImage.key': 1 }, { sparse: true });
 
 export const Purchase = mongoose.model('Purchase', purchaseSchema);

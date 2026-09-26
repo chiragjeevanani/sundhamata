@@ -38,3 +38,18 @@ export const saveBlob = (blob, filename) => {
   // Give the browser a moment to start the download before releasing the object URL.
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 };
+
+// ---- Product photos (server accepts JPG, PNG, WebP, GIF up to 5 MB)
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const IMAGE_ACCEPT = '.jpg,.jpeg,.png,.webp,.gif';
+
+/** @returns {string|null} an error message, or null when the image looks acceptable */
+export const validateImageFile = (file) => {
+  if (!file) return null;
+  if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extensionOf(file.name))) {
+    return 'Choose a JPG, PNG, WebP or GIF image.';
+  }
+  if (file.size === 0) return 'This file is empty.';
+  if (file.size > MAX_IMAGE_BYTES) return `Image is too large (${formatFileSize(file.size)}). Maximum is 5 MB.`;
+  return null;
+};

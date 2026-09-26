@@ -115,6 +115,10 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
         }
       : null,
     notes: p.notes ?? null,
+    // Path relative to the API base URL (public, unguessable key).
+    productImage: p.productImage?.key
+      ? { path: `/product-images/${p.productImage.key}`, contentType: p.productImage.contentType, size: p.productImage.size }
+      : null,
     // Metadata only; the file is fetched through the bill download endpoints.
     bill: p.bill?.fileId
       ? {

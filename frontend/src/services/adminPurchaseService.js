@@ -46,6 +46,10 @@ export const adminPurchaseService = {
       category: product.category || 'phones',
       product: {
         name: product.name,
+        ...(product.brand?.trim() ? { brand: product.brand.trim() } : {}),
+        ...(product.model?.trim() ? { model: product.model.trim() } : {}),
+        ...(product.variant?.trim() ? { variant: product.variant.trim() } : {}),
+        ...(product.color?.trim() ? { color: product.color.trim() } : {}),
         ...(identifier && IMEI_PATTERN.test(identifier) ? { imei: identifier } : {}),
         ...(identifier && !IMEI_PATTERN.test(identifier) ? { serialNumber: identifier } : {}),
       },
@@ -64,11 +68,13 @@ export const adminPurchaseService = {
    * Editable: invoice number, purchase date, warranty, payment status/method and notes.
    * Pricing is immutable once billed. The server recomputes the warranty expiry.
    */
-  async updatePurchase(id, { invoiceNumber, purchaseDate, warranty, paymentStatus, paymentMethod, notes }) {
+  async updatePurchase(id, { invoiceNumber, purchaseDate, warranty, product, paymentStatus, paymentMethod, notes }) {
     const data = await adminApi.patch(`/admin/purchases/${encodeURIComponent(id)}`, {
       ...(invoiceNumber !== undefined ? { invoiceNumber: invoiceNumber.trim() } : {}),
       ...(purchaseDate ? { purchaseDate: dateInputToTimestamp(purchaseDate) } : {}),
       ...(warranty ? { warranty: { duration: Number(warranty.duration), unit: warranty.unit } } : {}),
+      // Empty strings clear a field
+      ...(product ? { product } : {}),
       payment: { status: paymentStatus, method: paymentMethod },
       notes: notes ?? null,
     });
@@ -89,6 +95,17 @@ export const adminPurchaseService = {
   /** @returns {Promise<Blob>} the bill file */
   downloadBill(id) {
     return adminApi.download(`/admin/purchases/${encodeURIComponent(id)}/bill`);
+  },
+
+  /** Attach or replace the product photo (JPG / PNG / WebP / GIF) */
+  async uploadProductImage(id, file) {
+    const data = await adminApi.upload(`/admin/purchases/${encodeURIComponent(id)}/image`, file);
+    return toUiPurchase(data.purchase);
+  },
+
+  async removeProductImage(id) {
+    const data = await adminApi.delete(`/admin/purchases/${encodeURIComponent(id)}/image`);
+    return toUiPurchase(data.purchase);
   },
 
   /** Cancels (never deletes) the purchase; the server reverses its loyalty points. */

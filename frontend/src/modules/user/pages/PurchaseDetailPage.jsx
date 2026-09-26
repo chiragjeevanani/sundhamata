@@ -189,7 +189,7 @@ export const PurchaseDetailPage = () => {
               </div>
             </div>
 
-            {/* Section 1: Product Details (Model, Variant, Color, IMEI, Serial) */}
+            {/* Section 1: Product Details (Brand, Model, Variant, Colour, IMEI/SN) */}
             <div className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-1.5">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#0F2042] flex items-center gap-1.5 pb-1.5 border-b border-slate-100">
                 <Smartphone className="w-3 h-3 text-blue-700" />
@@ -197,72 +197,40 @@ export const PurchaseDetailPage = () => {
               </h3>
 
               <div className="space-y-1 text-xs divide-y divide-slate-100">
-                <div className="flex items-center justify-between pt-0.5">
-                  <span className="text-slate-500 font-medium">Model</span>
-                  <span className="font-semibold text-slate-900 text-right">
-                    {purchase.product.name}
-                  </span>
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                  <span className="text-slate-500 font-medium shrink-0">Brand</span>
+                  <span className="font-semibold text-slate-900 text-right break-words">{purchase.product.brand || '—'}</span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-slate-500 font-medium">Variant</span>
-                  <span className="font-semibold text-slate-900">
-                    {purchase.product.variant}
-                  </span>
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <span className="text-slate-500 font-medium shrink-0">Model</span>
+                  <span className="font-semibold text-slate-900 text-right break-words">{purchase.product.model || purchase.product.name}</span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-slate-500 font-medium">Colour</span>
-                  <span className="font-semibold text-slate-900 flex items-center gap-1.5">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full border border-slate-300 inline-block"
-                      style={{ backgroundColor: purchase.product.colorHex || '#1E1E20' }}
-                    />
-                    <span>{purchase.product.color}</span>
-                  </span>
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <span className="text-slate-500 font-medium shrink-0">Variant</span>
+                  <span className="font-semibold text-slate-900 text-right break-words">{purchase.product.variant || '—'}</span>
                 </div>
 
-                {/* IMEI 1 with copy */}
-                {purchase.product.imei1 && (
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <span className="text-slate-500 font-medium shrink-0">Colour</span>
+                  <span className="font-semibold text-slate-900 text-right break-words">{purchase.product.color || '—'}</span>
+                </div>
+
+                {/* IMEI or serial number, with copy */}
+                {(purchase.product.imei || purchase.product.serialNumber) && (
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-slate-500 font-medium">IMEI</span>
+                    <span className="text-slate-500 font-medium">IMEI / SN</span>
                     <div className="flex items-center gap-1">
                       <span className="font-mono font-bold text-slate-800 tabular-nums">
-                        {purchase.product.imei1}
+                        {purchase.product.imei || purchase.product.serialNumber}
                       </span>
                       <button
-                        onClick={() => copyToClipboard(purchase.product.imei1, 'imei1')}
+                        onClick={() => copyToClipboard(purchase.product.imei || purchase.product.serialNumber, 'identifier')}
                         className="p-0.5 text-slate-400 hover:text-blue-700 transition-colors cursor-pointer"
-                        title="Copy IMEI"
+                        title="Copy IMEI / serial number"
                       >
-                        {copiedKey === 'imei1' ? (
-                          <Check className="w-3 h-3 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Serial Number with copy */}
-                {purchase.product.serialNumber && (
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-slate-500 font-medium">Serial Number</span>
-                    <div className="flex items-center gap-1">
-                      <span className="font-mono font-bold text-slate-800 tabular-nums">
-                        {purchase.product.serialNumber}
-                      </span>
-                      <button
-                        onClick={() => copyToClipboard(purchase.product.serialNumber, 'serial')}
-                        className="p-0.5 text-slate-400 hover:text-blue-700 transition-colors cursor-pointer"
-                        title="Copy Serial Number"
-                      >
-                        {copiedKey === 'serial' ? (
-                          <Check className="w-3 h-3 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
+                        {copiedKey === 'identifier' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                       </button>
                     </div>
                   </div>

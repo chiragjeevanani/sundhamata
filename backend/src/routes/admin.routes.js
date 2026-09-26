@@ -4,7 +4,7 @@ import * as admin from '../controllers/admin.controller.js';
 import * as adminAuth from '../controllers/adminAuth.controller.js';
 import { PERMISSIONS as P } from '../config/permissions.js';
 import { requireAdminAuth, requirePermission as can } from '../middleware/auth.js';
-import { rawBillUpload } from '../middleware/uploads.js';
+import { rawBillUpload, rawImageUpload } from '../middleware/uploads.js';
 import { validate } from '../middleware/validate.js';
 import { idParamsSchema } from '../validators/common.js';
 import {
@@ -75,6 +75,9 @@ export const createAdminRouter = () => {
     admin.uploadPurchaseBill
   );
   router.delete('/purchases/:id/bill', can(P.PURCHASES_WRITE), validate({ params: idParamsSchema }), admin.deletePurchaseBill);
+  // Product photo = raw image body; POST attaches or replaces.
+  router.post('/purchases/:id/image', can(P.PURCHASES_WRITE), validate({ params: idParamsSchema }), rawImageUpload, admin.uploadProductImage);
+  router.delete('/purchases/:id/image', can(P.PURCHASES_WRITE), validate({ params: idParamsSchema }), admin.deleteProductImage);
   router.post(
     '/purchases/:id/cancel',
     can(P.PURCHASES_CANCEL),
