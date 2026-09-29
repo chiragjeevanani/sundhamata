@@ -8,6 +8,7 @@ import { PurchaseHistoryPage } from '../pages/PurchaseHistoryPage';
 import { PurchaseDetailPage } from '../pages/PurchaseDetailPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { EditProfilePage } from '../pages/EditProfilePage';
+import { CouponsPage } from '../pages/CouponsPage';
 import { LoyaltyPage } from '../pages/LoyaltyPage';
 
 /**
@@ -91,6 +92,10 @@ export const userRoutes = [
           {
             path: 'profile/edit',
             element: <EditProfilePage />,
+          },
+          {
+            path: 'coupons',
+            element: <CouponsPage />,
           },
         ],
       },

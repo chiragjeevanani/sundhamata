@@ -35,35 +35,46 @@ export const adminPurchaseService = {
   },
 
   /**
-   * Records a sale. Loyalty points are calculated by the server — any client
-   * estimate is display-only and never sent.
+   * Records a bill with one or more products. Loyalty points are calculated by the
+   * server — any client estimate is display-only and never sent.
+   * @param {{ items: Array<{ product, category, price, warranty }> }} bill
    */
-  async createPurchase({ customerId, newCustomer, invoiceNumber, product, purchaseDate, warranty, paymentMethod, paymentStatus = 'Paid', pricing, pointsToRedeem = 0, notes }) {
-    const identifier = (product.imei || '').replace(/[\s-]/g, '');
+  async createPurchase({ customerId, newCustomer, couponCode, invoiceNumber, items, purchaseDate, paymentMethod, paymentStatus = 'Paid', discount = 0, pointsToRedeem = 0, notes }) {
     const data = await adminApi.post('/admin/purchases', {
       // An existing customer, or { mobile, name? } of someone who has not signed up yet
       ...(newCustomer ? { newCustomer } : { customerId }),
       invoiceNumber: invoiceNumber.trim(),
-      category: product.category || 'phones',
-      product: {
-        name: product.name,
-        ...(product.brand?.trim() ? { brand: product.brand.trim() } : {}),
-        ...(product.model?.trim() ? { model: product.model.trim() } : {}),
-        ...(product.variant?.trim() ? { variant: product.variant.trim() } : {}),
-        ...(product.color?.trim() ? { color: product.color.trim() } : {}),
-        ...(identifier && IMEI_PATTERN.test(identifier) ? { imei: identifier } : {}),
-        ...(identifier && !IMEI_PATTERN.test(identifier) ? { serialNumber: identifier } : {}),
-      },
+      items: items.map(({ product, category, price, warranty }) => {
+        const identifier = (product.imei || '').replace(/[\s-]/g, '');
+        return {
+          category: category || 'phones',
+          product: {
+            name: product.name.trim(),
+            ...(product.brand?.trim() ? { brand: product.brand.trim() } : {}),
+            ...(product.model?.trim() ? { model: product.model.trim() } : {}),
+            ...(product.variant?.trim() ? { variant: product.variant.trim() } : {}),
+            ...(product.color?.trim() ? { color: product.color.trim() } : {}),
+            ...(identifier && IMEI_PATTERN.test(identifier) ? { imei: identifier } : {}),
+            ...(identifier && !IMEI_PATTERN.test(identifier) ? { serialNumber: identifier } : {}),
+          },
+          price: Number(price),
+          ...(warranty ? { warranty: { duration: Number(warranty.duration), unit: warranty.unit } } : {}),
+        };
+      }),
       purchaseDate: dateInputToTimestamp(purchaseDate),
-      ...(warranty ? { warranty: { duration: Number(warranty.duration), unit: warranty.unit } } : {}),
       payment: { method: paymentMethod, status: paymentStatus },
-      pricing: { purchaseAmount: pricing.purchaseAmount, discount: pricing.discount || 0 },
+      pricing: { discount: discount || 0 },
       // Only the points; the server applies the store's value per point and all limits.
       ...(pointsToRedeem > 0 ? { loyaltyRedemption: { points: pointsToRedeem } } : {}),
+      // The customer's coupon; the server checks it and works out the discount
+      ...(couponCode ? { couponCode } : {}),
       ...(notes ? { notes } : {}),
     });
     return {
       ...toUiPurchase(data.purchase),
+      // Every product on the bill (one line each), and the bill totals
+      purchases: data.purchases.map(toUiPurchase),
+      order: data.order,
       customerLoyaltyBalance: data.customerLoyaltyBalance,
       customerCreated: data.customerCreated,
     };

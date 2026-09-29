@@ -1,3 +1,5 @@
+import * as customerPhotoService from '../services/customerPhoto.service.js';
+import * as couponService from '../services/coupon.service.js';
 import * as billService from '../services/bill.service.js';
 import * as customerService from '../services/customer.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
@@ -58,4 +60,40 @@ export const getMyLoyaltyTransaction = async (req, res) => {
 export const getStore = async (_req, res) => {
   const settings = await getSettings();
   sendSuccess(res, { data: { store: serializePublicStore(settings) } });
+};
+
+// ---- New-customer offer & coupons
+
+export const getMyWelcomeOffer = async (req, res) => {
+  const data = await couponService.getWelcomeOfferStatus(req.customer);
+  sendSuccess(res, { data });
+};
+
+export const claimMyWelcomeCoupon = async (req, res) => {
+  const { coupon, created } = await couponService.claimWelcomeCoupon(req.customer);
+  sendSuccess(res, {
+    statusCode: created ? 201 : 200,
+    data: { coupon },
+    message: created ? 'Coupon unlocked' : 'Coupon already unlocked',
+  });
+};
+
+export const listMyCoupons = async (req, res) => {
+  const coupons = await couponService.listCustomerCoupons(req.customer._id);
+  sendSuccess(res, { data: { items: coupons } });
+};
+
+// ---- Profile photo (helps the store recognise the customer)
+
+export const uploadMyPhoto = async (req, res) => {
+  const customer = await customerPhotoService.setCustomerPhoto(req.customer._id, req.body, {
+    by: 'customer',
+    actorId: req.customer.id,
+  });
+  sendSuccess(res, { data: { customer: serializeCustomer(customer) }, message: 'Photo updated' });
+};
+
+export const deleteMyPhoto = async (req, res) => {
+  const customer = await customerPhotoService.removeCustomerPhoto(req.customer._id, { by: 'customer', actorId: req.customer.id });
+  sendSuccess(res, { data: { customer: serializeCustomer(customer) }, message: 'Photo removed' });
 };

@@ -5,3 +5,5 @@ export { LoyaltyTransaction } from './LoyaltyTransaction.js';
 export { OtpChallenge } from './OtpChallenge.js';
 export { Purchase } from './Purchase.js';
 export { StoreSettings } from './StoreSettings.js';
+export { Coupon } from './Coupon.js';
+export { Product } from './Product.js';

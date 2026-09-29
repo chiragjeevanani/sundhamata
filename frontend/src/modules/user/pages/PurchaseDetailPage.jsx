@@ -12,6 +12,7 @@ import {
   Share2,
   Paperclip,
   ChevronRight,
+  Layers,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { StatusBadge } from '../components/StatusBadge';
@@ -20,6 +21,7 @@ import { ErrorState } from '../components/ErrorState';
 import { InvoiceModal } from '../components/InvoiceModal';
 import { ImageViewerModal } from '../components/ImageViewerModal';
 import { BillViewerModal } from '../components/BillViewerModal';
+import { WarrantyBadge } from '../components/WarrantyBadge';
 import { purchaseService } from '../../../services/purchaseService';
 import { formatINR, formatLongDate, formatDate } from '../../../utils/formatters';
 import { formatFileSize } from '../../../utils/billFile';
@@ -286,6 +288,15 @@ export const PurchaseDetailPage = () => {
                   </span>
                 </div>
 
+                {purchase.pricing?.couponDiscount > 0 && (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-stone-500 font-medium">Coupon Applied</span>
+                    <span className="font-bold text-brand-800 tabular-nums">
+                      {purchase.coupon?.code} (−{formatINR(purchase.pricing.couponDiscount)})
+                    </span>
+                  </div>
+                )}
+
                 {purchase.loyalty?.pointsRedeemed > 0 && (
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-stone-500 font-medium">Points Redeemed</span>
@@ -325,6 +336,39 @@ export const PurchaseDetailPage = () => {
                 <p className="text-[11px] text-stone-500 leading-relaxed font-normal">
                   Valid until <span className="font-semibold text-stone-800">{purchase.warranty.validUntil}</span>. {purchase.warranty.coverage}
                 </p>
+              </div>
+            )}
+
+            {/* Other products bought on the same bill */}
+            {purchase.billItems?.length > 1 && (
+              <div className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-1.5">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-900 flex items-center gap-1.5 pb-1.5 border-b border-stone-100">
+                  <Layers className="w-3 h-3 text-brand-700" />
+                  <span>Also on this bill</span>
+                  <span className="ml-auto text-stone-400 font-semibold normal-case tracking-normal">
+                    {purchase.billItems.length} products
+                  </span>
+                </h3>
+                <div className="divide-y divide-stone-100">
+                  {purchase.billItems
+                    .filter((item) => item.id !== purchase.id)
+                    .map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => navigate(`/purchases/${item.id}`)}
+                        className="w-full py-2 flex items-center gap-2 text-left text-xs cursor-pointer group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-stone-800 truncate group-hover:text-brand-700">{item.product.name}</p>
+                          <p className="text-[10.5px] text-stone-400 truncate">
+                            {[item.product.variant, item.product.color].filter(Boolean).join(' • ') || formatINR(item.pricing.purchaseAmount)}
+                          </p>
+                        </div>
+                        <WarrantyBadge purchase={item} size="sm" />
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
+                      </button>
+                    ))}
+                </div>
               </div>
             )}
 

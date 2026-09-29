@@ -22,6 +22,7 @@ const toUiSettings = (s) => ({
     expiryMonths: s.loyalty.expiryMonths,
   },
   theme: s.theme,
+  offers: s.offers,
 });
 
 export const adminSettingsService = {

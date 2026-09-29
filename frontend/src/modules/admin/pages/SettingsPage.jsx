@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Save } from 'lucide-react';
+import { Gift, Save } from 'lucide-react';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { AppStylesSettings } from '../components/AppStylesSettings';
+import { describeOffer } from '../../../utils/coupons';
+import { formatINR } from '../../../utils/formatters';
 import { useToast } from '../context/ToastContext';
 
 export const SettingsPage = () => {
@@ -27,6 +29,14 @@ export const SettingsPage = () => {
   const [minRedeemPoints, setMinRedeemPoints] = useState(0);
   const [theme, setTheme] = useState(null);
 
+  // New-customer offer: complete the profile in the app → one discount coupon
+  const [offerEnabled, setOfferEnabled] = useState(true);
+  const [offerType, setOfferType] = useState('flat');
+  const [offerValue, setOfferValue] = useState('200');
+  const [offerMaxDiscount, setOfferMaxDiscount] = useState('');
+  const [offerMinBill, setOfferMinBill] = useState('1000');
+  const [offerValidityDays, setOfferValidityDays] = useState('90');
+
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
@@ -46,6 +56,15 @@ export const SettingsPage = () => {
         setRupeeValuePerPoint(s.loyalty?.rupeeValuePerPoint ?? 1.0);
         setMinRedeemPoints(s.loyalty?.minRedeemPoints ?? 0);
         setTheme(s.theme ?? null);
+        const welcome = s.offers?.welcome;
+        if (welcome) {
+          setOfferEnabled(welcome.enabled);
+          setOfferType(welcome.discountType);
+          setOfferValue(String(welcome.discountValue));
+          setOfferMaxDiscount(String(welcome.maxDiscount ?? ''));
+          setOfferMinBill(String(welcome.minBillAmount ?? 0));
+          setOfferValidityDays(String(welcome.validityDays));
+        }
       } finally {
         setLoading(false);
       }
@@ -71,6 +90,16 @@ export const SettingsPage = () => {
           pointsPerHundred: Number(pointsPerHundred),
           rupeeValuePerPoint: Number(rupeeValuePerPoint),
           minRedeemPoints: Number(minRedeemPoints) || 0,
+        },
+        offers: {
+          welcome: {
+            enabled: offerEnabled,
+            discountType: offerType,
+            discountValue: Number(offerValue) || 0,
+            maxDiscount: offerType === 'percent' && offerMaxDiscount !== '' ? Number(offerMaxDiscount) : null,
+            minBillAmount: Number(offerMinBill) || 0,
+            validityDays: Number(offerValidityDays) || 1,
+          },
         },
       });
 
@@ -246,6 +275,111 @@ export const SettingsPage = () => {
               <p className="text-[11px] text-stone-400">0 = customers can redeem any amount</p>
             </div>
           </div>
+        </div>
+
+        {/* New Customer Offer */}
+        <div className="p-5 sm:p-6 space-y-4 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                <Gift className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">New Customer Offer</h3>
+                <p className="text-xs text-stone-400 font-normal">
+                  New app users who complete their profile get one coupon (QR + code), redeemed on Record Purchase.
+                </p>
+              </div>
+            </div>
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none self-start">
+              <input
+                type="checkbox"
+                checked={offerEnabled}
+                onChange={(e) => setOfferEnabled(e.target.checked)}
+                className="w-4 h-4 accent-brand-600"
+              />
+              <span className="font-medium text-stone-700">{offerEnabled ? 'Offer is on' : 'Offer is off'}</span>
+            </label>
+          </div>
+
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3.5 ${offerEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+            <div className="space-y-1">
+              <label className="font-medium text-stone-700 block">Discount</label>
+              <div className="flex gap-2">
+                <select
+                  value={offerType}
+                  onChange={(e) => setOfferType(e.target.value)}
+                  className="px-2.5 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer"
+                >
+                  <option value="flat">₹ off</option>
+                  <option value="percent">% off</option>
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  max={offerType === 'percent' ? 100 : undefined}
+                  step="1"
+                  value={offerValue}
+                  onChange={(e) => setOfferValue(e.target.value)}
+                  className="flex-1 min-w-0 px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                />
+              </div>
+            </div>
+
+            {offerType === 'percent' && (
+              <div className="space-y-1">
+                <label className="font-medium text-stone-700 block">Maximum Discount (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={offerMaxDiscount}
+                  onChange={(e) => setOfferMaxDiscount(e.target.value)}
+                  placeholder="No limit"
+                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="font-medium text-stone-700 block">Minimum Bill (₹)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={offerMinBill}
+                onChange={(e) => setOfferMinBill(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+              />
+              <p className="text-[11px] text-stone-400">0 = any bill</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-medium text-stone-700 block">Coupon Valid For (days)</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={offerValidityDays}
+                onChange={(e) => setOfferValidityDays(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
+              />
+            </div>
+          </div>
+
+          {offerEnabled && Number(offerValue) > 0 && (
+            <p className="text-[11px] text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+              Customers will see: <span className="font-medium text-stone-800">
+                {describeOffer({
+                  discountType: offerType,
+                  discountValue: Number(offerValue),
+                  maxDiscount: offerType === 'percent' && offerMaxDiscount !== '' ? Number(offerMaxDiscount) : null,
+                })}
+              </span>
+              {Number(offerMinBill) > 0 ? ` on a bill of ${formatINR(Number(offerMinBill))} or more` : ''}, valid for {offerValidityDays} days.
+              Changes apply to coupons issued from now on.
+            </p>
+          )}
         </div>
       </form>
 

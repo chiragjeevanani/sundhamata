@@ -26,6 +26,17 @@ export const customerService = {
     return data.items.map(toUiCustomer);
   },
 
+  /** Photo taken / changed at the counter (resized on the device first) */
+  async uploadPhoto(id, blob) {
+    const data = await adminApi.upload(`/admin/customers/${encodeURIComponent(id)}/photo`, blob);
+    return toUiCustomer(data.customer);
+  },
+
+  async removePhoto(id) {
+    const data = await adminApi.delete(`/admin/customers/${encodeURIComponent(id)}/photo`);
+    return toUiCustomer(data.customer);
+  },
+
   async getCustomerById(id) {
     const data = await adminApi.get(`/admin/customers/${encodeURIComponent(id)}`);
     return toUiCustomer(data.customer);

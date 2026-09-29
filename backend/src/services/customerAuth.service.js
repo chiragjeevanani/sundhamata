@@ -4,6 +4,8 @@ import { OTP_PURPOSES } from '../models/OtpChallenge.js';
 import { ApiError } from '../utils/ApiError.js';
 import { maskMobile } from '../utils/mobile.js';
 import { serializeCustomer } from '../utils/serializers.js';
+import { markWelcomeOfferEligible } from './coupon.service.js';
+import { verifyOnSignIn } from './customerVerification.js';
 import { createCustomer } from './customer.service.js';
 import * as otpService from './otp.service.js';
 import { signCustomerToken } from './token.service.js';
@@ -92,8 +94,14 @@ export const verifyOtpAndSignIn = async (mobile, otp) => {
   // number): the app asks the customer to confirm the name and details the store entered.
   const needsProfileReview = !isNewUser && !customer.mobileVerifiedAt;
 
+  // First time in the app (self-registered, or an account the store created): the
+  // new-customer offer (complete your profile → coupon) applies to them.
+  if (isNewUser || needsProfileReview) markWelcomeOfferEligible(customer);
+
   customer.lastLoginAt = new Date();
   customer.mobileVerifiedAt ??= new Date();
+  // Bought at the store before joining the app → verified now that the number is confirmed
+  await verifyOnSignIn(customer);
   await customer.save();
 
   const { token, expiresAt } = signCustomerToken(customer);

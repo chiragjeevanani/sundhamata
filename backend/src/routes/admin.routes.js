@@ -19,10 +19,12 @@ import {
   listPurchasesQuerySchema,
   updatePurchaseSchema,
 } from '../validators/purchase.validators.js';
+import { createProductSchema, listProductsQuerySchema, updateProductSchema } from '../validators/product.validators.js';
 import { updateSettingsSchema } from '../validators/settings.validators.js';
 
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const billUploadQuerySchema = z.object({ filename: z.string().trim().max(255).optional() });
+const couponCodeParamsSchema = z.object({ code: z.string().trim().min(1).max(40) });
 
 export const createAdminRouter = () => {
   const router = Router();
@@ -43,6 +45,9 @@ export const createAdminRouter = () => {
     validate({ params: idParamsSchema, body: adminUpdateCustomerSchema }),
     admin.updateCustomer
   );
+  // Customer photo taken / changed at the counter (raw image body)
+  router.post('/customers/:id/photo', can(P.CUSTOMERS_WRITE), validate({ params: idParamsSchema }), rawImageUpload, admin.uploadCustomerPhoto);
+  router.delete('/customers/:id/photo', can(P.CUSTOMERS_WRITE), validate({ params: idParamsSchema }), admin.deleteCustomerPhoto);
   router.get(
     '/customers/:id/purchases',
     can(P.PURCHASES_READ),
@@ -54,6 +59,26 @@ export const createAdminRouter = () => {
     can(P.LOYALTY_READ),
     validate({ params: idParamsSchema, query: listTransactionsQuerySchema }),
     admin.getCustomerLoyalty
+  );
+
+  // Product catalog: learned from purchases, editable on the Products page
+  router.get('/products', can(P.PURCHASES_READ), validate({ query: listProductsQuerySchema }), admin.listProducts);
+  router.post('/products', can(P.PURCHASES_WRITE), validate({ body: createProductSchema }), admin.createProduct);
+  router.patch(
+    '/products/:id',
+    can(P.PURCHASES_WRITE),
+    validate({ params: idParamsSchema, body: updateProductSchema }),
+    admin.updateProduct
+  );
+  router.delete('/products/:id', can(P.PURCHASES_WRITE), validate({ params: idParamsSchema }), admin.deleteProduct);
+
+  // Coupon lookup before billing (the coupon itself is redeemed with `couponCode` on POST /purchases)
+  router.get('/coupons/:code', can(P.PURCHASES_WRITE), validate({ params: couponCodeParamsSchema }), admin.lookupCoupon);
+  router.get(
+    '/customers/:id/coupons',
+    can(P.CUSTOMERS_READ),
+    validate({ params: idParamsSchema }),
+    admin.listCustomerCoupons
   );
 
   router.get('/purchases', can(P.PURCHASES_READ), validate({ query: listPurchasesQuerySchema }), admin.listPurchases);

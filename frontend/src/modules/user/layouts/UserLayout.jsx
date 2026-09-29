@@ -5,6 +5,7 @@ import { BottomNav } from '../components/BottomNav';
 import { StoreContactDrawer } from '../components/StoreContactDrawer';
 import { Smartphone, Monitor } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
+import { WelcomeOfferPopups } from '../components/WelcomeOfferPopups';
 
 export const UserLayout = () => {
   const location = useLocation();
@@ -82,6 +83,9 @@ export const UserLayout = () => {
       </div>
 
       {/* Official Retail Store Contact Bottom Drawer */}
+      {/* New-customer offer: complete profile → coupon */}
+      <WelcomeOfferPopups />
+
       <StoreContactDrawer
         isOpen={isStoreOpen}
         onClose={() => setIsStoreOpen(false)}

@@ -8,9 +8,13 @@ import {
 import { customerService } from '../../../services/customerService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminLoyaltyService } from '../../../services/adminLoyaltyService';
+import { adminCouponService } from '../../../services/adminCouponService';
+import { describeDiscount } from '../../../utils/coupons';
+import { PhotoEditor } from '../../../components/PhotoEditor';
+import { VerifiedTick } from '../../../components/CustomerAvatar';
 import { StatusBadge } from '../components/StatusBadge';
 import { DetailsSkeleton } from '../components/SkeletonLoaders';
-import { GENDER_LABELS, formatCalendarDate, formatINR } from '../../../utils/formatters';
+import { GENDER_LABELS, formatCalendarDate, formatDate, formatINR } from '../../../utils/formatters';
 import { useToast } from '../context/ToastContext';
 import { AreaLineChart } from '../components/charts/AreaLineChart';
 
@@ -21,6 +25,7 @@ export const CustomerDetailPage = () => {
 
   const [customer, setCustomer] = useState(null);
   const [purchases, setPurchases] = useState([]);
+  const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Manual Adjust Modal
@@ -33,12 +38,14 @@ export const CustomerDetailPage = () => {
   const fetchCustomerData = async () => {
     setLoading(true);
     try {
-      const [c, pList] = await Promise.all([
+      const [c, pList, couponList] = await Promise.all([
         customerService.getCustomerById(id),
         adminPurchaseService.getPurchases({ customerId: id }),
+        adminCouponService.listForCustomer(id).catch(() => []),
       ]);
       setCustomer(c);
       setPurchases(pList);
+      setCoupons(couponList);
     } catch (err) {
       showError('Error', err.message || 'Could not load customer.');
     } finally {
@@ -112,8 +119,29 @@ export const CustomerDetailPage = () => {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Customers</span>
           </button>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">{customer.name}</h1>
+          <div className="flex items-center gap-3">
+            <PhotoEditor
+              customer={customer}
+              className="w-14 h-14 rounded-xl"
+              textClassName="text-base"
+              labels={{ take: 'Take photo', choose: 'Upload photo', remove: 'Remove photo' }}
+              onUpload={async (blob) => {
+                const updated = await customerService.uploadPhoto(customer.id, blob);
+                setCustomer((prev) => ({ ...prev, photoUrl: updated.photoUrl }));
+                showSuccess('Photo saved', 'The customer will be easier to recognise.');
+              }}
+              onRemove={async () => {
+                await customerService.removePhoto(customer.id);
+                setCustomer((prev) => ({ ...prev, photoUrl: null }));
+              }}
+              onError={(message) => showError('Photo', message)}
+            />
+            <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight flex items-center gap-1.5">
+              {customer.name}
+              {customer.isVerified && <VerifiedTick className="w-5 h-5" />}
+            </h1>
             <span className="text-xs font-normal text-stone-500">({customer.phone || customer.mobile})</span>
             {customer.mobileVerified === false && (
               <span
@@ -123,6 +151,15 @@ export const CustomerDetailPage = () => {
                 Not on app yet
               </span>
             )}
+            </div>
+            <p className="text-[11px] mt-0.5 text-stone-500">
+              {customer.isVerified
+                ? <span className="text-[#1A8CD8] font-medium">Verified customer · uses the app and has bought at the store</span>
+                : customer.mobileVerified
+                  ? 'Not verified yet · becomes verified with their first purchase'
+                  : 'Not verified yet · needs to sign in to the app and buy at the store'}
+            </p>
+            </div>
           </div>
         </div>
 
@@ -190,6 +227,51 @@ export const CustomerDetailPage = () => {
           ))}
         </dl>
       </div>
+
+      {/* Coupons (e.g. the new-customer offer) */}
+      {coupons.length > 0 && (
+        <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-stone-100">
+            <h3 className="text-sm font-semibold text-stone-900">Coupons</h3>
+            <p className="text-xs text-stone-500 mt-0.5">Redeem on Record Purchase by scanning the QR or typing the code</p>
+          </div>
+          <div className="divide-y divide-stone-100 text-xs">
+            {coupons.map((c) => (
+              <div key={c.id} className="px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span className="font-mono font-semibold text-stone-900 tracking-wider">{c.code}</span>
+                  <span className="ml-2 text-stone-600">{describeDiscount(c.discount)}</span>
+                  {c.minBillAmount > 0 && <span className="ml-1 text-stone-400">· min bill {formatINR(c.minBillAmount)}</span>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-stone-400">
+                    {c.status === 'redeemed' ? `Used ${formatDate(c.redeemedAt)}` : `${c.status === 'expired' ? 'Expired' : 'Valid till'} ${formatDate(c.expiresAt)}`}
+                  </span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-md border font-medium ${
+                      c.status === 'active'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : c.status === 'redeemed'
+                          ? 'bg-stone-100 text-stone-600 border-stone-200'
+                          : 'bg-rose-50 text-rose-700 border-rose-200'
+                    }`}
+                  >
+                    {c.status === 'active' ? 'Active' : c.status === 'redeemed' ? 'Used' : 'Expired'}
+                  </span>
+                  {c.purchaseId && (
+                    <button
+                      onClick={() => navigate(`/admin/purchases/${c.purchaseId}`)}
+                      className="text-brand-700 hover:underline cursor-pointer"
+                    >
+                      View bill
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Spend Trajectory Chart */}
       <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs">

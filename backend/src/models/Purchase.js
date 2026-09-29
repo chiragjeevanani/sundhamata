@@ -15,8 +15,17 @@ const moneyField = { type: Number, required: true, min: 0 };
 const purchaseSchema = new mongoose.Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-    // Entered by the store exactly as printed on their bill (any format). Unique, ignoring case.
+    // Entered by the store exactly as printed on their bill (any format). One bill (invoice)
+    // may have several products: each product is its own Purchase ("line") sharing the
+    // invoice number and `order.id`. Unique per bill, ignoring case.
     invoiceNumber: { type: String, required: true, trim: true, maxlength: 50 },
+    // The bill this line belongs to. Purchases recorded before multi-product bills have no
+    // `order` and are a one-line bill on their own (see orderKeyOf in purchase.service.js).
+    order: {
+      id: { type: mongoose.Schema.Types.ObjectId },
+      lineNo: { type: Number, min: 1 },
+      lineCount: { type: Number, min: 1 },
+    },
     category: { type: String, enum: PURCHASE_CATEGORIES, default: 'phones' },
 
     product: {
@@ -40,7 +49,9 @@ const purchaseSchema = new mongoose.Schema(
     pricing: {
       purchaseAmount: moneyField,
       discount: { ...moneyField, default: 0 },
-      // Rupee value of loyalty points redeemed on this bill (after the discount)
+      // Coupon discount (after the store discount, before loyalty points)
+      couponDiscount: { ...moneyField, default: 0 },
+      // Rupee value of loyalty points redeemed on this bill (after the discount and coupon)
       loyaltyDiscount: { ...moneyField, default: 0 },
       finalAmount: moneyField,
       // GST-inclusive breakdown frozen at billing time.
@@ -83,6 +94,12 @@ const purchaseSchema = new mongoose.Schema(
       uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     },
 
+    // Coupon redeemed on this bill (given back if the purchase is cancelled)
+    coupon: {
+      couponId: { type: mongoose.Schema.Types.ObjectId, ref: 'Coupon' },
+      code: { type: String },
+    },
+
     // Bill uploaded by the store (PDF / image / Word / Excel); the file itself is in GridFS.
     bill: {
       fileId: { type: mongoose.Schema.Types.ObjectId },
@@ -106,10 +123,13 @@ const purchaseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// One invoice number per bill: lines of the same bill share it (different lineNo).
+// Replaces the older single-field index "invoiceNumber_ci" (dropped by migrations.js).
 purchaseSchema.index(
-  { invoiceNumber: 1 },
-  { unique: true, name: 'invoiceNumber_ci', collation: INVOICE_COLLATION }
+  { invoiceNumber: 1, 'order.lineNo': 1 },
+  { unique: true, name: 'invoiceNumber_line_ci', collation: INVOICE_COLLATION }
 );
+purchaseSchema.index({ 'order.id': 1 }, { sparse: true });
 purchaseSchema.index({ customerId: 1, purchaseDate: -1 });
 purchaseSchema.index({ purchaseDate: -1 });
 purchaseSchema.index({ status: 1, purchaseDate: -1 });

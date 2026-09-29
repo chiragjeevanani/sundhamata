@@ -1,6 +1,6 @@
 // Explicit allow-list serializers: only fields listed here ever leave the API.
 import { ROLE_LABELS } from '../config/permissions.js';
-import { THEME_COLOR_KEYS } from '../models/StoreSettings.js';
+import { THEME_COLOR_KEYS, welcomeOfferOf } from '../models/StoreSettings.js';
 import { getLoyaltyTier, pointsToRupees } from './loyalty.js';
 
 /** Date → "YYYY-MM-DD" (calendar dates are stored at 00:00 UTC) */
@@ -29,6 +29,11 @@ export const serializeCustomer = (c) => ({
   dob: toDateOnly(c.dob),
   anniversaryDate: toDateOnly(c.anniversaryDate),
   gender: c.gender ?? null,
+  // Blue tick: uses the app and has bought at the store
+  isVerified: Boolean(c.verifiedAt),
+  verifiedAt: c.verifiedAt ?? null,
+  // Path relative to the API base URL (random key, changes when the photo is replaced)
+  photo: c.photo?.key ? { path: `/customer-photos/${c.photo.key}`, uploadedAt: c.photo.uploadedAt ?? null } : null,
   loyaltyPoints: c.loyaltyPoints,
   loyaltyTier: tierOf(c.loyaltyPoints),
   memberSince: c.createdAt,
@@ -82,6 +87,12 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
   const base = {
     id: idOf(p),
     invoiceNumber: p.invoiceNumber,
+    // The bill this product is on (older purchases are a one-product bill of their own)
+    order: {
+      id: p.order?.id ? idOf(p.order.id) : idOf(p),
+      lineNo: p.order?.lineNo ?? 1,
+      lineCount: p.order?.lineCount ?? 1,
+    },
     customerId: idOf(p.customerId),
     category: p.category,
     product: {
@@ -99,6 +110,7 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
     pricing: {
       purchaseAmount: p.pricing.purchaseAmount,
       discount: p.pricing.discount,
+      couponDiscount: p.pricing.couponDiscount ?? 0,
       loyaltyDiscount: p.pricing.loyaltyDiscount ?? 0,
       finalAmount: p.pricing.finalAmount,
       taxRatePercent: p.pricing.taxRatePercent,
@@ -121,6 +133,7 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
           status: warrantyStatus(p),
         }
       : null,
+    coupon: p.coupon?.code ? { code: p.coupon.code } : null,
     notes: p.notes ?? null,
     // Path relative to the API base URL (public, unguessable key).
     productImage: p.productImage?.key
@@ -238,5 +251,42 @@ export const serializePublicStore = (s) => ({
 export const serializeSettings = (s) => ({
   ...serializePublicStore(s),
   tax: { gstRatePercent: s.tax?.gstRatePercent ?? 18 },
+  offers: { welcome: welcomeOfferOf(s) },
   updatedAt: s.updatedAt,
+});
+
+/**
+ * @param {object} c Coupon document. Status: "active" | "redeemed" | "expired" (derived).
+ */
+export const serializeCoupon = (c, now = new Date()) => ({
+  id: idOf(c),
+  code: c.code,
+  kind: c.kind,
+  discount: {
+    type: c.discount.type,
+    value: c.discount.value,
+    maxAmount: c.discount.maxAmount ?? null,
+  },
+  minBillAmount: c.minBillAmount ?? 0,
+  expiresAt: c.expiresAt,
+  status: c.status === 'redeemed' ? 'redeemed' : new Date(c.expiresAt) <= now ? 'expired' : 'active',
+  redeemedAt: c.redeemedAt ?? null,
+  purchaseId: c.purchaseId ? idOf(c.purchaseId) : null,
+  createdAt: c.createdAt,
+});
+
+/** Product catalog entry (suggestions on Record Purchase, Products page) */
+export const serializeProduct = (p) => ({
+  id: idOf(p),
+  name: p.name,
+  category: p.category,
+  brand: p.brand ?? null,
+  model: p.model ?? null,
+  variants: p.variants ?? [],
+  colors: p.colors ?? [],
+  lastPrice: p.lastPrice ?? null,
+  warrantyMonths: p.warrantyMonths ?? null,
+  timesSold: p.timesSold ?? 0,
+  lastSoldAt: p.lastSoldAt ?? null,
+  source: p.source,
 });

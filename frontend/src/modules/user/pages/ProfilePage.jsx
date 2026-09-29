@@ -16,11 +16,15 @@ import {
   Heart,
   User,
   Home,
+  TicketPercent,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useStoreInfo } from '../hooks/useStoreInfo';
 import { GENDER_LABELS, formatCalendarDate } from '../../../utils/formatters';
+import { PhotoEditor } from '../../../components/PhotoEditor';
+import { VerifiedTick } from '../../../components/CustomerAvatar';
+import { userService } from '../../../services/userService';
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
@@ -63,12 +67,12 @@ export const ProfilePage = () => {
     { icon: Home, label: 'Address', value: fullAddress },
   ];
 
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase();
+  const [photoError, setPhotoError] = useState('');
+  const updatePhoto = async (action) => {
+    setPhotoError('');
+    await action();
+    await refreshUser().catch(() => {});
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -83,18 +87,21 @@ export const ProfilePage = () => {
 
         {/* Customer Profile Card */}
         <div className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-ink-900 text-white flex items-center justify-center font-extrabold text-sm tracking-wider shrink-0 border border-ink-700">
-            {initials || 'CU'}
-          </div>
+          <PhotoEditor
+            customer={user}
+            className="w-14 h-14 rounded-2xl"
+            textClassName="text-base"
+            onUpload={(blob) => updatePhoto(() => userService.uploadPhoto(blob))}
+            onRemove={() => updatePhoto(() => userService.removePhoto())}
+            onError={setPhotoError}
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <h2 className="text-[14px] font-bold text-stone-900 truncate">
                 {name}
               </h2>
-              <span className="w-3.5 h-3.5 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-[9px] font-bold shrink-0">
-                ✓
-              </span>
+              {user?.isVerified && <VerifiedTick className="w-4 h-4" />}
             </div>
             <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-stone-500 font-medium">
               <span className="font-mono tabular-nums">{phone}</span>
@@ -105,6 +112,17 @@ export const ProfilePage = () => {
                 <span className="text-brand-700 font-medium">{interest}</span>
               ) : null}
             </div>
+            {user?.isVerified ? (
+              <p className="text-[10.5px] font-semibold text-[#1A8CD8] mt-0.5">Verified customer</p>
+            ) : (
+              <p className="text-[10.5px] text-stone-400 mt-0.5 leading-snug">
+                Buy anything at the store to get your <span className="font-semibold text-[#1A8CD8]">blue tick</span>
+              </p>
+            )}
+            {photoError && <p className="text-[10.5px] text-rose-600 mt-0.5">{photoError}</p>}
+            {!user?.photoUrl && !photoError && (
+              <p className="text-[10.5px] text-stone-400">Add a photo so the store team can recognise you</p>
+            )}
           </div>
 
           <button
@@ -189,6 +207,22 @@ export const ProfilePage = () => {
                     {points.toLocaleString('en-IN')} Points Available
                   </span>
                 </div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+
+            {/* My Coupons (welcome offer etc.) */}
+            <button
+              onClick={() => navigate('/coupons')}
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-6.5 h-6.5 rounded bg-brand-50 text-brand-700 flex items-center justify-center">
+                  <TicketPercent className="w-3.5 h-3.5" />
+                </div>
+                <span className="font-semibold text-stone-800 group-hover:text-brand-700 transition-colors">
+                  My Coupons
+                </span>
               </div>
               <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>

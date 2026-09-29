@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as customer from '../controllers/customer.controller.js';
 import { requireCustomerAuth } from '../middleware/auth.js';
+import { rawImageUpload } from '../middleware/uploads.js';
 import { validate } from '../middleware/validate.js';
 import { idParamsSchema } from '../validators/common.js';
 import { updateMyProfileSchema } from '../validators/customer.validators.js';
@@ -16,6 +17,9 @@ export const createCustomerRouter = () => {
 
   router.get('/me', customer.getMe);
   router.patch('/me', validate({ body: updateMyProfileSchema }), customer.updateMe);
+  // Profile photo: raw image body (the app sends a resized JPEG)
+  router.post('/me/photo', rawImageUpload, customer.uploadMyPhoto);
+  router.delete('/me/photo', customer.deleteMyPhoto);
 
   router.get('/purchases', validate({ query: customerPurchasesQuerySchema }), customer.listMyPurchases);
   router.get('/purchases/:id', validate({ params: idParamsSchema }), customer.getMyPurchase);
@@ -25,6 +29,11 @@ export const createCustomerRouter = () => {
   router.get('/loyalty/summary', customer.getMyLoyaltySummary);
   router.get('/loyalty/transactions', validate({ query: ownTransactionsQuerySchema }), customer.listMyLoyaltyTransactions);
   router.get('/loyalty/transactions/:id', validate({ params: idParamsSchema }), customer.getMyLoyaltyTransaction);
+
+  // New-customer offer: complete the profile, then claim a discount coupon (QR + code)
+  router.get('/offers/welcome', customer.getMyWelcomeOffer);
+  router.post('/offers/welcome/claim', customer.claimMyWelcomeCoupon);
+  router.get('/coupons', customer.listMyCoupons);
 
   return router;
 };

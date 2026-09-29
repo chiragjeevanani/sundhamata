@@ -22,6 +22,11 @@ export const LoginPage = () => {
     useAuth();
 
   // Accounts the store created while billing a purchase first confirm their name and details
+  // Post-login redirect; cancelled if the page closes first (e.g. the auth redirect already ran),
+  // so it never pulls the customer back after they have moved on.
+  const redirectTimer = useRef(null);
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
+
   const destination = needsProfileReview
     ? '/profile/edit?welcome=1'
     : location.state?.from?.pathname || '/home';
@@ -256,7 +261,7 @@ export const LoginPage = () => {
       setStep('success');
 
       // Short, pleasant success transition before redirect
-      setTimeout(() => {
+      redirectTimer.current = setTimeout(() => {
         navigate(destination, { replace: true });
       }, 750);
     } catch (err) {

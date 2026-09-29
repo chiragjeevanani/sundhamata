@@ -379,6 +379,21 @@ Query: `page`, `limit`, `type` (`earned` | `redeemed` | `adjustment` | `expired`
 
 ### `GET /customer/loyalty/transactions/:id` — a single own ledger entry (`data.transaction`).
 
+### Verified customers and profile photo
+
+- Customers carry `isVerified` / `verifiedAt` (blue tick). A customer becomes verified once they both use the app (signed in with an OTP) and have an active purchase at the store — set when the purchase is recorded, or at sign-in for purchases billed before they joined. Registering alone is not enough. It is not removed by later cancellations. Existing customers who qualify are verified by the start-up migration.
+- `POST /customer/me/photo` (raw image body: JPG, PNG, WebP or GIF, max 5 MB; the app sends a 512 px square JPEG) sets or replaces the photo; `DELETE /customer/me/photo` removes it. Staff: `POST|DELETE /admin/customers/:id/photo`. Responses return the customer; `photo: { path, uploadedAt }` where `path` is `/customer-photos/<random key>` — served without login (for `<img>` tags) with `Cache-Control: private`, and the key changes on every replacement.
+
+### New-customer offer and coupons
+
+New app users (self-registered, or signing in for the first time to an account the store created) who complete their profile get one welcome coupon. Required profile fields: name (not the placeholder "Customer"), email, date of birth, gender, address, city, pincode.
+
+- `GET /customer/offers/welcome` → `{ status, offer, missingFields, coupon }`. `status` is `unavailable` (offer off or not a new app user), `complete_profile` (`missingFields: [{ field, label }]`), `ready`, or `claimed` (with `coupon`). `offer`: `{ discountType, discountValue, maxDiscount, minBillAmount, validityDays }`.
+- `POST /customer/offers/welcome/claim` → `201 { coupon }` the first time; claiming again returns the same coupon (`200`). `422` lists missing fields; `403` when not eligible.
+- `GET /customer/coupons` → `{ items: [coupon] }`.
+
+Coupon: `{ id, code: "SM-7KQ2-XH4P", discount: { type: "flat"|"percent", value, maxAmount }, minBillAmount, expiresAt, status: "active"|"redeemed"|"expired", redeemedAt, purchaseId }`. The app shows it as a QR code (containing just the code) plus the code.
+
 ---
 
 ## Public store endpoint
@@ -456,6 +471,12 @@ Admin customer objects add:
 #### `POST /admin/purchases`
 
 Send **either** `customerId` (existing customer) **or** `newCustomer: { "mobile": "9829055443", "name": "Amit Verma" }` (`name` optional) to bill someone who has not signed up. The customer is found by mobile or created in the same transaction as the purchase (placeholder name "Customer" when none is given), so a failed purchase never leaves a stray customer. When that person later signs in to the app with the number (OTP), they see the purchase and points. The response includes `customerCreated: true|false`.
+
+**Several products on one bill:** send `items: [{ category, product, price, warranty }]` (1–20) with `pricing: { discount }` for the whole bill. Each product becomes its own purchase ("line") sharing the invoice number and `order: { id, lineNo, lineCount }`, with its own IMEI, warranty and photo. The store discount, coupon and loyalty points are split across the lines in proportion to their prices (to the paisa, so the lines add up exactly); points are earned on the bill total and recorded as one ledger entry per bill. The response has `purchases` (all lines), `order: { id, invoiceNumber, itemCount, totals, pointsEarned, pointsRedeemed }` and `purchase` (the first line). A single product may still be sent the older way (top-level `category`, `product`, `warranty`, `pricing.purchaseAmount`).
+
+Bill-level edits (`invoiceNumber`, `purchaseDate`, `payment`, `notes` on `PATCH /admin/purchases/:id`) apply to every line of the bill; `product` and `warranty` to that line only. An uploaded bill file belongs to every line. Cancelling cancels one line (its share of points is reversed); a coupon is given back once every line is cancelled. Purchase details include `billItems` (all lines of the bill) for the invoice. Dashboard and report order counts count bills, not lines.
+
+**Product catalog:** every product sold is remembered (`GET /admin/products?search=&category=` — most sold first, with `lastPrice`, `warrantyMonths`, recent `variants` / `colors`), and can be managed with `POST /admin/products`, `PATCH /admin/products/:id`, `DELETE /admin/products/:id`. The catalog is built from past purchases the first time it is opened.
 
 ```json
 // request
@@ -689,9 +710,16 @@ Points are spent while recording a purchase (`loyaltyRedemption.points` on `POST
 - Rules (422 with field `loyaltyRedemption.points`): whole points; not more than the customer's balance; at least `loyalty.minRedeemPoints` per redemption (0 = no minimum); not worth more than the bill; not allowed when `rupeeValuePerPoint` is 0.
 - The ledger gets a `redeemed` / `redemption` entry (negative points) for the purchase, before the `earned` entry. Both happen in the same transaction as the purchase, and the debit is conditional, so two bills can never spend the same points.
 
+### Coupons at the counter
+
+- `GET /admin/coupons/:code` (any formatting: `sm7kq2xh4p`, `SM-7KQ2-XH4P`, a scanned QR) → `{ coupon, customer, usable, reason }`.
+- `GET /admin/customers/:id/coupons` → `{ items }`.
+- Redeem by sending `couponCode` on `POST /admin/purchases`. Order on the bill: price − store discount − coupon − loyalty points = final amount (tax and earned points are on the final amount). The coupon must belong to the purchase's customer, be unexpired and unused, and the bill after the store discount must meet its `minBillAmount`; percentage coupons are capped at `maxAmount`. It is marked used in the same transaction (only one of two simultaneous bills can use it). The purchase stores `pricing.couponDiscount` and `coupon.code`.
+- Offer terms are in settings: `offers.welcome.{ enabled, discountType, discountValue, maxDiscount, minBillAmount, validityDays }` (defaults: on, ₹200 off, minimum bill ₹1,000, 90 days). Terms are copied onto each coupon when issued; changes affect new coupons only.
+
 ### Cancellation
 
-Purchases are never deleted. Cancelling sets `status: "Cancelled"`, payment status `Cancelled`, first returns any points redeemed on the bill (`adjustment` / `redemption_refund`, recorded as `loyalty.pointsRefunded`) and then reverses the points it earned. If the customer has already spent some of those points, only the available balance is reversed and the difference is recorded as `loyalty.reversalShortfall` on the purchase and reported in the response message.
+Purchases are never deleted. A coupon used on the bill becomes usable again. Cancelling sets `status: "Cancelled"`, payment status `Cancelled`, first returns any points redeemed on the bill (`adjustment` / `redemption_refund`, recorded as `loyalty.pointsRefunded`) and then reverses the points it earned. If the customer has already spent some of those points, only the available balance is reversed and the difference is recorded as `loyalty.reversalShortfall` on the purchase and reported in the response message.
 
 ### Atomicity
 

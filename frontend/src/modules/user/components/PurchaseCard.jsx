@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Smartphone, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatINR, formatDate } from '../../../utils/formatters';
-import { StatusBadge } from './StatusBadge';
+import { WarrantyBadge } from './WarrantyBadge';
 
 export const PurchaseCard = ({ purchase }) => {
   const navigate = useNavigate();
@@ -13,7 +13,6 @@ export const PurchaseCard = ({ purchase }) => {
     id,
     formattedDate,
     amount,
-    status,
     product,
   } = purchase;
 
@@ -60,7 +59,7 @@ export const PurchaseCard = ({ purchase }) => {
           {formatINR(amount)}
         </span>
         <div className="flex items-center gap-1">
-          <StatusBadge status={status} size="sm" />
+          <WarrantyBadge purchase={purchase} size="sm" />
           <ChevronRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-stone-500 group-hover:translate-x-0.5 transition-all" />
         </div>
       </div>

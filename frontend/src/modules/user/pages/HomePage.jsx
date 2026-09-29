@@ -10,10 +10,11 @@ import {
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { PurchaseCard } from '../components/PurchaseCard';
-import { StatusBadge } from '../components/StatusBadge';
+import { WarrantyBadge } from '../components/WarrantyBadge';
 import { HomeSkeleton } from '../components/SkeletonLoader';
 import { ErrorState } from '../components/ErrorState';
 import { useAuth } from '../context/AuthContext';
+import { VerifiedTick } from '../../../components/CustomerAvatar';
 import { purchaseService } from '../../../services/purchaseService';
 import { loyaltyService } from '../../../services/loyaltyService';
 import { formatINR, formatDate } from '../../../utils/formatters';
@@ -77,8 +78,9 @@ export const HomePage = () => {
           <>
             {/* Greeting */}
             <div className="pt-0.5">
-              <h1 className="text-xl font-black text-ink-900 tracking-tight">
+              <h1 className="text-xl font-black text-ink-900 tracking-tight flex items-center gap-1.5">
                 Hello, {customerFirstName}
+                {user?.isVerified && <VerifiedTick className="w-5 h-5" />}
               </h1>
             </div>
 
@@ -141,7 +143,7 @@ export const HomePage = () => {
                       </div>
 
                       <div className="shrink-0">
-                        <StatusBadge status={latestPurchase.status} size="sm" />
+                        <WarrantyBadge purchase={latestPurchase} size="sm" />
                       </div>
                     </div>
 

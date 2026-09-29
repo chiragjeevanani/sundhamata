@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, UserPlus, X } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
 import { StatusBadge } from '../components/StatusBadge';
+import { CustomerAvatar, VerifiedTick } from '../../../components/CustomerAvatar';
 import { TableSkeleton } from '../components/SkeletonLoaders';
 
 export const CustomersListPage = () => {
@@ -121,8 +122,12 @@ export const CustomersListPage = () => {
                     onClick={() => navigate(`/admin/customers/${c.id}`)}
                   >
                     <td className="py-3 px-5">
-                      <span className="font-medium text-stone-900 group-hover:text-brand-700 block">
+                     <div className="flex items-center gap-2.5">
+                      <CustomerAvatar customer={c} className="w-8 h-8 rounded-full" textClassName="text-[10px]" />
+                      <div className="min-w-0">
+                      <span className="font-medium text-stone-900 group-hover:text-brand-700 flex items-center gap-1">
                         {c.name}
+                        {c.isVerified && <VerifiedTick className="w-3.5 h-3.5" />}
                       </span>
                       <span className="text-[11px] text-stone-400 font-mono font-normal">{c.customerCode}</span>
                       {c.mobileVerified === false && (
@@ -133,6 +138,8 @@ export const CustomersListPage = () => {
                           Not on app yet
                         </span>
                       )}
+                      </div>
+                     </div>
                     </td>
 
                     <td className="py-3 px-4 font-normal text-stone-700 whitespace-nowrap">

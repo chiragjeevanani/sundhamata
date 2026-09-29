@@ -10,7 +10,15 @@ import { buildPagination, containsRegex, paginated, parseSort } from '../utils/q
 import { serializePurchase } from '../utils/serializers.js';
 import { runAtomic } from '../utils/transaction.js';
 import { buildCustomerSearchFilter, createCustomer } from './customer.service.js';
+import {
+  markCouponRedeemed,
+  PLACEHOLDER_CUSTOMER_NAME,
+  prepareCouponForPurchase,
+  restoreCouponOfPurchase,
+} from './coupon.service.js';
 import { applyPointsChange } from './loyalty.service.js';
+import { learnFromPurchaseLines } from './product.service.js';
+import { verifyAfterPurchase } from './customerVerification.js';
 import { getSettings } from './settings.service.js';
 
 const KNOWN_BRANDS = [
@@ -29,9 +37,6 @@ const KNOWN_BRANDS = [
 
 const inferBrand = (productName) => KNOWN_BRANDS.find(([, pattern]) => pattern.test(productName))?.[0] ?? null;
 
-// Name used when the store records a purchase for a new number without asking the name.
-// The customer is asked to confirm their details the first time they sign in.
-export const PLACEHOLDER_CUSTOMER_NAME = 'Customer';
 const INTEREST_BY_CATEGORY = { phones: 'Mobile', accessories: 'Accessories', service: 'Service' };
 
 /**
@@ -56,7 +61,7 @@ const resolvePurchaseCustomer = async (input, admin, ctx) => {
           {
             name: name ?? PLACEHOLDER_CUSTOMER_NAME,
             mobile,
-            interest: INTEREST_BY_CATEGORY[input.category] ?? 'Mobile',
+            interest: INTEREST_BY_CATEGORY[input.items[0].category] ?? 'Mobile',
           },
           { source: 'admin', createdBy: admin },
           ctx
@@ -97,9 +102,12 @@ const duplicateInvoice = () =>
     { field: 'invoiceNumber', message: 'Already used on another purchase' },
   ]);
 
-/** Invoice numbers are unique ignoring case ("inv-1" and "INV-1" are the same bill). */
-const invoiceTaken = (invoiceNumber, { excludeId = null, session = null } = {}) =>
-  Purchase.exists(excludeId ? { invoiceNumber, _id: { $ne: excludeId } } : { invoiceNumber })
+/**
+ * Invoice numbers are unique per bill, ignoring case ("inv-1" and "INV-1" are the same bill).
+ * `excludeIds`: the lines of the bill being edited.
+ */
+const invoiceTaken = (invoiceNumber, { excludeIds = [], session = null } = {}) =>
+  Purchase.exists(excludeIds.length ? { invoiceNumber, _id: { $nin: excludeIds } } : { invoiceNumber })
     .collation(INVOICE_COLLATION)
     .session(session);
 
@@ -118,18 +126,51 @@ const buildWarranty = (purchaseDate, months) =>
 const warrantyMonths = ({ duration, unit }) => duration * (unit === 'years' ? 12 : 1);
 
 /**
- * Records a purchase: validates the customer, prices it, calculates loyalty
- * from the store settings, stores the purchase, appends the loyalty ledger
- * entry and updates the customer's balance — all in one atomic unit.
+ * Splits `total` (whole units: paise or points) across lines in proportion to `weights`,
+ * so the parts always add up exactly (largest remainder). No part exceeds its weight when
+ * total <= sum(weights).
+ */
+const allocate = (total, weights) => {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  if (!(total > 0) || !(sum > 0)) return weights.map(() => 0);
+  const exact = weights.map((w) => (total * w) / sum);
+  const parts = exact.map(Math.floor);
+  let left = total - parts.reduce((a, b) => a + b, 0);
+  exact
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((a, b) => b.fraction - a.fraction || a.index - b.index)
+    .forEach(({ index }) => {
+      if (left > 0) {
+        parts[index] += 1;
+        left -= 1;
+      }
+    });
+  return parts;
+};
+const toPaise = (rupees) => Math.round(rupees * 100);
+const fromPaise = (paise) => paise / 100;
+
+/** "Galaxy S25 Ultra", or "Galaxy S25 Ultra + 2 more" for a multi-product bill */
+const billTitle = (items) =>
+  items.length > 1 ? `${items[0].product.name} + ${items.length - 1} more` : items[0].product.name;
+
+/**
+ * Records a bill with one or more products. Each product becomes its own Purchase ("line")
+ * with its own warranty, IMEI and photo; the lines share the invoice number and `order.id`.
+ * Bill-level amounts (store discount, coupon, loyalty points) are split across the lines in
+ * proportion to their prices, so every line is self-consistent (e.g. for cancelling one item)
+ * and the lines add up exactly to the bill. Loyalty is earned on the bill total.
+ * Everything happens in one atomic unit.
  *
  * Any `pointsEarned` sent by a client is ignored (the validator rejects it);
  * the server is the only authority on loyalty.
  *
- * @param {object} input validated createPurchaseSchema output
+ * @param {object} input validated createPurchaseSchema output (always has `items`)
  * @param {object} admin authenticated admin document
  * @param {{ occurredAt?: Date }} [options] backdating for seed/import only
  */
 export const createPurchase = async (input, admin, { occurredAt } = {}) => {
+  const items = input.items;
   const result = await runAtomic(async (ctx) => {
     const { session, onRollback } = ctx;
 
@@ -138,10 +179,22 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     if (await invoiceTaken(input.invoiceNumber, { session })) throw duplicateInvoice();
 
     const settings = await getSettings(session);
-    const { purchaseAmount, discount } = input.pricing;
-    const amountAfterDiscount = roundMoney(purchaseAmount - discount);
+    const subtotal = roundMoney(items.reduce((sum, item) => sum + item.price, 0));
+    const { discount } = input.pricing;
+    const amountAfterDiscount = roundMoney(subtotal - discount);
 
-    // Loyalty redemption: points come off the bill after the discount.
+    // Coupon (e.g. the welcome offer): comes off after the store discount, before points.
+    let coupon = null;
+    let couponDiscount = 0;
+    if (input.couponCode) {
+      ({ coupon, discount: couponDiscount } = await prepareCouponForPurchase(
+        { code: input.couponCode, customerId: customer._id, amount: amountAfterDiscount },
+        ctx
+      ));
+    }
+    const amountAfterCoupon = roundMoney(amountAfterDiscount - couponDiscount);
+
+    // Loyalty redemption: points come off the bill after the discount and coupon.
     const pointsRedeemed = input.loyaltyRedemption?.points ?? 0;
     const { rupeeValuePerPoint, minRedeemPoints } = settings.loyalty;
     let loyaltyDiscount = 0;
@@ -158,55 +211,83 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
         throw redemptionError(`Customer has only ${customer.loyaltyPoints} points; cannot redeem ${pointsRedeemed}`);
       }
       loyaltyDiscount = roundMoney(pointsRedeemed * rupeeValuePerPoint);
-      if (loyaltyDiscount > amountAfterDiscount) {
+      if (loyaltyDiscount > amountAfterCoupon) {
         throw redemptionError(
-          `${pointsRedeemed} points are worth ₹${loyaltyDiscount}, more than the ₹${amountAfterDiscount} bill`
+          `${pointsRedeemed} points are worth ₹${loyaltyDiscount}, more than the ₹${amountAfterCoupon} bill`
         );
       }
     }
 
-    // What the customer actually pays; tax and newly earned points are based on this.
-    const finalAmount = roundMoney(amountAfterDiscount - loyaltyDiscount);
+    // What the customer actually pays; newly earned points are based on the bill total.
+    const finalAmount = roundMoney(amountAfterCoupon - loyaltyDiscount);
     const taxRatePercent = settings.tax?.gstRatePercent ?? 18;
-    const baseAmount = roundMoney(finalAmount / (1 + taxRatePercent / 100));
-    const taxAmount = roundMoney(finalAmount - baseAmount);
-
     const pointsPerHundredRupees = settings.loyalty.pointsPerHundredRupees;
     const pointsEarned = calculatePurchasePoints(finalAmount, pointsPerHundredRupees);
 
+    // ---- split the bill across its lines (in paise, so the parts add up exactly)
+    const pricePaise = items.map((item) => toPaise(item.price));
+    const discountPaise = allocate(toPaise(discount), pricePaise);
+    const afterDiscount = pricePaise.map((p, i) => p - discountPaise[i]);
+    const couponPaise = allocate(toPaise(couponDiscount), afterDiscount);
+    const afterCoupon = afterDiscount.map((p, i) => p - couponPaise[i]);
+    const loyaltyPaise = allocate(toPaise(loyaltyDiscount), afterCoupon);
+    const finalPaise = afterCoupon.map((p, i) => p - loyaltyPaise[i]);
+    const redeemedPoints = allocate(pointsRedeemed, loyaltyPaise);
+    const earnedPoints = allocate(pointsEarned, finalPaise);
+
     const purchaseDate = input.purchaseDate ?? new Date();
-    // Default when not specified: 12 months, none for service jobs.
-    const months = input.warranty ? warrantyMonths(input.warranty) : input.category === 'service' ? 0 : 12;
+    const orderId = new mongoose.Types.ObjectId();
 
-    const [purchase] = await Purchase.create(
-      [
-        {
-          customerId: customer._id,
-          invoiceNumber: input.invoiceNumber,
-          category: input.category,
-          product: { ...input.product, brand: input.product.brand ?? inferBrand(input.product.name) },
-          purchaseDate,
-          payment: input.payment,
-          pricing: { purchaseAmount, discount, loyaltyDiscount, finalAmount, taxRatePercent, taxAmount, baseAmount },
-          loyalty: {
-            pointsEarned,
-            pointsPerHundredRupees,
-            pointsRedeemed,
-            rupeeValuePerPoint: pointsRedeemed > 0 ? rupeeValuePerPoint : null,
-          },
-          warranty: buildWarranty(purchaseDate, months) ?? undefined,
-          notes: input.notes ?? null,
-          createdBy: admin._id,
-          ...(occurredAt ? { createdAt: occurredAt } : {}),
+    const docs = items.map((item, i) => {
+      const lineFinal = fromPaise(finalPaise[i]);
+      const baseAmount = roundMoney(lineFinal / (1 + taxRatePercent / 100));
+      // Default when not specified: 12 months, none for service jobs.
+      const months = item.warranty ? warrantyMonths(item.warranty) : item.category === 'service' ? 0 : 12;
+      return {
+        customerId: customer._id,
+        invoiceNumber: input.invoiceNumber,
+        order: { id: orderId, lineNo: i + 1, lineCount: items.length },
+        category: item.category,
+        product: { ...item.product, brand: item.product.brand ?? inferBrand(item.product.name) },
+        purchaseDate,
+        payment: input.payment,
+        pricing: {
+          purchaseAmount: item.price,
+          discount: fromPaise(discountPaise[i]),
+          couponDiscount: fromPaise(couponPaise[i]),
+          loyaltyDiscount: fromPaise(loyaltyPaise[i]),
+          finalAmount: lineFinal,
+          taxRatePercent,
+          taxAmount: roundMoney(lineFinal - baseAmount),
+          baseAmount,
         },
-      ],
-      { session }
-    );
-    onRollback(() => Purchase.deleteOne({ _id: purchase._id }));
+        coupon: coupon ? { couponId: coupon._id, code: coupon.code } : undefined,
+        loyalty: {
+          pointsEarned: earnedPoints[i],
+          pointsPerHundredRupees,
+          pointsRedeemed: redeemedPoints[i],
+          rupeeValuePerPoint: redeemedPoints[i] > 0 ? rupeeValuePerPoint : null,
+        },
+        warranty: buildWarranty(purchaseDate, months) ?? undefined,
+        notes: input.notes ?? null,
+        createdBy: admin._id,
+        ...(occurredAt ? { createdAt: occurredAt } : {}),
+      };
+    });
 
+    const lines = await Purchase.create(docs, { session, ordered: true });
+    onRollback(() => Purchase.deleteMany({ 'order.id': orderId }));
+    const first = lines[0];
+
+    if (coupon) await markCouponRedeemed({ couponId: coupon._id, purchaseId: first._id, admin }, ctx);
+
+    // App user + purchase at the store = verified (blue tick)
+    await verifyAfterPurchase(customer, ctx);
+
+    // One ledger entry per bill (not per product): spend first, then earn. The conditional
+    // debit guarantees the balance never goes negative, even under concurrent bills.
     let balance = customer.loyaltyPoints;
-    // Spend first, then earn: the conditional debit guarantees the balance never goes negative,
-    // even if another request spent points after the check above.
+    const title = billTitle(items);
     if (pointsRedeemed > 0) {
       ({ balance } = await applyPointsChange(
         {
@@ -215,8 +296,8 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
           type: LOYALTY_TYPES.REDEEMED,
           source: LOYALTY_SOURCES.REDEMPTION,
           title: 'Points Redeemed',
-          description: `${purchase.product.name} — ₹${loyaltyDiscount.toLocaleString('en-IN')} off`,
-          purchaseId: purchase._id,
+          description: `${title} — ₹${loyaltyDiscount.toLocaleString('en-IN')} off`,
+          purchaseId: first._id,
           createdBy: admin._id,
           occurredAt,
         },
@@ -231,8 +312,8 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
           type: LOYALTY_TYPES.EARNED,
           source: LOYALTY_SOURCES.PURCHASE,
           title: 'Purchase Reward',
-          description: purchase.product.name,
-          purchaseId: purchase._id,
+          description: title,
+          purchaseId: first._id,
           createdBy: admin._id,
           occurredAt,
         },
@@ -240,12 +321,22 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       ));
     }
 
-    return { purchaseId: purchase._id, pointsEarned, pointsRedeemed, balance, customerCreated };
+    return {
+      orderId,
+      purchaseIds: lines.map((line) => line._id),
+      lines: docs,
+      pointsEarned,
+      pointsRedeemed,
+      balance,
+      customerCreated,
+      totals: { subtotal, discount, couponDiscount, loyaltyDiscount, finalAmount },
+    };
   });
 
   logger.info(
     {
-      purchaseId: result.purchaseId.toString(),
+      orderId: result.orderId.toString(),
+      items: result.purchaseIds.length,
       adminId: admin.id,
       pointsEarned: result.pointsEarned,
       pointsRedeemed: result.pointsRedeemed,
@@ -254,9 +345,26 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     'Purchase created'
   );
 
-  const purchase = await findPurchaseForAdmin(result.purchaseId);
+  // Remember the products for next time (after the bill is safely saved)
+  await learnFromPurchaseLines(result.lines);
+
+  const purchases = await Purchase.find({ _id: { $in: result.purchaseIds } })
+    .sort({ 'order.lineNo': 1 })
+    .populate(ADMIN_POPULATE)
+    .lean();
+  const serialized = purchases.map((p) => serializePurchase(p));
   return {
-    purchase: serializePurchase(purchase),
+    // First line, for clients that record one product at a time
+    purchase: serialized[0],
+    purchases: serialized,
+    order: {
+      id: result.orderId.toString(),
+      invoiceNumber: serialized[0].invoiceNumber,
+      itemCount: serialized.length,
+      totals: result.totals,
+      pointsEarned: result.pointsEarned,
+      pointsRedeemed: result.pointsRedeemed,
+    },
     customerLoyaltyBalance: result.balance,
     customerCreated: result.customerCreated,
   };
@@ -277,51 +385,101 @@ const toSetPaths = (patch) => {
   return $set;
 };
 
+/** Warranty change for one line when its months or the purchase date change. */
+const warrantyUpdate = (line, purchaseDate, warrantyInput) => {
+  const currentMonths =
+    line.warranty?.months ??
+    (line.warranty?.validUntil ? monthsBetween(line.purchaseDate, line.warranty.validUntil) : 0);
+  const next = buildWarranty(purchaseDate, warrantyInput ? warrantyMonths(warrantyInput) : currentMonths);
+  return next ? { $set: { warranty: next } } : { $unset: { warranty: 1 } };
+};
+
+const mergeUpdate = (...parts) => {
+  const $set = Object.assign({}, ...parts.map((p) => p?.$set ?? {}));
+  const $unset = Object.assign({}, ...parts.map((p) => p?.$unset ?? {}));
+  return Object.keys($unset).length ? { $set, $unset } : { $set };
+};
+
 /**
- * Updates non-financial details (incl. invoice number, purchase date, warranty).
- * Pricing (and therefore loyalty) is immutable.
+ * Updates non-financial details. Product details and warranty belong to this line; the
+ * invoice number, purchase date, payment and notes belong to the whole bill and are applied
+ * to every product on it. Pricing (and therefore loyalty) is immutable.
  */
-export const updatePurchase = async (id, { warranty, ...patch }, admin) => {
-  const existing = await Purchase.findById(id, { status: 1, product: 1, purchaseDate: 1, warranty: 1 }).lean();
+export const updatePurchase = async (id, { warranty, product, ...billPatch }, admin) => {
+  const existing = await Purchase.findById(id, { status: 1, product: 1, purchaseDate: 1, warranty: 1, order: 1 }).lean();
   if (!existing) throw ApiError.notFound('Purchase not found');
   if (existing.status === PURCHASE_STATUSES.CANCELLED) {
     throw ApiError.conflict('Cancelled purchases cannot be edited');
   }
-  if (patch.invoiceNumber && (await invoiceTaken(patch.invoiceNumber, { excludeId: existing._id }))) {
+
+  const hasBillChanges = Object.values(billPatch).some((v) => v !== undefined);
+  const siblings =
+    hasBillChanges && existing.order?.id && existing.order.lineCount > 1
+      ? await Purchase.find(
+          { 'order.id': existing.order.id, _id: { $ne: existing._id } },
+          { status: 1, purchaseDate: 1, warranty: 1 }
+        ).lean()
+      : [];
+
+  if (
+    billPatch.invoiceNumber &&
+    (await invoiceTaken(billPatch.invoiceNumber, { excludeIds: [existing._id, ...siblings.map((s) => s._id)] }))
+  ) {
     throw duplicateInvoice();
   }
 
-  const $set = toSetPaths(patch);
-  const $unset = {};
-
+  const billSet = toSetPaths(billPatch);
+  const lineSet = toSetPaths(product ? { product } : {});
+  if (product?.name && product.brand === undefined && !existing.product.brand) {
+    lineSet['product.brand'] = inferBrand(product.name);
+  }
+  const purchaseDate = billPatch.purchaseDate ?? existing.purchaseDate;
   // The expiry always follows the purchase date: recompute when either changes.
-  if (warranty || patch.purchaseDate) {
-    const purchaseDate = patch.purchaseDate ?? existing.purchaseDate;
-    const currentMonths =
-      existing.warranty?.months ??
-      (existing.warranty?.validUntil ? monthsBetween(existing.purchaseDate, existing.warranty.validUntil) : 0);
-    const next = buildWarranty(purchaseDate, warranty ? warrantyMonths(warranty) : currentMonths);
-    if (next) $set.warranty = next;
-    else $unset.warranty = 1;
-  }
-  if (patch.product?.name && patch.product.brand === undefined && !existing.product.brand) {
-    $set['product.brand'] = inferBrand(patch.product.name);
-  }
+  const ownWarranty = warranty || billPatch.purchaseDate ? warrantyUpdate(existing, purchaseDate, warranty) : null;
 
   let updated;
   try {
-    updated = await Purchase.findOneAndUpdate(
-      { _id: id, status: PURCHASE_STATUSES.PURCHASED },
-      Object.keys($unset).length ? { $set, $unset } : { $set },
-      { returnDocument: 'after', runValidators: true }
-    );
+    updated = await runAtomic(async ({ session, onRollback }) => {
+      const before = await Purchase.findOneAndUpdate(
+        { _id: id, status: PURCHASE_STATUSES.PURCHASED },
+        mergeUpdate({ $set: { ...billSet, ...lineSet } }, ownWarranty),
+        { returnDocument: 'before', runValidators: true, session }
+      ).lean();
+      if (!before) throw ApiError.conflict('Cancelled purchases cannot be edited');
+      onRollback(() => Purchase.replaceOne({ _id: id }, before));
+
+      // The rest of the bill gets the same invoice number, date, payment and notes
+      for (const sibling of siblings) {
+        const cancelled = sibling.status === PURCHASE_STATUSES.CANCELLED;
+        // A cancelled line keeps its "Cancelled" payment status
+        const siblingSet = Object.fromEntries(
+          Object.entries(billSet).filter(([key]) => !(cancelled && key.startsWith('payment.')))
+        );
+        const siblingWarranty = billPatch.purchaseDate ? warrantyUpdate(sibling, purchaseDate, null) : null;
+        const previous = await Purchase.findOneAndUpdate(
+          { _id: sibling._id },
+          mergeUpdate({ $set: siblingSet }, siblingWarranty),
+          { returnDocument: 'before', runValidators: true, session }
+        ).lean();
+        if (previous) onRollback(() => Purchase.replaceOne({ _id: sibling._id }, previous));
+      }
+      return true;
+    });
   } catch (err) {
     if (err?.code === 11000) throw duplicateInvoice(); // lost a race with another edit
     throw err;
   }
   if (!updated) throw ApiError.conflict('Cancelled purchases cannot be edited');
 
-  logger.info({ purchaseId: id, adminId: admin.id, fields: [...Object.keys($set), ...Object.keys($unset)] }, 'Purchase updated');
+  logger.info(
+    {
+      purchaseId: id,
+      adminId: admin.id,
+      fields: [...Object.keys(billSet), ...Object.keys(lineSet), ...(ownWarranty ? ['warranty'] : [])],
+      billLinesUpdated: siblings.length,
+    },
+    'Purchase updated'
+  );
   return serializePurchase(await findPurchaseForAdmin(id));
 };
 
@@ -422,6 +580,12 @@ export const cancelPurchase = async (id, reason, admin) => {
 
     }
 
+    // The coupon used on this bill can be used again once the whole bill is cancelled
+    const openLines = purchase.order?.id
+      ? await Purchase.countDocuments({ 'order.id': purchase.order.id, status: PURCHASE_STATUSES.PURCHASED }).session(session)
+      : 0;
+    if (openLines === 0) await restoreCouponOfPurchase(purchase, ctx);
+
     if (earned > 0 || redeemed > 0) {
       await Purchase.updateOne(
         { _id: id },
@@ -486,10 +650,22 @@ export const listPurchasesForAdmin = async (query) => {
   return paginated(rows.map((p) => serializePurchase(p)), { page, limit }, total);
 };
 
+/**
+ * All products on the same bill as `purchase` (itself included), in bill order, for the
+ * invoice and the "other items on this bill" list.
+ */
+const billItemsOf = async (purchase, audience) => {
+  if (!(purchase.order?.id && purchase.order.lineCount > 1)) return [serializePurchase(purchase, { audience })];
+  const lines = await Purchase.find({ 'order.id': purchase.order.id, customerId: purchase.customerId._id ?? purchase.customerId })
+    .sort({ 'order.lineNo': 1 })
+    .lean();
+  return lines.map((line) => serializePurchase(line, { audience }));
+};
+
 export const getPurchaseForAdmin = async (id) => {
   const purchase = await findPurchaseForAdmin(id);
   if (!purchase) throw ApiError.notFound('Purchase not found');
-  return serializePurchase(purchase);
+  return { ...serializePurchase(purchase), billItems: await billItemsOf(purchase, 'admin') };
 };
 
 export const listPurchasesForCustomer = async (customerId, { page, limit, search, category }) => {
@@ -518,5 +694,5 @@ export const listPurchasesForCustomer = async (customerId, { page, limit, search
 export const getPurchaseForCustomer = async (customerId, purchaseId) => {
   const purchase = await Purchase.findOne({ _id: purchaseId, customerId }).populate('createdBy', 'name').lean();
   if (!purchase) throw ApiError.notFound('Purchase not found');
-  return serializePurchase(purchase, { audience: 'customer' });
+  return { ...serializePurchase(purchase, { audience: 'customer' }), billItems: await billItemsOf(purchase, 'customer') };
 };

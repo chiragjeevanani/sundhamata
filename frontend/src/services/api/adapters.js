@@ -15,6 +15,9 @@ export const toUiCustomer = (customer) => {
     rawPhone: national,
     phone: formatPhone(customer.mobile),
     loyaltyTier: customer.loyaltyTier?.label ?? 'Bronze Member',
+    // Profile photo (random-key link) and blue tick
+    photoUrl: customer.photo?.path ? `${API_BASE_URL}${customer.photo.path}` : null,
+    isVerified: Boolean(customer.isVerified),
     memberSince: formatDate(customer.memberSince),
     status: customer.isActive === false ? 'Inactive' : 'Active',
     totalPurchases: customer.stats?.totalPurchases ?? 0,
@@ -48,6 +51,8 @@ export const toUiPurchase = (purchase) => {
     customerName: purchase.customer?.name,
     customerMobile: purchase.customer ? formatPhone(purchase.customer.mobile) : undefined,
     customerCode: purchase.customer?.customerCode,
+    // Every product on the same bill (detail views only), for the invoice
+    billItems: purchase.billItems ? purchase.billItems.map(toUiPurchase) : undefined,
   };
 };
 

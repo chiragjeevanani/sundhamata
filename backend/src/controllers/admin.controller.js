@@ -1,3 +1,6 @@
+import * as customerPhotoService from '../services/customerPhoto.service.js';
+import * as productService from '../services/product.service.js';
+import * as couponService from '../services/coupon.service.js';
 import * as analyticsService from '../services/analytics.service.js';
 import * as billService from '../services/bill.service.js';
 import * as productImageService from '../services/productImage.service.js';
@@ -149,4 +152,52 @@ export const getActivity = async (req, res) => {
 
 export const getReportSummary = async (_req, res) => {
   sendSuccess(res, { data: await analyticsService.getReportSummary() });
+};
+
+// ---- Coupons (redeemed while recording a purchase via `couponCode`)
+
+export const lookupCoupon = async (req, res) => {
+  const data = await couponService.lookupCouponForAdmin(req.valid.params.code);
+  sendSuccess(res, { data });
+};
+
+export const listCustomerCoupons = async (req, res) => {
+  const coupons = await couponService.listCustomerCoupons(req.valid.params.id);
+  sendSuccess(res, { data: { items: coupons } });
+};
+
+// ---- Product catalog (learned from purchases; suggestions on Record Purchase)
+
+export const listProducts = async (req, res) => {
+  const data = await productService.listProducts(req.valid.query);
+  sendSuccess(res, { data });
+};
+
+export const createProduct = async (req, res) => {
+  const product = await productService.createProduct(req.valid.body);
+  sendCreated(res, { data: { product }, message: 'Product added' });
+};
+
+export const updateProduct = async (req, res) => {
+  const product = await productService.updateProduct(req.valid.params.id, req.valid.body);
+  sendSuccess(res, { data: { product }, message: 'Product updated' });
+};
+
+export const deleteProduct = async (req, res) => {
+  await productService.deleteProduct(req.valid.params.id);
+  sendSuccess(res, { message: 'Product removed' });
+};
+
+// ---- Customer photo taken / changed at the counter
+
+export const uploadCustomerPhoto = async (req, res) => {
+  await customerPhotoService.setCustomerPhoto(req.valid.params.id, req.body, { by: 'admin', actorId: req.admin.id });
+  const customer = await customerService.getCustomerWithStats(req.valid.params.id);
+  sendSuccess(res, { data: { customer }, message: 'Photo updated' });
+};
+
+export const deleteCustomerPhoto = async (req, res) => {
+  await customerPhotoService.removeCustomerPhoto(req.valid.params.id, { by: 'admin', actorId: req.admin.id });
+  const customer = await customerService.getCustomerWithStats(req.valid.params.id);
+  sendSuccess(res, { data: { customer }, message: 'Photo removed' });
 };

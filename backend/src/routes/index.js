@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { getStore } from '../controllers/customer.controller.js';
+import { sendCustomerPhoto } from '../services/customerPhoto.service.js';
 import { sendProductImage } from '../services/productImage.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
@@ -26,6 +27,11 @@ export const createApiRouter = (limiters) => {
   router.get('/product-images/:key', (req, res) => {
     if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Image not found');
     return sendProductImage(res, req.params.key);
+  });
+  // customer photos by unguessable key (see services/customerPhoto.service.js)
+  router.get('/customer-photos/:key', (req, res) => {
+    if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Photo not found');
+    return sendCustomerPhoto(res, req.params.key);
   });
   router.use('/customer', createCustomerRouter());
   router.use('/admin', createAdminRouter());

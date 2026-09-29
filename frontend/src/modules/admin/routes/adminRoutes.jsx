@@ -12,6 +12,7 @@ import { PurchaseDetailPage } from '../pages/PurchaseDetailPage';
 import { LoyaltyAdminPage } from '../pages/LoyaltyAdminPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { ProductsPage } from '../pages/ProductsPage';
 
 export const adminRoutes = [
   {
@@ -49,6 +50,10 @@ export const adminRoutes = [
       {
         path: 'purchases/:id',
         element: <PurchaseDetailPage />,
+      },
+      {
+        path: 'products',
+        element: <ProductsPage />,
       },
       {
         path: 'loyalty',

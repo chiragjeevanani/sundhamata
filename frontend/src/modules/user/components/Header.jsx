@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, User, PhoneCall } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { useAuth } from '../context/AuthContext';
+import { CustomerAvatar } from '../../../components/CustomerAvatar';
 
 export const Header = ({
   title,
@@ -71,15 +72,7 @@ export const Header = ({
                 <span className="text-[11px] font-bold text-stone-800 max-w-[65px] truncate">
                   {user?.name ? user.name.split(' ')[0] : ''}
                 </span>
-                <div className="w-5.5 h-5.5 rounded-full bg-ink-900 text-white flex items-center justify-center text-[9px] font-bold ring-1 ring-white">
-                  {user?.name
-                    ? user.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()
-                    : 'RS'}
-                </div>
+                <CustomerAvatar customer={user} className="w-5.5 h-5.5 rounded-full ring-1 ring-white" textClassName="text-[9px]" />
               </button>
             </div>
           ) : (

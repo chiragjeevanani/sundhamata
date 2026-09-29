@@ -62,6 +62,23 @@ export const updateSettingsSchema = z
         expiryMonths: z.coerce.number().int().min(0).max(120).optional(),
       })
       .optional(),
+    offers: z
+      .strictObject({
+        welcome: z
+          .strictObject({
+            enabled: z.boolean().optional(),
+            discountType: z.enum(['flat', 'percent']).optional(),
+            discountValue: z.coerce.number().min(0, 'Discount cannot be negative').max(1_000_000).optional(),
+            maxDiscount: z.preprocess(
+              (v) => (v === '' || v === undefined ? null : v),
+              z.coerce.number().min(0).max(1_000_000).nullable()
+            ).optional(),
+            minBillAmount: z.coerce.number().min(0).max(10_000_000).optional(),
+            validityDays: z.coerce.number().int().min(1, 'Validity must be at least 1 day').max(3650).optional(),
+          })
+          .optional(),
+      })
+      .optional(),
     theme: z
       .strictObject({
         customer: themeSectionSchema(THEME_COLOR_KEYS.customer),
@@ -69,4 +86,8 @@ export const updateSettingsSchema = z
       })
       .optional(),
   })
-  .refine((obj) => Object.keys(obj).length > 0, { message: 'Provide at least one setting to update' });
+  .refine((obj) => Object.keys(obj).length > 0, { message: 'Provide at least one setting to update' })
+  .refine((obj) => !(obj.offers?.welcome?.discountType === 'percent' && obj.offers.welcome.discountValue > 100), {
+    message: 'A percentage discount cannot be more than 100%',
+    path: ['offers', 'welcome', 'discountValue'],
+  });

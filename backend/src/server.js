@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import { connectDatabase, disconnectDatabase, supportsTransactions } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
+import { runMigrations } from './config/migrations.js';
 import { getSettings } from './services/settings.service.js';
 
 const start = async () => {
@@ -24,6 +25,7 @@ const start = async () => {
     logger.error('No SMS provider configured: customer OTPs cannot be delivered in production.');
   }
 
+  await runMigrations();
   await getSettings(); // create default store settings on first boot
 
   const app = createApp();

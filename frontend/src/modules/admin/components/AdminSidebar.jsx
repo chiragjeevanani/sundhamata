@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   ShoppingBag,
+  Package,
   Sparkles,
   BarChart3,
   Settings,
@@ -31,6 +32,7 @@ export const AdminSidebar = ({
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/customers', label: 'Customers', icon: Users },
     { to: '/admin/purchases', label: 'Purchases', icon: ShoppingBag },
+    { to: '/admin/products', label: 'Products', icon: Package },
     { to: '/admin/loyalty', label: 'Loyalty Program', icon: Sparkles },
     { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
@@ -48,7 +50,7 @@ export const AdminSidebar = ({
       <div className={`h-14 border-b border-sidebar-line flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`}>
         {!isCollapsed ? (
           <>
-            <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-black/90 p-0.5 ring-1 ring-sidebar-line flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
                 <img src="/logo.png" alt="Sundhamata Mobile" className="w-full h-full object-contain rounded-md" />
               </div>
@@ -56,15 +58,15 @@ export const AdminSidebar = ({
               <div className="min-w-0 leading-none">
                 <div className="flex items-baseline gap-1 whitespace-nowrap">
                   <span className="text-[13px] font-black text-sidebar-strong tracking-tight">SUNDHAMATA</span>
-                  <span className="text-[10px] font-bold text-sidebar-accent">MOBILE</span>
+                  <span className="text-[13px] font-bold text-sidebar-accent">MOBILE</span>
                 </div>
                 <span className="text-[8.5px] font-semibold tracking-[0.14em] uppercase text-sidebar-muted block truncate mt-1">
-                  Store 360° Management
+                  360° Store Management
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0 -mr-1">
               <button
                 onClick={onToggleCollapse}
                 className="hidden lg:flex p-1.5 text-sidebar-muted hover:text-sidebar-strong hover:bg-sidebar-strong/5 rounded-lg transition-colors cursor-pointer"
@@ -227,7 +229,7 @@ export const AdminSidebar = ({
     <>
       {/* Desktop Sticky Collapsible Sidebar */}
       <aside
-        className={`hidden lg:block shrink-0 h-screen sticky top-0 transition-all duration-300 ease-in-out select-none ${isCollapsed ? 'w-16' : 'w-60'
+        className={`hidden lg:block shrink-0 h-screen sticky top-0 transition-all duration-300 ease-in-out select-none ${isCollapsed ? 'w-16' : 'w-64'
           }`}
       >
         {sidebarContent}

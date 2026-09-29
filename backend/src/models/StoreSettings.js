@@ -2,6 +2,25 @@ import mongoose from 'mongoose';
 
 export const SETTINGS_KEY = 'store';
 
+// New-customer offer terms used until the admin changes them. Settings are read with .lean(),
+// so documents created before the offer existed have no `offers`: always merge with these.
+export const WELCOME_OFFER_DEFAULTS = Object.freeze({
+  enabled: true,
+  discountType: 'flat',
+  discountValue: 200,
+  maxDiscount: null,
+  minBillAmount: 1000,
+  validityDays: 90,
+});
+
+/** Effective welcome-offer terms (stored values over the defaults) */
+export const welcomeOfferOf = (settings) => {
+  const stored = settings?.offers?.welcome ?? {};
+  return Object.fromEntries(
+    Object.entries(WELCOME_OFFER_DEFAULTS).map(([key, fallback]) => [key, stored[key] ?? fallback])
+  );
+};
+
 // Colours the admin can customise per app, as "#RRGGBB". null = the built-in logo colours.
 export const THEME_COLOR_KEYS = Object.freeze({
   customer: ['primary', 'background', 'dark'],
@@ -39,6 +58,18 @@ const storeSettingsSchema = new mongoose.Schema(
 
     tax: {
       gstRatePercent: { type: Number, min: 0, max: 100, default: 18 },
+    },
+
+    offers: {
+      // New customers who complete their profile in the app get one coupon with these terms
+      welcome: {
+        enabled: { type: Boolean, default: WELCOME_OFFER_DEFAULTS.enabled },
+        discountType: { type: String, enum: ['flat', 'percent'], default: WELCOME_OFFER_DEFAULTS.discountType },
+        discountValue: { type: Number, min: 0, default: WELCOME_OFFER_DEFAULTS.discountValue },
+        maxDiscount: { type: Number, min: 0, default: WELCOME_OFFER_DEFAULTS.maxDiscount },
+        minBillAmount: { type: Number, min: 0, default: WELCOME_OFFER_DEFAULTS.minBillAmount },
+        validityDays: { type: Number, min: 1, default: WELCOME_OFFER_DEFAULTS.validityDays },
+      },
     },
 
     theme: {

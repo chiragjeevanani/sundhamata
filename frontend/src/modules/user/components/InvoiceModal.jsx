@@ -9,7 +9,22 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
   const store = useStoreInfo();
   if (!isOpen || !purchase) return null;
 
-  const isCancelled = purchase.status === 'Cancelled';
+  // Every product on this bill (a bill can have several); returned/cancelled ones are listed
+  // but not counted in the totals.
+  const lines = purchase.billItems?.length ? purchase.billItems : [purchase];
+  const active = lines.filter((line) => line.status !== 'Cancelled');
+  const isCancelled = active.length === 0;
+  const total = (pick) => Math.round(active.reduce((sum, line) => sum + (pick(line) || 0), 0) * 100) / 100;
+  const totals = {
+    price: total((l) => l.pricing?.purchaseAmount),
+    discount: total((l) => l.pricing?.discount),
+    coupon: total((l) => l.pricing?.couponDiscount),
+    loyalty: total((l) => l.pricing?.loyaltyDiscount),
+    points: active.reduce((sum, l) => sum + (l.loyalty?.pointsRedeemed || 0), 0),
+    taxable: total((l) => l.baseAmount),
+    tax: total((l) => l.taxAmount),
+    grand: total((l) => l.amount),
+  };
   const gstRate = purchase.pricing?.taxRatePercent ?? 18;
 
   // Printing (or "Save as PDF") shows only the invoice: see .invoice-print-root in index.css
@@ -130,65 +145,77 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
                     <th className="p-2">Description</th>
                     <th className="p-2 text-center">HSN</th>
                     <th className="p-2 text-center">Qty</th>
-                    <th className="p-2 text-right">Taxable</th>
-                    <th className="p-2 text-right">Total (₹)</th>
+                    <th className="p-2 text-right">Price (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  <tr>
-                    <td className="p-2">
-                      <p className="font-bold text-stone-900">{purchase.product.name}</p>
-                      <p className="text-[10.5px] text-stone-500">
-                        {[purchase.product.variant, purchase.product.color].filter(Boolean).join(' • ')}
-                      </p>
-                      {purchase.product.imei1 && (
-                        <p className="font-mono text-[10px] text-stone-500 mt-0.5 tabular-nums">
-                          IMEI: {purchase.product.imei1}
-                        </p>
-                      )}
-                      {purchase.product.serialNumber && (
-                        <p className="font-mono text-[10px] text-stone-500 tabular-nums">
-                          S/N: {purchase.product.serialNumber}
-                        </p>
-                      )}
-                    </td>
-                    <td className="p-2 text-center font-mono text-[10.5px] text-stone-600">8517</td>
-                    <td className="p-2 text-center font-medium">1</td>
-                    <td className="p-2 text-right font-mono text-stone-600 tabular-nums">
-                      {formatINR(purchase.baseAmount)}
-                    </td>
-                    <td className="p-2 text-right font-mono font-bold text-stone-900 tabular-nums">
-                      {formatINR(purchase.amount)}
-                    </td>
-                  </tr>
+                  {lines.map((line) => {
+                    const returned = line.status === 'Cancelled';
+                    return (
+                      <tr key={line.id} className={returned ? 'text-stone-400' : ''}>
+                        <td className="p-2">
+                          <p className={`font-bold ${returned ? 'line-through' : 'text-stone-900'}`}>{line.product.name}</p>
+                          <p className="text-[10.5px] text-stone-500">
+                            {[line.product.variant, line.product.color].filter(Boolean).join(' • ')}
+                          </p>
+                          {line.product.imei1 && (
+                            <p className="font-mono text-[10px] text-stone-500 mt-0.5 tabular-nums">IMEI: {line.product.imei1}</p>
+                          )}
+                          {line.product.serialNumber && (
+                            <p className="font-mono text-[10px] text-stone-500 tabular-nums">S/N: {line.product.serialNumber}</p>
+                          )}
+                          {returned && <p className="text-[10px] font-bold text-rose-600 uppercase">Cancelled / returned</p>}
+                        </td>
+                        <td className="p-2 text-center font-mono text-[10.5px] text-stone-600">
+                          {line.category === 'accessories' ? '8518' : line.category === 'service' ? '9987' : '8517'}
+                        </td>
+                        <td className="p-2 text-center font-medium">{line.product.quantity || 1}</td>
+                        <td className={`p-2 text-right font-mono font-bold tabular-nums ${returned ? 'line-through' : 'text-stone-900'}`}>
+                          {formatINR(line.pricing?.purchaseAmount ?? line.amount)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 
               {/* Tax Summary Breakdown */}
               <div className="bg-stone-50/90 p-3 border-t border-stone-200 flex flex-col items-end gap-1">
-                {purchase.pricing?.discount > 0 && (
+                {(totals.discount > 0 || totals.coupon > 0 || totals.loyalty > 0) && (
                   <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
-                    <span>Discount:</span>
-                    <span className="font-mono tabular-nums">−{formatINR(purchase.pricing.discount)}</span>
+                    <span>Subtotal:</span>
+                    <span className="font-mono tabular-nums">{formatINR(totals.price)}</span>
                   </div>
                 )}
-                {purchase.pricing?.loyaltyDiscount > 0 && (
+                {totals.discount > 0 && (
                   <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
-                    <span>Points ({purchase.loyalty.pointsRedeemed}):</span>
-                    <span className="font-mono tabular-nums">−{formatINR(purchase.pricing.loyaltyDiscount)}</span>
+                    <span>Discount:</span>
+                    <span className="font-mono tabular-nums">−{formatINR(totals.discount)}</span>
+                  </div>
+                )}
+                {totals.coupon > 0 && (
+                  <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
+                    <span>Coupon:</span>
+                    <span className="font-mono tabular-nums">−{formatINR(totals.coupon)}</span>
+                  </div>
+                )}
+                {totals.loyalty > 0 && (
+                  <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
+                    <span>Points ({totals.points}):</span>
+                    <span className="font-mono tabular-nums">−{formatINR(totals.loyalty)}</span>
                   </div>
                 )}
                 <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
                   <span>Taxable Value:</span>
-                  <span className="font-mono tabular-nums">{formatINR(purchase.baseAmount)}</span>
+                  <span className="font-mono tabular-nums">{formatINR(totals.taxable)}</span>
                 </div>
                 <div className="w-44 flex justify-between text-[10.5px] text-stone-600">
                   <span>GST ({gstRate}%):</span>
-                  <span className="font-mono tabular-nums">{formatINR(purchase.taxAmount)}</span>
+                  <span className="font-mono tabular-nums">{formatINR(totals.tax)}</span>
                 </div>
                 <div className="w-44 flex justify-between text-xs font-black text-ink-900 pt-1 border-t border-stone-300">
                   <span>Grand Total:</span>
-                  <span className="font-mono tabular-nums">{formatINR(purchase.amount)}</span>
+                  <span className="font-mono tabular-nums">{formatINR(totals.grand)}</span>
                 </div>
               </div>
             </div>

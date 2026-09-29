@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
@@ -12,29 +12,26 @@ import {
   X,
   Paperclip,
   FileText,
-  Image as ImageIcon,
   UserPlus,
   Users,
+  TicketPercent,
+  ScanLine,
+  Loader2,
 } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
+import { adminCouponService } from '../../../services/adminCouponService';
+import { couponDiscountFor, describeDiscount } from '../../../utils/coupons';
+import { QrScannerModal } from '../components/QrScannerModal';
+import { PurchaseItemEditor } from '../components/PurchaseItemEditor';
+import { CustomerAvatar, VerifiedTick } from '../../../components/CustomerAvatar';
+import { fillFromCatalog, itemWarrantyMonths, itemWarrantyValid, newPurchaseItem } from '../../../utils/purchaseItems';
+import { adminProductService } from '../../../services/adminProductService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { useToast } from '../context/ToastContext';
 import { formatINR, formatDate } from '../../../utils/formatters';
-import {
-  addMonthsToDate,
-  MAX_WARRANTY_MONTHS,
-  toDateInputValue,
-  warrantyToMonths,
-} from '../../../utils/purchaseDates';
-import {
-  BILL_ACCEPT,
-  BILL_HINT,
-  formatFileSize,
-  IMAGE_ACCEPT,
-  validateBillFile,
-  validateImageFile,
-} from '../../../utils/billFile';
+import { MAX_WARRANTY_MONTHS, toDateInputValue } from '../../../utils/purchaseDates';
+import { BILL_ACCEPT, BILL_HINT, formatFileSize, validateBillFile } from '../../../utils/billFile';
 
 // Indian mobile: last 10 digits of whatever was typed ("+91 98290-55443" → "9829055443")
 const toTenDigits = (value) => {
@@ -61,43 +58,51 @@ export const RecordPurchasePage = () => {
   const [newName, setNewName] = useState('');
   const newMobileDigits = toTenDigits(newMobile);
 
-  // Product Info
-  const [productName, setProductName] = useState('');
-  const [category, setCategory] = useState('phones');
-  const [imei, setImei] = useState('');
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
-  const [variant, setVariant] = useState('');
-  const [color, setColor] = useState('');
-  // Optional product photo, uploaded right after the purchase is saved
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [imageError, setImageError] = useState('');
+  // Customer coupon (welcome offer): typed, scanned with a USB scanner, or with the camera
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { coupon, customer }
+  const [couponError, setCouponError] = useState('');
+  const [couponChecking, setCouponChecking] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
-  const chooseImage = (file) => {
-    if (!file) return;
-    const problem = validateImageFile(file);
-    setImageError(problem || '');
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImageFile(problem ? null : file);
-    setImagePreview(problem ? null : URL.createObjectURL(file));
+  // Products on this bill (one or more), each with its own details, price, warranty and photo
+  const [items, setItems] = useState(() => [newPurchaseItem()]);
+  const updateItem = (key, patch) => {
+    setItems((prev) => prev.map((item) => (item.key === key ? { ...item, ...patch } : item)));
+    setFormErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(patch).forEach((field) => delete next[`items.${key}.${field === 'warrantyDuration' || field === 'warrantyUnit' ? 'warranty' : field}`]);
+      return next;
+    });
   };
-  const clearImage = () => {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImageFile(null);
-    setImagePreview(null);
-    setImageError('');
+  const addItem = (patch = {}) => setItems((prev) => [...prev, { ...newPurchaseItem(), ...patch }]);
+  const removeItem = (key) =>
+    setItems((prev) => {
+      const gone = prev.find((item) => item.key === key);
+      if (gone?.imagePreview) URL.revokeObjectURL(gone.imagePreview);
+      return prev.filter((item) => item.key !== key);
+    });
+
+  // Most-sold products from the catalog, one tap to add
+  const [popularProducts, setPopularProducts] = useState([]);
+  useEffect(() => {
+    adminProductService
+      .list({ limit: 6 })
+      .then((data) => setPopularProducts(data.items))
+      .catch(() => {});
+  }, []);
+  const addPopular = (product) => {
+    const last = items[items.length - 1];
+    if (last && !last.name.trim() && !last.price) updateItem(last.key, fillFromCatalog(last, product));
+    else addItem(fillFromCatalog(newPurchaseItem(), product));
   };
 
   // Purchase & Payment Info
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(() => toDateInputValue());
-  const [warrantyDuration, setWarrantyDuration] = useState('1');
-  const [warrantyUnit, setWarrantyUnit] = useState('years');
   const [paymentMethod, setPaymentMethod] = useState('UPI');
 
   // Pricing
-  const [purchaseAmount, setPurchaseAmount] = useState('');
   const [discount, setDiscount] = useState('');
 
   // Loyalty Settings
@@ -158,23 +163,25 @@ export const RecordPurchasePage = () => {
   }, [searchQuery]);
 
   const today = toDateInputValue();
-  const warrantyMonths = warrantyToMonths(warrantyDuration, warrantyUnit);
-  const warrantyValid = warrantyMonths !== null && warrantyMonths <= MAX_WARRANTY_MONTHS;
-  const warrantyUntil =
-    warrantyValid && warrantyMonths > 0 && purchaseDate
-      ? formatDate(addMonthsToDate(new Date(`${purchaseDate}T12:00:00`), warrantyMonths))
-      : null;
-
-  const numericAmount = Number(purchaseAmount) || 0;
+  // Bill subtotal = all products; discount, coupon and points apply to the whole bill
+  const numericAmount = Math.round(items.reduce((sum, item) => sum + (Number(item.price) || 0), 0) * 100) / 100;
   const numericDiscount = Number(discount) || 0;
   const amountAfterDiscount = Math.max(0, numericAmount - numericDiscount);
+
+  // Coupon preview (the server re-checks owner, expiry, minimum bill and single use)
+  const couponOwnerMismatch =
+    appliedCoupon && (customerMode === 'new' || (selectedCustomer && selectedCustomer.id !== appliedCoupon.customer.id));
+  const couponBelowMinimum = appliedCoupon && amountAfterDiscount < (appliedCoupon.coupon.minBillAmount || 0);
+  const couponDiscount =
+    appliedCoupon && !couponOwnerMismatch && !couponBelowMinimum ? couponDiscountFor(appliedCoupon.coupon, amountAfterDiscount) : 0;
+  const amountAfterCoupon = Math.max(0, amountAfterDiscount - couponDiscount);
 
   // Loyalty redemption preview (the server re-checks balance, minimum and bill limit)
   const availablePoints = selectedCustomer?.loyaltyPoints ?? 0;
   const pointsToRedeem = Number(redeemPoints) || 0;
   const redemptionValue = Math.round(pointsToRedeem * rupeeValuePerPoint * 100) / 100;
   const maxRedeemablePoints =
-    rupeeValuePerPoint > 0 ? Math.min(availablePoints, Math.floor(amountAfterDiscount / rupeeValuePerPoint)) : 0;
+    rupeeValuePerPoint > 0 ? Math.min(availablePoints, Math.floor(amountAfterCoupon / rupeeValuePerPoint)) : 0;
   const canRedeem = rupeeValuePerPoint > 0 && availablePoints >= Math.max(minRedeemPoints, 1);
   const redemptionError = (() => {
     if (!redeemPoints) return '';
@@ -182,29 +189,68 @@ export const RecordPurchasePage = () => {
     if (pointsToRedeem === 0) return '';
     if (pointsToRedeem > availablePoints) return `Customer has only ${availablePoints.toLocaleString('en-IN')} points.`;
     if (minRedeemPoints > 0 && pointsToRedeem < minRedeemPoints) return `Redeem at least ${minRedeemPoints.toLocaleString('en-IN')} points.`;
-    if (redemptionValue > amountAfterDiscount) return `Worth ${formatINR(redemptionValue)}, more than the ${formatINR(amountAfterDiscount)} bill.`;
+    if (redemptionValue > amountAfterCoupon) return `Worth ${formatINR(redemptionValue)}, more than the ${formatINR(amountAfterCoupon)} bill.`;
     return '';
   })();
-  const finalAmount = Math.max(0, amountAfterDiscount - (redemptionError ? 0 : redemptionValue));
+  const finalAmount = Math.max(0, amountAfterCoupon - (redemptionError ? 0 : redemptionValue));
+
+  const applyCouponRef = useRef(null);
+  const applyCoupon = async (rawCode) => {
+    const code = (rawCode ?? couponInput).trim();
+    if (!code) return;
+    setCouponChecking(true);
+    setCouponError('');
+    try {
+      const found = await adminCouponService.lookup(code);
+      if (!found.usable) {
+        setCouponError(found.reason || 'This coupon cannot be used.');
+        return;
+      }
+      if (!found.customer.isActive) {
+        setCouponError('This coupon belongs to a deactivated customer.');
+        return;
+      }
+      // Scanning the coupon also picks the customer when none is chosen yet
+      if (customerMode === 'new' || !selectedCustomer) {
+        setCustomerMode('existing');
+        setSelectedCustomer(found.customer);
+        setRedeemPoints('');
+        setFormErrors((prev) => ({ ...prev, customer: '', newMobile: '', newName: '' }));
+      } else if (selectedCustomer.id !== found.customer.id) {
+        setCouponError(`This coupon belongs to ${found.customer.name} (${found.customer.phone}), not the selected customer.`);
+        return;
+      }
+      setAppliedCoupon(found);
+      setCouponInput(found.coupon.code);
+      setFormErrors((prev) => ({ ...prev, coupon: '' }));
+    } catch (err) {
+      setCouponError(err.message || 'Could not check this coupon.');
+    } finally {
+      setCouponChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    applyCouponRef.current = applyCoupon;
+  });
+
+  const closeScanner = useCallback(() => setScannerOpen(false), []);
+  const handleScanned = useCallback((text) => {
+    setScannerOpen(false);
+    setCouponInput(text.toUpperCase());
+    applyCouponRef.current?.(text);
+  }, []);
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+  };
+
   // Preview only — the server calculates the points actually credited.
   const estimatedPoints = adminSettingsService.calculatePoints(finalAmount, {
     loyalty: { pointsPerHundred: loyaltyRate },
   });
-
-  const presets = [
-    { name: 'Samsung Galaxy S24 Ultra', category: 'phones', price: 124999 },
-    { name: 'Apple iPhone 15 Pro', category: 'phones', price: 119999 },
-    { name: 'OnePlus 12 5G', category: 'phones', price: 64999 },
-    { name: 'Galaxy Buds3 Pro', category: 'accessories', price: 19999 },
-  ];
-
-  const handleApplyPreset = (p) => {
-    setProductName(p.name);
-    setCategory(p.category);
-    setPurchaseAmount(p.price.toString());
-    setDiscount('');
-    setFormErrors({});
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -219,12 +265,14 @@ export const RecordPurchasePage = () => {
         errors.newName = 'Use letters only (at least 2), or leave it empty.';
       }
     }
-    if (!productName.trim()) {
-      errors.productName = 'Product name is required.';
-    }
-    if (!numericAmount || numericAmount <= 0) {
-      errors.purchaseAmount = 'Enter a valid amount.';
-    }
+    items.forEach((item) => {
+      if (item.name.trim().length < 2) errors[`items.${item.key}.name`] = 'Product name is required.';
+      if (!(Number(item.price) > 0)) errors[`items.${item.key}.price`] = 'Enter a valid price.';
+      if (!itemWarrantyValid(item)) {
+        errors[`items.${item.key}.warranty`] = `Whole ${item.warrantyUnit}, up to ${item.warrantyUnit === 'years' ? MAX_WARRANTY_MONTHS / 12 : MAX_WARRANTY_MONTHS}.`;
+      }
+    });
+    if (numericDiscount > numericAmount) errors.discount = 'Discount cannot be more than the bill.';
     if (!invoiceNumber.trim()) {
       errors.invoiceNumber = 'Enter the invoice / bill number.';
     }
@@ -236,10 +284,13 @@ export const RecordPurchasePage = () => {
     if (redemptionError) {
       errors.redeemPoints = redemptionError;
     }
-    if (!warrantyValid) {
-      errors.warranty = `Enter whole ${warrantyUnit} from 0 to ${warrantyUnit === 'years' ? MAX_WARRANTY_MONTHS / 12 : MAX_WARRANTY_MONTHS}.`;
+    if (couponOwnerMismatch) {
+      errors.coupon = 'This coupon belongs to another customer. Remove it or select its owner.';
+    } else if (couponBelowMinimum) {
+      errors.coupon = `This coupon needs a bill of at least ${formatINR(appliedCoupon.coupon.minBillAmount)}.`;
+    } else if (couponInput.trim() && !appliedCoupon) {
+      errors.coupon = 'Press Apply to check the coupon, or clear the code.';
     }
-
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
@@ -253,44 +304,48 @@ export const RecordPurchasePage = () => {
           ? { customerId: selectedCustomer.id }
           : { newCustomer: { mobile: newMobileDigits, ...(newName.trim() ? { name: newName.trim() } : {}) } }),
         invoiceNumber,
-        product: {
-          name: productName.trim(),
-          category,
-          brand,
-          model,
-          variant,
-          color,
-          imei: imei.trim(),
-        },
+        items: items.map((item) => ({
+          product: {
+            name: item.name,
+            brand: item.brand,
+            model: item.model,
+            variant: item.variant,
+            color: item.color,
+            imei: item.imei.trim(),
+          },
+          category: item.category,
+          price: Number(item.price),
+          warranty: { duration: item.warrantyDuration, unit: item.warrantyUnit },
+        })),
         purchaseDate,
-        warranty: { duration: warrantyDuration, unit: warrantyUnit },
         paymentMethod,
         paymentStatus: 'Paid',
-        pricing: {
-          purchaseAmount: numericAmount,
-          discount: numericDiscount,
-        },
+        discount: numericDiscount,
         pointsToRedeem,
+        couponCode: appliedCoupon?.coupon.code,
       });
 
       // The purchase is saved. Upload the bill separately: if that fails, the purchase must
       // still count as recorded and the bill can be attached later from the invoice page.
       // Same for the product photo: the purchase stays recorded even if the upload fails.
+      // One photo per product line (bill line i ↔ form row i)
       let imageStatus = null;
-      if (imageFile) {
+      const withPhotos = items.map((item, i) => ({ file: item.imageFile, line: recorded.purchases[i] })).filter((x) => x.file && x.line);
+      for (const { file, line } of withPhotos) {
         try {
-          const withImage = await adminPurchaseService.uploadProductImage(recorded.id, imageFile);
-          recorded.product = withImage.product;
-          imageStatus = { ok: true };
+          const withImage = await adminPurchaseService.uploadProductImage(line.id, file);
+          line.product = withImage.product;
+          imageStatus = imageStatus ?? { ok: true };
         } catch (uploadErr) {
           imageStatus = { ok: false };
-          showError('Photo not uploaded', `The purchase was recorded, but the product photo could not be uploaded: ${uploadErr.message} You can add it from the invoice page.`);
+          showError('Photo not uploaded', `The purchase was recorded, but the photo of ${line.product.name} could not be uploaded: ${uploadErr.message} You can add it from the invoice page.`);
         }
       }
 
       let billStatus = null;
       if (billFile) {
         try {
+          // The bill file belongs to every product on the bill
           const withBill = await adminPurchaseService.uploadBill(recorded.id, billFile);
           recorded.bill = withBill.bill;
           billStatus = { ok: true };
@@ -319,23 +374,18 @@ export const RecordPurchasePage = () => {
     setCustomerMode('existing');
     setNewMobile('');
     setNewName('');
-    setProductName('');
-    setImei('');
-    setBrand('');
-    setModel('');
-    setVariant('');
-    setColor('');
-    clearImage();
-    setPurchaseAmount('');
+    items.forEach((item) => item.imagePreview && URL.revokeObjectURL(item.imagePreview));
+    setItems([newPurchaseItem()]);
     setDiscount('');
     setBillFile(null);
     setBillError('');
     setInvoiceNumber('');
     setPurchaseDate(toDateInputValue());
-    setWarrantyDuration('1');
-    setWarrantyUnit('years');
     setRedeemPoints('');
     setFormErrors({});
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
   };
 
   // SUCCESS STATE
@@ -349,7 +399,8 @@ export const RecordPurchasePage = () => {
         <div>
           <h2 className="text-xl font-semibold text-stone-900">Purchase Recorded</h2>
           <p className="text-xs text-stone-500 mt-1">
-            Invoice <span className="font-mono font-medium text-stone-800">{successRecord.invoiceNumber}</span> created for{' '}
+            Invoice <span className="font-mono font-medium text-stone-800">{successRecord.invoiceNumber}</span>
+            {successRecord.purchases.length > 1 ? ` with ${successRecord.purchases.length} products` : ''} created for{' '}
             {successRecord.customerName === 'Customer' ? successRecord.customerMobile : successRecord.customerName}.
           </p>
           {successRecord.customerCreated && (
@@ -361,33 +412,46 @@ export const RecordPurchasePage = () => {
         </div>
 
         <div className="bg-white rounded-xl p-5 border border-stone-200/80 text-left text-xs space-y-2.5 shadow-2xs">
-          <div className="flex justify-between text-stone-500">
-            <span>Product</span>
-            <span className="font-medium text-stone-900">{successRecord.product?.name}</span>
+          <div className="space-y-2 pb-2.5 border-b border-stone-100">
+            {successRecord.purchases.map((line) => (
+              <div key={line.id} className="flex justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="font-medium text-stone-900 block truncate">{line.product?.name}</span>
+                  <span className="text-[11px] text-stone-400">
+                    {line.warranty ? `${line.warranty.type} · until ${line.warranty.validUntil}` : 'No warranty'}
+                  </span>
+                </div>
+                <span className="tabular-nums text-stone-700 shrink-0">{formatINR(line.pricing.purchaseAmount)}</span>
+              </div>
+            ))}
           </div>
+          {successRecord.order.totals.discount > 0 && (
+            <div className="flex justify-between text-stone-500">
+              <span>Discount</span>
+              <span className="tabular-nums">− {formatINR(successRecord.order.totals.discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-stone-500">
             <span>Amount Paid</span>
-            <span className="font-medium text-stone-900 tabular-nums">{formatINR(successRecord.amount)}</span>
+            <span className="font-semibold text-stone-900 tabular-nums">{formatINR(successRecord.order.totals.finalAmount)}</span>
           </div>
-          <div className="flex justify-between text-stone-500">
-            <span>Warranty</span>
-            <span className="font-medium text-stone-900 text-right">
-              {successRecord.warranty
-                ? `${successRecord.warranty.type} · until ${successRecord.warranty.validUntil}`
-                : 'No warranty'}
-            </span>
-          </div>
-          {successRecord.loyalty?.pointsRedeemed > 0 && (
+          {successRecord.order.totals.couponDiscount > 0 && (
+            <div className="flex justify-between text-brand-800 font-medium pt-2 border-t border-stone-100">
+              <span>Coupon {successRecord.coupon?.code}</span>
+              <span className="tabular-nums">{formatINR(successRecord.order.totals.couponDiscount)} off</span>
+            </div>
+          )}
+          {successRecord.order.pointsRedeemed > 0 && (
             <div className="flex justify-between text-amber-800 font-medium pt-2 border-t border-stone-100">
               <span>Points Redeemed</span>
               <span className="tabular-nums">
-                −{successRecord.loyalty.pointsRedeemed.toLocaleString('en-IN')} pts ({formatINR(successRecord.pricing.loyaltyDiscount)} off)
+                −{successRecord.order.pointsRedeemed.toLocaleString('en-IN')} pts ({formatINR(successRecord.order.totals.loyaltyDiscount)} off)
               </span>
             </div>
           )}
           <div className="flex justify-between text-emerald-700 font-medium pt-2 border-t border-stone-100">
             <span>Points Credited</span>
-            <span className="tabular-nums">+{successRecord.loyalty?.pointsEarned || 0} pts</span>
+            <span className="tabular-nums">+{successRecord.order.pointsEarned || 0} pts</span>
           </div>
           {successRecord.customerLoyaltyBalance !== undefined && (
             <div className="flex justify-between text-stone-500">
@@ -582,9 +646,13 @@ export const RecordPurchasePage = () => {
                         }}
                         className="p-3 hover:bg-stone-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
                       >
-                        <div>
-                          <span className="font-medium text-stone-900">{c.name}</span>
-                          <span className="text-stone-400 ml-2 font-normal">{c.phone || c.mobile}</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <CustomerAvatar customer={c} className="w-8 h-8 rounded-full" textClassName="text-[10px]" />
+                          <span className="font-medium text-stone-900 flex items-center gap-1">
+                            {c.name}
+                            {c.isVerified && <VerifiedTick className="w-3.5 h-3.5" />}
+                          </span>
+                          <span className="text-stone-400 font-normal">{c.phone || c.mobile}</span>
                         </div>
                         <span className="text-xs font-medium text-amber-700 tabular-nums">{c.loyaltyPoints || 0} pts</span>
                       </div>
@@ -620,9 +688,16 @@ export const RecordPurchasePage = () => {
               </div>
             ) : (
               <div className="flex items-center justify-between p-3 rounded-lg bg-stone-50/80 border border-stone-200/80 text-xs">
-                <div>
-                  <span className="font-medium text-stone-900 text-sm block">{selectedCustomer.name}</span>
-                  <span className="text-stone-500 font-normal">{selectedCustomer.phone || selectedCustomer.mobile}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Large photo so staff can check it is the right person */}
+                  <CustomerAvatar customer={selectedCustomer} className="w-12 h-12 rounded-xl" textClassName="text-sm" />
+                  <div className="min-w-0">
+                    <span className="font-medium text-stone-900 text-sm flex items-center gap-1">
+                      {selectedCustomer.name}
+                      {selectedCustomer.isVerified && <VerifiedTick className="w-4 h-4" />}
+                    </span>
+                    <span className="text-stone-500 font-normal">{selectedCustomer.phone || selectedCustomer.mobile}</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md tabular-nums">
@@ -641,170 +716,74 @@ export const RecordPurchasePage = () => {
             )}
           </div>
 
-          {/* Section 2: Product & Hardware Details */}
+          {/* Section 2: Products on this bill */}
           <div className="p-5 sm:p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="space-y-2">
               <div>
-                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">2. Product & Hardware</h3>
-                <p className="text-xs text-stone-400 font-normal">Specify item name, category, and serial details</p>
+                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">
+                  2. Products {items.length > 1 && <span className="text-stone-400 normal-case font-normal">({items.length} on this bill)</span>}
+                </h3>
+                <p className="text-xs text-stone-400 font-normal">Type a name to pick a saved product, or add a new one</p>
               </div>
 
-              {/* Quick Presets */}
-              <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
-                <span className="text-stone-400 hidden sm:inline text-[11px]">Popular:</span>
-                {presets.map((p) => (
-                  <button
-                    key={p.name}
-                    type="button"
-                    onClick={() => handleApplyPreset(p)}
-                    className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer whitespace-nowrap transition-colors"
-                  >
-                    {p.name.split(' ')[0]} {p.name.split(' ')[1] || ''}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Product Name *</label>
-                <input
-                  type="text"
-                  value={productName}
-                  onChange={(e) => {
-                    setProductName(e.target.value);
-                    if (formErrors.productName) setFormErrors((prev) => ({ ...prev, productName: '' }));
-                  }}
-                  placeholder="e.g. Samsung Galaxy S24 Ultra 256GB"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-                {formErrors.productName && (
-                  <p className="text-[11px] text-rose-600">{formErrors.productName}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
-                >
-                  <option value="phones">Smartphones</option>
-                  <option value="accessories">Accessories</option>
-                  <option value="service">Service & Repairs</option>
-                </select>
-              </div>
-
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Brand</label>
-                <input
-                  type="text"
-                  value={brand}
-                  maxLength={80}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="e.g. Samsung (auto-detected if empty)"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Model</label>
-                <input
-                  type="text"
-                  value={model}
-                  maxLength={80}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder="e.g. SM-S938B / Galaxy S25 Ultra"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Variant</label>
-                <input
-                  type="text"
-                  value={variant}
-                  maxLength={80}
-                  onChange={(e) => setVariant(e.target.value)}
-                  placeholder="e.g. 12GB + 256GB"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Colour</label>
-                <input
-                  type="text"
-                  value={color}
-                  maxLength={80}
-                  onChange={(e) => setColor(e.target.value)}
-                  placeholder="e.g. Titanium Black"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-              </div>
-
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">IMEI / Serial Number</label>
-                <input
-                  type="text"
-                  value={imei}
-                  onChange={(e) => setImei(e.target.value)}
-                  placeholder="15-digit IMEI or serial number for warranty registration"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-mono text-xs text-stone-900 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-              </div>
-
-              <div className="sm:col-span-3 space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Product Photo</label>
-                <div className="flex items-center gap-3">
-                  <div className="w-16 h-16 rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center overflow-hidden shrink-0">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Product preview" className="w-full h-full object-contain" />
-                    ) : (
-                      <ImageIcon className="w-5 h-5 text-stone-300" />
-                    )}
-                  </div>
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <label className="py-1.5 px-3 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer">
-                        {imageFile ? 'Change photo' : 'Choose photo'}
-                        <input
-                          type="file"
-                          accept={IMAGE_ACCEPT}
-                          aria-label="Product photo"
-                          className="sr-only"
-                          onChange={(e) => {
-                            chooseImage(e.target.files?.[0]);
-                            e.target.value = '';
-                          }}
-                        />
-                      </label>
-                      {imageFile && (
-                        <button type="button" onClick={clearImage} className="text-stone-500 hover:text-stone-800 cursor-pointer">
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-stone-400 truncate">
-                      {imageFile ? `${imageFile.name} • ${formatFileSize(imageFile.size)}` : 'Optional. Shown to the customer in their app. JPG, PNG, WebP or GIF, up to 5 MB.'}
-                    </p>
-                    {imageError && <p className="text-[11px] text-rose-600">{imageError}</p>}
-                  </div>
+              {/* Most sold products (from the catalog) */}
+              {popularProducts.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-stone-400 text-[11px]">Popular:</span>
+                  {popularProducts.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => addPopular(p)}
+                      title={`Add ${p.name}`}
+                      className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer whitespace-nowrap transition-colors max-w-[200px] truncate"
+                    >
+                      {p.name}
+                    </button>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
+
+            <div className="space-y-3">
+              {items.map((item, index) => (
+                <PurchaseItemEditor
+                  key={item.key}
+                  item={item}
+                  index={index}
+                  count={items.length}
+                  purchaseDate={purchaseDate}
+                  errors={{
+                    name: formErrors[`items.${item.key}.name`],
+                    price: formErrors[`items.${item.key}.price`],
+                    warranty: formErrors[`items.${item.key}.warranty`],
+                  }}
+                  onChange={(patch) => updateItem(item.key, patch)}
+                  onRemove={() => removeItem(item.key)}
+                />
+              ))}
+            </div>
+
+            {items.length < 20 && (
+              <button
+                type="button"
+                onClick={() => addItem()}
+                className="w-full py-2.5 rounded-lg border border-dashed border-stone-300 hover:border-brand-400 hover:bg-brand-50/40 text-stone-600 hover:text-brand-800 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Add another product
+              </button>
+            )}
           </div>
 
-          {/* Section 3: Invoice, Purchase Date & Warranty */}
+          {/* Section 3: Invoice & Purchase Date */}
           <div className="p-5 sm:p-6 space-y-4">
             <div>
-              <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">3. Invoice, Date & Warranty</h3>
-              <p className="text-xs text-stone-400 font-normal">Use the same number as on the printed bill, in any format</p>
+              <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">3. Invoice & Date</h3>
+              <p className="text-xs text-stone-400 font-normal">One invoice for all products — use the number printed on the bill, in any format</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-stone-700 block">Invoice / Bill Number *</label>
                 <input
@@ -835,49 +814,6 @@ export const RecordPurchasePage = () => {
                 />
                 {formErrors.purchaseDate && <p className="text-[11px] text-rose-600">{formErrors.purchaseDate}</p>}
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Warranty</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={warrantyDuration}
-                    aria-label="Warranty duration"
-                    onChange={(e) => {
-                      setWarrantyDuration(e.target.value);
-                      if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
-                    }}
-                    className={`px-3 py-2 bg-white border rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs tabular-nums w-20 shrink-0 ${formErrors.warranty ? 'border-rose-400' : 'border-stone-300'}`}
-                  />
-                  <select
-                    value={warrantyUnit}
-                    aria-label="Warranty unit"
-                    onChange={(e) => {
-                      setWarrantyUnit(e.target.value);
-                      if (formErrors.warranty) setFormErrors((prev) => ({ ...prev, warranty: '' }));
-                    }}
-                    className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
-                  >
-                    <option value="months">Months</option>
-                    <option value="years">Years</option>
-                  </select>
-                </div>
-                {formErrors.warranty ? (
-                  <p className="text-[11px] text-rose-600">{formErrors.warranty}</p>
-                ) : (
-                  <p className="text-[11px] text-stone-500">
-                    {warrantyUntil ? (
-                      <>
-                        Valid until <span className="font-medium text-stone-800">{warrantyUntil}</span>
-                      </>
-                    ) : warrantyValid && warrantyMonths === 0 ? (
-                      'No warranty'
-                    ) : null}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
 
@@ -890,20 +826,11 @@ export const RecordPurchasePage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Price (₹) *</label>
-                <input
-                  type="number"
-                  value={purchaseAmount}
-                  onChange={(e) => {
-                    setPurchaseAmount(e.target.value);
-                    if (formErrors.purchaseAmount) setFormErrors((prev) => ({ ...prev, purchaseAmount: '' }));
-                  }}
-                  placeholder="e.g. 124999"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
-                />
-                {formErrors.purchaseAmount && (
-                  <p className="text-[11px] text-rose-600">{formErrors.purchaseAmount}</p>
-                )}
+                <span className="text-xs font-medium text-stone-700 block">Subtotal</span>
+                <div className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg font-medium text-stone-900 tabular-nums">
+                  {formatINR(numericAmount)}
+                  {items.length > 1 && <span className="text-stone-400 font-normal"> · {items.length} products</span>}
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -911,10 +838,14 @@ export const RecordPurchasePage = () => {
                 <input
                   type="number"
                   value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
+                  onChange={(e) => {
+                    setDiscount(e.target.value);
+                    if (formErrors.discount) setFormErrors((prev) => ({ ...prev, discount: '' }));
+                  }}
                   placeholder="0"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs"
+                  className={`w-full px-3 py-2 bg-white border rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs ${formErrors.discount ? 'border-rose-400' : 'border-stone-300'}`}
                 />
+                {formErrors.discount && <p className="text-[11px] text-rose-600">{formErrors.discount}</p>}
               </div>
 
               <div className="space-y-1">
@@ -931,6 +862,113 @@ export const RecordPurchasePage = () => {
                 </select>
               </div>
             </div>
+
+            {/* Customer coupon (welcome offer QR / code) */}
+            <div className="rounded-lg border border-brand-200/70 bg-brand-50/40 p-3.5 space-y-2 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="coupon-code" className="font-medium text-stone-800 flex items-center gap-1.5">
+                  <TicketPercent className="w-3.5 h-3.5 text-brand-600" />
+                  <span>Customer Coupon</span>
+                </label>
+                <span className="text-stone-500">Scan the QR on the customer's phone or type the code</span>
+              </div>
+
+              {appliedCoupon ? (
+                <div
+                  className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 ${
+                    couponOwnerMismatch || couponBelowMinimum ? 'border-rose-300' : 'border-emerald-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <CustomerAvatar customer={appliedCoupon.customer} className="w-9 h-9 rounded-lg" textClassName="text-[10px]" />
+                    <div>
+                    <span className="font-mono font-semibold text-stone-900 tracking-wider">{appliedCoupon.coupon.code}</span>
+                    <span className="ml-2 text-stone-500">{describeDiscount(appliedCoupon.coupon.discount)}</span>
+                    {appliedCoupon.coupon.minBillAmount > 0 && (
+                      <span className="ml-1 text-stone-400">· min bill {formatINR(appliedCoupon.coupon.minBillAmount)}</span>
+                    )}
+                    <span className="block text-[11px] text-stone-400">
+                      {appliedCoupon.customer.name} · valid till {formatDate(appliedCoupon.coupon.expiresAt)}
+                    </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {couponDiscount > 0 && (
+                      <span className="text-emerald-700 font-medium tabular-nums">− {formatINR(couponDiscount)}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-stone-400 hover:text-stone-700 p-1 cursor-pointer"
+                      title="Remove coupon"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    id="coupon-code"
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => {
+                      setCouponInput(e.target.value.toUpperCase());
+                      setCouponError('');
+                      if (formErrors.coupon) setFormErrors((prev) => ({ ...prev, coupon: '' }));
+                    }}
+                    onKeyDown={(e) => {
+                      // USB barcode scanners "type" the code and press Enter
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyCoupon();
+                      }
+                    }}
+                    placeholder="SM-XXXX-XXXX"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className={`w-44 px-3 py-2 bg-white border rounded-lg font-mono font-medium tracking-wider text-stone-900 uppercase focus:outline-hidden focus:border-brand-600 shadow-2xs ${
+                      couponError || formErrors.coupon ? 'border-rose-400' : 'border-stone-300'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => applyCoupon()}
+                    disabled={!couponInput.trim() || couponChecking}
+                    className="py-2 px-3 rounded-lg bg-stone-900 text-white font-medium hover:bg-stone-800 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                  >
+                    {couponChecking && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Apply
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScannerOpen(true)}
+                    className="py-2 px-3 rounded-lg border border-brand-300 bg-white text-brand-800 font-medium hover:bg-brand-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <ScanLine className="w-3.5 h-3.5" />
+                    Scan QR
+                  </button>
+                </div>
+              )}
+              {(couponError || formErrors.coupon) && (
+                <p className="text-[11px] text-rose-600">{couponError || formErrors.coupon}</p>
+              )}
+              {!formErrors.coupon && couponOwnerMismatch && (
+                <p className="text-[11px] text-rose-600">This coupon belongs to {appliedCoupon.customer.name}, not the selected customer.</p>
+              )}
+              {!formErrors.coupon && !couponOwnerMismatch && couponBelowMinimum && (
+                <p className="text-[11px] text-amber-700">
+                  Applies once the bill (after discount) reaches {formatINR(appliedCoupon.coupon.minBillAmount)}.
+                </p>
+              )}
+            </div>
+
+            <QrScannerModal
+              isOpen={scannerOpen}
+              onClose={closeScanner}
+              onScan={handleScanned}
+              title="Scan Customer Coupon"
+            />
 
             {/* Loyalty points redemption */}
             <div className="rounded-lg border border-amber-200/70 bg-amber-50/50 p-3.5 space-y-2 text-xs">
@@ -1081,11 +1119,18 @@ export const RecordPurchasePage = () => {
                   : selectedCustomer?.name || '—'}
               </span>
             </div>
-            <div className="flex justify-between text-stone-500">
-              <span>Product</span>
-              <span className="font-medium text-stone-900 truncate max-w-[150px]">
-                {productName || '—'}
-              </span>
+            <div className="space-y-1.5 py-2 border-y border-stone-100">
+              {items.map((item, index) => (
+                <div key={item.key} className="flex justify-between gap-3">
+                  <span className="text-stone-700 truncate">
+                    {item.name.trim() || <span className="text-stone-400">Product {index + 1}</span>}
+                    {itemWarrantyMonths(item) > 0 && (
+                      <span className="text-stone-400"> · {item.warrantyDuration} {item.warrantyUnit === 'years' ? 'yr' : 'mo'}</span>
+                    )}
+                  </span>
+                  <span className="tabular-nums text-stone-800 shrink-0">{item.price ? formatINR(Number(item.price)) : '—'}</span>
+                </div>
+              ))}
             </div>
             <div className="flex justify-between text-stone-500">
               <span>Payment Mode</span>
@@ -1095,21 +1140,23 @@ export const RecordPurchasePage = () => {
               <span>Purchase Date</span>
               <span className="font-medium text-stone-800">{purchaseDate ? formatDate(`${purchaseDate}T12:00:00`) : '—'}</span>
             </div>
-            <div className="flex justify-between text-stone-500">
-              <span>Warranty Until</span>
-              <span className="font-medium text-stone-800">{warrantyUntil || (warrantyValid ? 'No warranty' : '—')}</span>
-            </div>
 
-            {(numericDiscount > 0 || (pointsToRedeem > 0 && !redemptionError)) && (
+            {(numericDiscount > 0 || couponDiscount > 0 || (pointsToRedeem > 0 && !redemptionError)) && (
               <div className="pt-3 border-t border-stone-100 space-y-1.5">
                 <div className="flex justify-between text-stone-500">
-                  <span>Price</span>
+                  <span>Subtotal</span>
                   <span className="tabular-nums text-stone-800">{formatINR(numericAmount)}</span>
                 </div>
                 {numericDiscount > 0 && (
                   <div className="flex justify-between text-stone-500">
                     <span>Discount</span>
                     <span className="tabular-nums text-stone-800">− {formatINR(numericDiscount)}</span>
+                  </div>
+                )}
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-brand-800">
+                    <span>Coupon</span>
+                    <span className="tabular-nums">− {formatINR(couponDiscount)}</span>
                   </div>
                 )}
                 {pointsToRedeem > 0 && !redemptionError && (

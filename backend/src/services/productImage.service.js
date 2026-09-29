@@ -16,7 +16,7 @@ import { BILL_TYPES } from '../utils/fileType.js';
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const MAX_IMAGE_MB = MAX_IMAGE_BYTES / (1024 * 1024);
 // Formats every browser can display (HEIC is excluded for that reason).
-const IMAGE_TYPES = BILL_TYPES.filter((t) => ['jpeg', 'png', 'webp', 'gif'].includes(t.key));
+export const IMAGE_TYPES = BILL_TYPES.filter((t) => ['jpeg', 'png', 'webp', 'gif'].includes(t.key));
 
 const getBucket = () => new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'productImages' });
 

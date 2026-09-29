@@ -13,7 +13,11 @@ const toBucketMap = (rows, valueKeys) =>
     rows.map((r) => [r._id instanceof Date ? r._id.getTime() : r._id, Object.fromEntries(valueKeys.map((k) => [k, r[k]]))])
   );
 
-/** Sales (sum of final amounts) and invoice count per time bucket, oldest first. */
+// A bill with several products is several Purchase lines sharing `order.id`; purchases from
+// before multi-product bills have no `order` and are a bill of their own.
+const BILL_KEY = { $ifNull: ['$order.id', '$_id'] };
+
+/** Sales (sum of final amounts) and invoice (bill) count per time bucket, oldest first. */
 export const getRevenueTrend = async (range, now = new Date()) => {
   const buckets = buildTrendBuckets(range, now);
   const rows = await Purchase.aggregate([
@@ -22,9 +26,10 @@ export const getRevenueTrend = async (range, now = new Date()) => {
       $bucket: {
         groupBy: '$purchaseDate',
         boundaries: [...buckets.map((b) => b.start), buckets.at(-1).end],
-        output: { value: { $sum: '$pricing.finalAmount' }, count: { $sum: 1 } },
+        output: { value: { $sum: '$pricing.finalAmount' }, bills: { $addToSet: BILL_KEY } },
       },
     },
+    { $project: { value: 1, count: { $size: '$bills' } } },
   ]);
   const byStart = toBucketMap(rows, ['value', 'count']);
   return buckets.map((b) => ({
@@ -81,14 +86,23 @@ const getPurchaseTotals = async (match = {}) => {
     {
       $group: {
         _id: null,
-        totalOrders: { $sum: { $cond: [{ $eq: ['$status', PURCHASE_STATUSES.PURCHASED] }, 1, 0] } },
-        cancelledOrders: { $sum: { $cond: [{ $eq: ['$status', PURCHASE_STATUSES.CANCELLED] }, 1, 0] } },
+        // Orders = bills: count each bill once however many products it has
+        activeBills: { $addToSet: { $cond: [{ $eq: ['$status', PURCHASE_STATUSES.PURCHASED] }, BILL_KEY, null] } },
+        cancelledBills: { $addToSet: { $cond: [{ $eq: ['$status', PURCHASE_STATUSES.CANCELLED] }, BILL_KEY, null] } },
         totalSales: {
           $sum: { $cond: [{ $eq: ['$status', PURCHASE_STATUSES.PURCHASED] }, '$pricing.finalAmount', 0] },
         },
         totalDiscount: {
           $sum: { $cond: [{ $eq: ['$status', PURCHASE_STATUSES.PURCHASED] }, '$pricing.discount', 0] },
         },
+      },
+    },
+    {
+      $project: {
+        totalSales: 1,
+        totalDiscount: 1,
+        totalOrders: { $size: { $setDifference: ['$activeBills', [null]] } },
+        cancelledOrders: { $size: { $setDifference: ['$cancelledBills', [null]] } },
       },
     },
   ]);
@@ -263,7 +277,14 @@ const HOUR_BUCKETS = [
 const getHourlySales = async () => {
   const rows = await Purchase.aggregate([
     { $match: ACTIVE },
-    { $group: { _id: { $hour: { date: '$purchaseDate', timezone: STORE_TIMEZONE } }, value: { $sum: '$pricing.finalAmount' }, count: { $sum: 1 } } },
+    {
+      $group: {
+        _id: { $hour: { date: '$purchaseDate', timezone: STORE_TIMEZONE } },
+        value: { $sum: '$pricing.finalAmount' },
+        bills: { $addToSet: BILL_KEY },
+      },
+    },
+    { $project: { value: 1, count: { $size: '$bills' } } },
   ]);
   return HOUR_BUCKETS.map(({ label, from, to }) => {
     const inBucket = rows.filter((r) => r._id >= from && r._id < to);

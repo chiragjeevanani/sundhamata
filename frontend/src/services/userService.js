@@ -33,6 +33,21 @@ export const userService = {
     storeInfoRequest = null;
   },
 
+  /** Profile photo (already resized on the device, see utils/photo.js) */
+  async uploadPhoto(blob) {
+    const data = await customerApi.upload('/customer/me/photo', blob);
+    const user = toUiCustomer(data.customer);
+    customerSession.update({ user });
+    return user;
+  },
+
+  async removePhoto() {
+    const data = await customerApi.delete('/customer/me/photo');
+    const user = toUiCustomer(data.customer);
+    customerSession.update({ user });
+    return user;
+  },
+
   /** PATCH /customer/me — name, email, dob, gender, anniversaryDate, address, city, pincode, interest, budget */
   async updateProfile(updates) {
     const data = await customerApi.patch('/customer/me', updates);

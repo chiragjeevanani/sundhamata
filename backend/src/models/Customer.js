@@ -22,6 +22,27 @@ const customerSchema = new mongoose.Schema(
     anniversaryDate: { type: Date, default: null },
     gender: { type: String, enum: [...CUSTOMER_GENDERS, null], default: null },
 
+    // New-customer offer: complete the profile to get a discount coupon. Only accounts that
+    // start using the app after the offer exists are eligible (set on their first sign-in).
+    // Verified (blue tick): uses the app (signed in with OTP) AND has bought at the store.
+    // Set once both are true; see services/customerVerification.js.
+    verifiedAt: { type: Date, default: null },
+
+    // Profile photo (GridFS "customerPhotos"), served under a random key; helps staff recognise customers
+    photo: {
+      key: { type: String },
+      fileId: { type: mongoose.Schema.Types.ObjectId },
+      contentType: { type: String },
+      size: { type: Number },
+      uploadedAt: { type: Date },
+      uploadedBy: { type: String, enum: ['customer', 'admin'] },
+    },
+
+    welcomeOffer: {
+      eligible: { type: Boolean, default: false },
+      eligibleSince: { type: Date, default: null },
+    },
+
     // Cached balance for fast reads. Only ever changed by services/loyalty.service.js,
     // always together with a LoyaltyTransaction (the source of truth).
     loyaltyPoints: { type: Number, default: 0, min: 0, validate: Number.isInteger },
@@ -39,5 +60,6 @@ customerSchema.index({ email: 1 }, { sparse: true });
 customerSchema.index({ name: 1 });
 customerSchema.index({ createdAt: -1 });
 customerSchema.index({ loyaltyPoints: -1 });
+customerSchema.index({ 'photo.key': 1 }, { sparse: true });
 
 export const Customer = mongoose.model('Customer', customerSchema);

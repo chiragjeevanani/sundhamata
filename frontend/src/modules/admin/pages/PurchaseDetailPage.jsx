@@ -21,6 +21,7 @@ import {
   Trash2,
   Paperclip,
   Image as ImageIcon,
+  Layers,
 } from 'lucide-react';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { StatusBadge } from '../components/StatusBadge';
@@ -333,6 +334,12 @@ export const PurchaseDetailPage = () => {
               Cancel Edit
             </button>
           </div>
+          {purchase.billItems?.length > 1 && (
+            <p className="text-[11px] text-amber-800">
+              Invoice number, date and payment apply to all {purchase.billItems.length} products on this bill. Product
+              details and warranty apply to this product only.
+            </p>
+          )}
 
           <form onSubmit={handleSaveEdit} className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div>
@@ -602,7 +609,7 @@ export const PurchaseDetailPage = () => {
             </h3>
 
             <div className="space-y-2 text-xs divide-y divide-stone-100">
-              {(purchase.pricing?.discount > 0 || purchase.pricing?.loyaltyDiscount > 0) && (
+              {(purchase.pricing?.discount > 0 || purchase.pricing?.couponDiscount > 0 || purchase.pricing?.loyaltyDiscount > 0) && (
                 <>
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-stone-500 font-normal">Price</span>
@@ -612,6 +619,14 @@ export const PurchaseDetailPage = () => {
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-stone-500 font-normal">Discount</span>
                       <span className="font-medium text-stone-800 tabular-nums">− {formatINR(purchase.pricing.discount)}</span>
+                    </div>
+                  )}
+                  {purchase.pricing.couponDiscount > 0 && (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-brand-800 font-normal">
+                        Coupon <span className="font-mono font-medium">{purchase.coupon?.code}</span>
+                      </span>
+                      <span className="font-medium text-brand-800 tabular-nums">− {formatINR(purchase.pricing.couponDiscount)}</span>
                     </div>
                   )}
                   {purchase.pricing.loyaltyDiscount > 0 && (
@@ -639,13 +654,58 @@ export const PurchaseDetailPage = () => {
               </div>
 
               <div className="flex items-center justify-between pt-2 text-sm">
-                <span className="font-semibold text-stone-900">Total Billed Paid</span>
+                <span className="font-semibold text-stone-900">
+                  {purchase.billItems?.length > 1 ? 'This product (its share of the bill)' : 'Total Billed Paid'}
+                </span>
                 <span className="font-semibold text-stone-900 tabular-nums text-base">
                   {formatINR(purchase.amount)}
                 </span>
               </div>
             </div>
           </div>
+
+          {/* All products on this bill */}
+          {purchase.billItems?.length > 1 && (
+            <div className="p-5 sm:p-6 space-y-3">
+              <h3 className="text-sm font-semibold text-stone-900 pb-2 border-b border-stone-100 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-brand-600" />
+                <span>Products on this bill ({purchase.billItems.length})</span>
+              </h3>
+              <div className="divide-y divide-stone-100 text-xs">
+                {purchase.billItems.map((item) => {
+                  const current = item.id === purchase.id;
+                  return (
+                    <div key={item.id} className={`py-2 flex items-center justify-between gap-3 ${current ? 'font-medium' : ''}`}>
+                      <div className="min-w-0">
+                        {current ? (
+                          <span className="text-stone-900 block truncate">{item.product.name} <span className="text-stone-400 font-normal">(this page)</span></span>
+                        ) : (
+                          <button onClick={() => navigate(`/admin/purchases/${item.id}`)} className="text-brand-700 hover:underline cursor-pointer text-left truncate block max-w-full">
+                            {item.product.name}
+                          </button>
+                        )}
+                        <span className="text-[11px] text-stone-400">
+                          {[item.product.variant, item.product.color, item.warranty ? `${item.warranty.type}` : 'No warranty'].filter(Boolean).join(' · ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.status === 'Cancelled' && <StatusBadge status="Cancelled" size="sm" />}
+                        <span className={`tabular-nums ${item.status === 'Cancelled' ? 'line-through text-stone-400' : 'text-stone-800'}`}>
+                          {formatINR(item.pricing.purchaseAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="pt-2 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-stone-900">Bill total paid</span>
+                  <span className="font-semibold text-stone-900 tabular-nums">
+                    {formatINR(purchase.billItems.filter((i) => i.status !== 'Cancelled').reduce((sum, i) => sum + i.amount, 0))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right (4 Cols): Customer & Loyalty Overview */}
