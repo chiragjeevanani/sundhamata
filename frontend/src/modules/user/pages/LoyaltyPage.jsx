@@ -202,13 +202,13 @@ export const LoyaltyPage = () => {
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <h4 className="text-[12px] font-bold text-stone-900 leading-tight">
-                          {method.title}
-                        </h4>
-                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-brand-50 text-brand-800 border border-brand-100 shrink-0">
+                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-50 text-brand-800 border border-brand-100 whitespace-nowrap">
                           {method.tag}
                         </span>
                       </div>
+                      <h4 className="text-[12px] font-bold text-stone-900 leading-tight mb-1">
+                        {method.title}
+                      </h4>
                       <p className="text-[10.5px] text-stone-500 leading-snug font-normal">
                         {method.description}
                       </p>
