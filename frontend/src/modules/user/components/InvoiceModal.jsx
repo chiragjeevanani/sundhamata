@@ -119,7 +119,14 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
                 <span className="text-[9.5px] font-bold uppercase tracking-wider text-stone-400 block mb-0.5">
                   Payment Ref
                 </span>
-                <p className="text-stone-800 font-semibold">{purchase.paymentMethod}</p>
+                <p className="text-stone-800 font-semibold">
+                  {purchase.finance ? `Finance · ${purchase.finance.company}` : purchase.paymentMethod}
+                </p>
+                {purchase.finance && (
+                  <p className="text-[10px] text-stone-500 tabular-nums">
+                    Down {formatINR(purchase.finance.downPayment)} · EMI {formatINR(purchase.finance.emiAmount)} × {purchase.finance.tenureMonths}
+                  </p>
+                )}
                 <p className="font-mono text-[10px] text-stone-500 truncate tabular-nums">
                   {purchase.transactionId}
                 </p>

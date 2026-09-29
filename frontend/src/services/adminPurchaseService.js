@@ -39,7 +39,7 @@ export const adminPurchaseService = {
    * server — any client estimate is display-only and never sent.
    * @param {{ items: Array<{ product, category, price, warranty }> }} bill
    */
-  async createPurchase({ customerId, newCustomer, couponCode, invoiceNumber, items, purchaseDate, paymentMethod, paymentStatus = 'Paid', discount = 0, pointsToRedeem = 0, notes }) {
+  async createPurchase({ customerId, newCustomer, couponCode, invoiceNumber, items, purchaseDate, paymentMethod, finance, paymentStatus = 'Paid', discount = 0, pointsToRedeem = 0, notes }) {
     const data = await adminApi.post('/admin/purchases', {
       // An existing customer, or { mobile, name? } of someone who has not signed up yet
       ...(newCustomer ? { newCustomer } : { customerId }),
@@ -62,7 +62,23 @@ export const adminPurchaseService = {
         };
       }),
       purchaseDate: dateInputToTimestamp(purchaseDate),
-      payment: { method: paymentMethod, status: paymentStatus },
+      payment: {
+        method: paymentMethod,
+        status: paymentStatus,
+        // Bought on a loan: lender, down payment and EMI plan (the server works out the loan amount)
+        ...(paymentMethod === 'Finance' && finance
+          ? {
+              finance: {
+                company: finance.company.trim(),
+                downPayment: Number(finance.downPayment) || 0,
+                emiAmount: Number(finance.emiAmount),
+                tenureMonths: Number(finance.tenureMonths),
+                firstEmiDate: finance.firstEmiDate,
+                ...(finance.loanNumber?.trim() ? { loanNumber: finance.loanNumber.trim() } : {}),
+              },
+            }
+          : {}),
+      },
       pricing: { discount: discount || 0 },
       // Only the points; the server applies the store's value per point and all limits.
       ...(pointsToRedeem > 0 ? { loyaltyRedemption: { points: pointsToRedeem } } : {}),
@@ -84,14 +100,29 @@ export const adminPurchaseService = {
    * Editable: invoice number, purchase date, warranty, payment status/method and notes.
    * Pricing is immutable once billed. The server recomputes the warranty expiry.
    */
-  async updatePurchase(id, { invoiceNumber, purchaseDate, warranty, product, paymentStatus, paymentMethod, notes }) {
+  async updatePurchase(id, { invoiceNumber, purchaseDate, warranty, product, paymentStatus, paymentMethod, finance, notes }) {
     const data = await adminApi.patch(`/admin/purchases/${encodeURIComponent(id)}`, {
       ...(invoiceNumber !== undefined ? { invoiceNumber: invoiceNumber.trim() } : {}),
       ...(purchaseDate ? { purchaseDate: dateInputToTimestamp(purchaseDate) } : {}),
       ...(warranty ? { warranty: { duration: Number(warranty.duration), unit: warranty.unit } } : {}),
       // Empty strings clear a field
       ...(product ? { product } : {}),
-      payment: { status: paymentStatus, method: paymentMethod },
+      payment: {
+        status: paymentStatus,
+        method: paymentMethod,
+        ...(paymentMethod === 'Finance' && finance
+          ? {
+              finance: {
+                company: finance.company.trim(),
+                downPayment: Number(finance.downPayment) || 0,
+                emiAmount: Number(finance.emiAmount),
+                tenureMonths: Number(finance.tenureMonths),
+                firstEmiDate: finance.firstEmiDate,
+                ...(finance.loanNumber?.trim() ? { loanNumber: finance.loanNumber.trim() } : {}),
+              },
+            }
+          : {}),
+      },
       notes: notes ?? null,
     });
     return toUiPurchase(data.purchase);

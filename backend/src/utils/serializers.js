@@ -106,7 +106,22 @@ export const serializePurchase = (p, { audience = 'admin' } = {}) => {
       quantity: p.product.quantity ?? 1,
     },
     purchaseDate: p.purchaseDate,
-    payment: { method: p.payment.method, status: p.payment.status },
+    payment: {
+      method: p.payment.method,
+      status: p.payment.status,
+      // Bought on finance (loan): lender, down payment and EMI plan
+      finance: p.payment.finance
+        ? {
+            company: p.payment.finance.company,
+            downPayment: p.payment.finance.downPayment,
+            loanAmount: p.payment.finance.loanAmount,
+            emiAmount: p.payment.finance.emiAmount,
+            tenureMonths: p.payment.finance.tenureMonths,
+            firstEmiDate: toDateOnly(p.payment.finance.firstEmiDate),
+            loanNumber: p.payment.finance.loanNumber ?? null,
+          }
+        : null,
+    },
     pricing: {
       purchaseAmount: p.pricing.purchaseAmount,
       discount: p.pricing.discount,

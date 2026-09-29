@@ -4,7 +4,9 @@ import { adminProductService } from '../../../services/adminProductService';
 import { formatDate, formatINR } from '../../../utils/formatters';
 import { formatFileSize, IMAGE_ACCEPT, validateImageFile } from '../../../utils/billFile';
 import { addMonthsToDate } from '../../../utils/purchaseDates';
-import { fillFromCatalog, itemWarrantyMonths, itemWarrantyValid } from '../../../utils/purchaseItems';
+import { fillFromCatalog, ITEM_TYPES, itemWarrantyMonths, itemWarrantyValid } from '../../../utils/purchaseItems';
+
+const typeOf = (category) => ITEM_TYPES.find((t) => t.id === category) ?? ITEM_TYPES[0];
 
 const inputClass = (hasError) =>
   `w-full px-3 py-2 bg-white border rounded-lg text-stone-900 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs ${
@@ -95,6 +97,21 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
     warrantyValid && months > 0 && purchaseDate
       ? formatDate(addMonthsToDate(new Date(`${purchaseDate}T12:00:00`), months))
       : null;
+  const type = typeOf(item.category);
+  const chooseType = (category) => {
+    if (category === item.category) return;
+    const next = typeOf(category);
+    const patch = { category };
+    // Fields the new type does not use are cleared, so they are not saved by mistake
+    if (!next.variant) patch.variant = '';
+    if (!next.color) patch.color = '';
+    // Services usually have no warranty; phones and accessories default to 1 year
+    const untouched = (item.warrantyDuration === '1' && item.warrantyUnit === 'years') || item.warrantyDuration === '0';
+    if (untouched) {
+      Object.assign(patch, category === 'service' ? { warrantyDuration: '0', warrantyUnit: 'months' } : { warrantyDuration: '1', warrantyUnit: 'years' });
+    }
+    onChange(patch);
+  };
   const visibleSuggestions = showSuggestions && item.name.trim().length >= 2 ? suggestions : [];
 
   return (
@@ -114,10 +131,33 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
         </div>
       )}
 
+      {/* What is being sold: Mobile / Accessories / Services */}
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={`Type of product ${index + 1}`}>
+        {ITEM_TYPES.map((t) => {
+          const Icon = t.icon;
+          const active = item.category === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => chooseType(t.id)}
+              className={`py-2.5 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                active ? 'bg-brand-600 border-brand-600 text-white shadow-2xs' : 'bg-white border-stone-300 text-stone-700 hover:border-brand-400 hover:bg-brand-50/50'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-        <div className="sm:col-span-2 space-y-1 relative" ref={boxRef}>
+        <div className="sm:col-span-3 space-y-1 relative" ref={boxRef}>
           <label className="text-xs font-medium text-stone-700 block" htmlFor={`item-name-${item.key}`}>
-            Product Name *
+            {type.name} *
           </label>
           <input
             id={`item-name-${item.key}`}
@@ -144,7 +184,7 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
                 setShowSuggestions(false);
               }
             }}
-            placeholder="Start typing, e.g. Galaxy S25 (saved products appear)"
+            placeholder={`${type.namePlaceholder} — saved products appear as you type`}
             className={inputClass(errors.name)}
           />
           {errors.name && <p className="text-[11px] text-rose-600">{errors.name}</p>}
@@ -186,23 +226,7 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium text-stone-700 block" htmlFor={`item-category-${item.key}`}>
-            Category
-          </label>
-          <select
-            id={`item-category-${item.key}`}
-            value={item.category}
-            onChange={(e) => onChange({ category: e.target.value })}
-            className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-800 font-normal focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
-          >
-            <option value="phones">Smartphones</option>
-            <option value="accessories">Accessories</option>
-            <option value="service">Service & Repairs</option>
-          </select>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-stone-700 block">Brand</label>
+          <label className="text-xs font-medium text-stone-700 block">{type.brand}</label>
           <input
             type="text"
             value={item.brand}
@@ -214,7 +238,7 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium text-stone-700 block">Model</label>
+          <label className="text-xs font-medium text-stone-700 block">{type.model}</label>
           <input
             type="text"
             value={item.model}
@@ -225,6 +249,7 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
           />
         </div>
 
+        {type.variant && (
         <div className="space-y-1">
           <label className="text-xs font-medium text-stone-700 block">Variant</label>
           <input
@@ -237,7 +262,9 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
           />
           <Chips values={item.catalog?.variants} current={item.variant} onPick={(variant) => onChange({ variant })} />
         </div>
+        )}
 
+        {type.color && (
         <div className="space-y-1">
           <label className="text-xs font-medium text-stone-700 block">Colour</label>
           <input
@@ -250,16 +277,22 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
           />
           <Chips values={item.catalog?.colors} current={item.color} onPick={(color) => onChange({ color })} />
         </div>
+        )}
 
-        <div className="sm:col-span-2 space-y-1">
-          <label className="text-xs font-medium text-stone-700 block">IMEI / Serial Number</label>
+        <div className={`${type.variant ? 'sm:col-span-2' : 'sm:col-span-1'} space-y-1`}>
+          <label className="text-xs font-medium text-stone-700 block" htmlFor={`item-imei-${item.key}`}>
+            {type.imei.label}
+          </label>
           <input
+            id={`item-imei-${item.key}`}
             type="text"
+            inputMode={item.category === 'phones' ? 'numeric' : 'text'}
             value={item.imei}
             onChange={(e) => onChange({ imei: e.target.value })}
-            placeholder="15-digit IMEI or serial number"
-            className={`${inputClass(false)} font-mono text-xs`}
+            placeholder={type.imei.placeholder}
+            className={`${inputClass(errors.imei)} font-mono text-xs`}
           />
+          {errors.imei && <p className="text-[11px] text-rose-600">{errors.imei}</p>}
         </div>
 
         <div className="space-y-1">
@@ -279,7 +312,7 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium text-stone-700 block">Warranty</label>
+          <label className="text-xs font-medium text-stone-700 block">{type.warranty}</label>
           <div className="flex gap-2">
             <input
               type="number"

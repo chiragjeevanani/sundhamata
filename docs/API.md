@@ -476,6 +476,8 @@ Send **either** `customerId` (existing customer) **or** `newCustomer: { "mobile"
 
 Bill-level edits (`invoiceNumber`, `purchaseDate`, `payment`, `notes` on `PATCH /admin/purchases/:id`) apply to every line of the bill; `product` and `warranty` to that line only. An uploaded bill file belongs to every line. Cancelling cancels one line (its share of points is reversed); a coupon is given back once every line is cancelled. Purchase details include `billItems` (all lines of the bill) for the invoice. Dashboard and report order counts count bills, not lines.
 
+**Paid through a finance company:** `payment: { method: "Finance", status, finance: { company, downPayment, emiAmount, tenureMonths (1–60), firstEmiDate: "YYYY-MM-DD", loanNumber? } }`. Finance details are required for `Finance` and rejected for other methods; the down payment cannot exceed the bill. The server adds `loanAmount` (bill total − down payment). Finance is bill-level (same on every line) and can be corrected with `PATCH` (`payment.finance`); switching to another method removes it.
+
 **Product catalog:** every product sold is remembered (`GET /admin/products?search=&category=` — most sold first, with `lastPrice`, `warrantyMonths`, recent `variants` / `colors`), and can be managed with `POST /admin/products`, `PATCH /admin/products/:id`, `DELETE /admin/products/:id`. The catalog is built from past purchases the first time it is opened.
 
 ```json

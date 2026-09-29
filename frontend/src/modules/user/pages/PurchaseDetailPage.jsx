@@ -13,6 +13,7 @@ import {
   Paperclip,
   ChevronRight,
   Layers,
+  CreditCard,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { StatusBadge } from '../components/StatusBadge';
@@ -22,6 +23,7 @@ import { InvoiceModal } from '../components/InvoiceModal';
 import { ImageViewerModal } from '../components/ImageViewerModal';
 import { BillViewerModal } from '../components/BillViewerModal';
 import { WarrantyBadge } from '../components/WarrantyBadge';
+import { describeEmi, emiSchedule, ordinal } from '../../../utils/finance';
 import { purchaseService } from '../../../services/purchaseService';
 import { formatINR, formatLongDate, formatDate } from '../../../utils/formatters';
 import { formatFileSize } from '../../../utils/billFile';
@@ -277,7 +279,7 @@ export const PurchaseDetailPage = () => {
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-stone-500 font-medium">Payment Method</span>
                   <span className="font-semibold text-stone-800">
-                    {purchase.paymentMethod}
+                    {purchase.finance ? `Finance · ${purchase.finance.company}` : purchase.paymentMethod}
                   </span>
                 </div>
 
@@ -338,6 +340,38 @@ export const PurchaseDetailPage = () => {
                 </p>
               </div>
             )}
+
+            {/* Bought on finance: EMI plan */}
+            {purchase.finance && (() => {
+              const schedule = emiSchedule(purchase.finance);
+              return (
+                <div className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-1.5 text-xs">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-ink-900 flex items-center gap-1.5 pb-1.5 border-b border-stone-100">
+                    <CreditCard className="w-3 h-3 text-brand-700" />
+                    <span>EMI Details</span>
+                    <span className="ml-auto text-stone-500 font-semibold normal-case tracking-normal">{purchase.finance.company}</span>
+                  </h3>
+                  {[
+                    ['Down Payment', formatINR(purchase.finance.downPayment)],
+                    ['Loan Amount', formatINR(purchase.finance.loanAmount)],
+                    ['EMI', describeEmi(purchase.finance)],
+                    ['EMI Date', `${ordinal(schedule.day)} of every month`],
+                    ['Last EMI', schedule.lastLabel],
+                    ...(purchase.finance.loanNumber ? [['Loan No.', purchase.finance.loanNumber]] : []),
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex items-center justify-between pt-1">
+                      <span className="text-stone-500 font-medium">{label}</span>
+                      <span className="font-semibold text-stone-800 tabular-nums text-right">{value}</span>
+                    </div>
+                  ))}
+                  {schedule.nextLabel && (
+                    <p className="mt-1 rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-1.5 text-[11px] text-sky-900 font-medium">
+                      Next EMI of {formatINR(purchase.finance.emiAmount)} due on {schedule.nextLabel}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Other products bought on the same bill */}
             {purchase.billItems?.length > 1 && (

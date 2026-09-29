@@ -36,6 +36,8 @@ export const toUiPurchase = (purchase) => {
     baseAmount: purchase.pricing.baseAmount,
     formattedDate: formatDate(purchase.purchaseDate),
     paymentMethod: purchase.payment.method,
+    // Loan details when bought on finance (company, down payment, EMI plan)
+    finance: purchase.payment.finance ?? null,
     paymentStatus: isCancelled ? 'Cancelled' : purchase.payment.status,
     product: {
       ...purchase.product,

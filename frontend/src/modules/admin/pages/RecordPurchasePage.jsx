@@ -24,7 +24,8 @@ import { couponDiscountFor, describeDiscount } from '../../../utils/coupons';
 import { QrScannerModal } from '../components/QrScannerModal';
 import { PurchaseItemEditor } from '../components/PurchaseItemEditor';
 import { CustomerAvatar, VerifiedTick } from '../../../components/CustomerAvatar';
-import { fillFromCatalog, itemWarrantyMonths, itemWarrantyValid, newPurchaseItem } from '../../../utils/purchaseItems';
+import { fillFromCatalog, itemImeiError, itemWarrantyMonths, itemWarrantyValid, newPurchaseItem } from '../../../utils/purchaseItems';
+import { FINANCE_COMPANIES, PURCHASE_BY, addMonthsToDate as addMonths, describeEmi } from '../../../utils/finance';
 import { adminProductService } from '../../../services/adminProductService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminSettingsService } from '../../../services/adminSettingsService';
@@ -100,7 +101,14 @@ export const RecordPurchasePage = () => {
   // Purchase & Payment Info
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(() => toDateInputValue());
-  const [paymentMethod, setPaymentMethod] = useState('UPI');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  // Bought on finance (EMI): lender, down payment, EMI amount, months, EMI date
+  const emptyFinance = { company: '', downPayment: '', emiAmount: '', tenureMonths: '12', firstEmiDate: '', loanNumber: '' };
+  const [finance, setFinance] = useState(emptyFinance);
+  const setFinanceField = (field) => (e) => {
+    setFinance((prev) => ({ ...prev, [field]: e.target.value }));
+    if (formErrors[`finance.${field}`]) setFormErrors((prev) => ({ ...prev, [`finance.${field}`]: '' }));
+  };
 
   // Pricing
   const [discount, setDiscount] = useState('');
@@ -268,11 +276,23 @@ export const RecordPurchasePage = () => {
     items.forEach((item) => {
       if (item.name.trim().length < 2) errors[`items.${item.key}.name`] = 'Product name is required.';
       if (!(Number(item.price) > 0)) errors[`items.${item.key}.price`] = 'Enter a valid price.';
+      const imeiProblem = itemImeiError(item);
+      if (imeiProblem) errors[`items.${item.key}.imei`] = imeiProblem;
       if (!itemWarrantyValid(item)) {
         errors[`items.${item.key}.warranty`] = `Whole ${item.warrantyUnit}, up to ${item.warrantyUnit === 'years' ? MAX_WARRANTY_MONTHS / 12 : MAX_WARRANTY_MONTHS}.`;
       }
     });
     if (numericDiscount > numericAmount) errors.discount = 'Discount cannot be more than the bill.';
+    if (paymentMethod === 'Finance') {
+      if (finance.company.trim().length < 2) errors['finance.company'] = 'Choose or type the finance company.';
+      if (finance.downPayment !== '' && !(Number(finance.downPayment) >= 0)) errors['finance.downPayment'] = 'Enter the down payment (0 if none).';
+      if (Number(finance.downPayment) > finalAmount) errors['finance.downPayment'] = 'Down payment cannot be more than the bill.';
+      if (!(Number(finance.emiAmount) > 0)) errors['finance.emiAmount'] = 'Enter the monthly EMI.';
+      if (!(Number.isInteger(Number(finance.tenureMonths)) && Number(finance.tenureMonths) >= 1 && Number(finance.tenureMonths) <= 60)) {
+        errors['finance.tenureMonths'] = '1 to 60 months.';
+      }
+      if (!finance.firstEmiDate) errors['finance.firstEmiDate'] = 'Choose the EMI date.';
+    }
     if (!invoiceNumber.trim()) {
       errors.invoiceNumber = 'Enter the invoice / bill number.';
     }
@@ -319,6 +339,7 @@ export const RecordPurchasePage = () => {
         })),
         purchaseDate,
         paymentMethod,
+        finance: paymentMethod === 'Finance' ? finance : undefined,
         paymentStatus: 'Paid',
         discount: numericDiscount,
         pointsToRedeem,
@@ -377,6 +398,8 @@ export const RecordPurchasePage = () => {
     items.forEach((item) => item.imagePreview && URL.revokeObjectURL(item.imagePreview));
     setItems([newPurchaseItem()]);
     setDiscount('');
+    setPaymentMethod('Cash');
+    setFinance(emptyFinance);
     setBillFile(null);
     setBillError('');
     setInvoiceNumber('');
@@ -435,6 +458,17 @@ export const RecordPurchasePage = () => {
             <span>Amount Paid</span>
             <span className="font-semibold text-stone-900 tabular-nums">{formatINR(successRecord.order.totals.finalAmount)}</span>
           </div>
+          {successRecord.finance && (
+            <div className="flex justify-between gap-3 text-stone-500">
+              <span>Finance</span>
+              <span className="text-right text-stone-800">
+                {successRecord.finance.company} · down {formatINR(successRecord.finance.downPayment)}
+                <span className="block text-[11px] text-stone-500">
+                  {describeEmi(successRecord.finance)} from {formatDate(`${successRecord.finance.firstEmiDate}T12:00:00`)}
+                </span>
+              </span>
+            </div>
+          )}
           {successRecord.order.totals.couponDiscount > 0 && (
             <div className="flex justify-between text-brand-800 font-medium pt-2 border-t border-stone-100">
               <span>Coupon {successRecord.coupon?.code}</span>
@@ -754,6 +788,7 @@ export const RecordPurchasePage = () => {
                   count={items.length}
                   purchaseDate={purchaseDate}
                   errors={{
+                    imei: formErrors[`items.${item.key}.imei`],
                     name: formErrors[`items.${item.key}.name`],
                     price: formErrors[`items.${item.key}.price`],
                     warranty: formErrors[`items.${item.key}.warranty`],
@@ -824,7 +859,7 @@ export const RecordPurchasePage = () => {
               <p className="text-xs text-stone-400 font-normal">Enter retail price, discount, and settlement mode</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="space-y-1">
                 <span className="text-xs font-medium text-stone-700 block">Subtotal</span>
                 <div className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg font-medium text-stone-900 tabular-nums">
@@ -848,20 +883,155 @@ export const RecordPurchasePage = () => {
                 {formErrors.discount && <p className="text-[11px] text-rose-600">{formErrors.discount}</p>}
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Payment Mode</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-800 focus:outline-hidden focus:border-brand-600 transition-all shadow-2xs cursor-pointer"
-                >
-                  <option value="UPI">UPI</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Card">Card</option>
-                  <option value="EMI">EMI</option>
-                </select>
+            </div>
+
+            {/* Purchase By: Cash / UPI / Card / Finance (EMI) */}
+            <div className="space-y-2 text-xs">
+              <span className="text-xs font-medium text-stone-700 block">Purchase By</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup" aria-label="Purchase by">
+                {PURCHASE_BY.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={paymentMethod === id}
+                    onClick={() => setPaymentMethod(id)}
+                    className={`py-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+                      paymentMethod === id
+                        ? 'bg-ink-900 border-ink-900 text-white'
+                        : 'bg-white border-stone-300 text-stone-700 hover:border-stone-500'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {paymentMethod === 'Finance' && (
+              <div className="rounded-lg border border-sky-200 bg-sky-50/50 p-3.5 space-y-3 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold text-stone-800">Finance / EMI Details</span>
+                  <span className="text-stone-500">
+                    Loan amount:{' '}
+                    <span className="font-semibold text-stone-900 tabular-nums">
+                      {formatINR(Math.max(0, finalAmount - (Number(finance.downPayment) || 0)))}
+                    </span>
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="finance-company">Finance Company *</label>
+                    <input
+                      id="finance-company"
+                      list="finance-companies"
+                      value={finance.company}
+                      onChange={setFinanceField('company')}
+                      placeholder="e.g. Bajaj Finserv"
+                      maxLength={60}
+                      className={`w-full px-3 py-2 bg-white border rounded-lg text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs ${formErrors['finance.company'] ? 'border-rose-400' : 'border-stone-300'}`}
+                    />
+                    <datalist id="finance-companies">
+                      {FINANCE_COMPANIES.map((c) => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
+                    {formErrors['finance.company'] && <p className="text-[11px] text-rose-600">{formErrors['finance.company']}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="finance-loan">Loan / Agreement No.</label>
+                    <input
+                      id="finance-loan"
+                      value={finance.loanNumber}
+                      onChange={setFinanceField('loanNumber')}
+                      placeholder="Optional"
+                      maxLength={40}
+                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 font-mono focus:outline-hidden focus:border-brand-600 shadow-2xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="finance-down">Down Payment (₹)</label>
+                    <input
+                      id="finance-down"
+                      type="number"
+                      min="0"
+                      value={finance.downPayment}
+                      onChange={setFinanceField('downPayment')}
+                      placeholder="0"
+                      className={`w-full px-3 py-2 bg-white border rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs ${formErrors['finance.downPayment'] ? 'border-rose-400' : 'border-stone-300'}`}
+                    />
+                    {formErrors['finance.downPayment'] && <p className="text-[11px] text-rose-600">{formErrors['finance.downPayment']}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="finance-emi">EMI Amount (₹ / month) *</label>
+                    <input
+                      id="finance-emi"
+                      type="number"
+                      min="0"
+                      value={finance.emiAmount}
+                      onChange={setFinanceField('emiAmount')}
+                      placeholder="e.g. 8350"
+                      className={`w-full px-3 py-2 bg-white border rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs ${formErrors['finance.emiAmount'] ? 'border-rose-400' : 'border-stone-300'}`}
+                    />
+                    {formErrors['finance.emiAmount'] && <p className="text-[11px] text-rose-600">{formErrors['finance.emiAmount']}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="finance-months">EMI For (months) *</label>
+                    <input
+                      id="finance-months"
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={finance.tenureMonths}
+                      onChange={setFinanceField('tenureMonths')}
+                      className={`w-full px-3 py-2 bg-white border rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs ${formErrors['finance.tenureMonths'] ? 'border-rose-400' : 'border-stone-300'}`}
+                    />
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {[3, 6, 9, 12, 18, 24].map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setFinance((prev) => ({ ...prev, tenureMonths: String(m) }))}
+                          className={`px-1.5 py-0.5 rounded-md border text-[10.5px] cursor-pointer ${
+                            String(m) === finance.tenureMonths ? 'bg-sky-100 border-sky-300 text-sky-900' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                    {formErrors['finance.tenureMonths'] && <p className="text-[11px] text-rose-600">{formErrors['finance.tenureMonths']}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="finance-date">EMI Date (first EMI) *</label>
+                    <input
+                      id="finance-date"
+                      type="date"
+                      value={finance.firstEmiDate}
+                      onChange={setFinanceField('firstEmiDate')}
+                      className={`w-full px-3 py-2 bg-white border rounded-lg text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs ${formErrors['finance.firstEmiDate'] ? 'border-rose-400' : 'border-stone-300'}`}
+                    />
+                    {formErrors['finance.firstEmiDate'] ? (
+                      <p className="text-[11px] text-rose-600">{formErrors['finance.firstEmiDate']}</p>
+                    ) : finance.firstEmiDate ? (
+                      <p className="text-[11px] text-stone-500">
+                        Every month on the {Number(finance.firstEmiDate.slice(8, 10))}
+                        {Number(finance.tenureMonths) > 1 &&
+                          ` · last EMI ${formatDate(addMonths(new Date(`${finance.firstEmiDate}T12:00:00`), Number(finance.tenureMonths) - 1))}`}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-medium text-stone-700 block">Customer pays in total</span>
+                    <div className="px-3 py-2 bg-white/70 border border-stone-200 rounded-lg tabular-nums text-stone-800">
+                      {formatINR((Number(finance.downPayment) || 0) + (Number(finance.emiAmount) || 0) * (Number(finance.tenureMonths) || 0))}
+                      <span className="text-stone-400"> (down payment + EMIs)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Customer coupon (welcome offer QR / code) */}
             <div className="rounded-lg border border-brand-200/70 bg-brand-50/40 p-3.5 space-y-2 text-xs">
@@ -1133,8 +1303,10 @@ export const RecordPurchasePage = () => {
               ))}
             </div>
             <div className="flex justify-between text-stone-500">
-              <span>Payment Mode</span>
-              <span className="font-medium text-stone-800">{paymentMethod}</span>
+              <span>Purchase By</span>
+              <span className="font-medium text-stone-800 truncate max-w-[160px]">
+                {paymentMethod === 'Finance' ? `Finance${finance.company.trim() ? ` · ${finance.company.trim()}` : ''}` : paymentMethod}
+              </span>
             </div>
             <div className="flex justify-between text-stone-500">
               <span>Purchase Date</span>

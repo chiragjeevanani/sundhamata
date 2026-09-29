@@ -125,6 +125,17 @@ const buildWarranty = (purchaseDate, months) =>
 
 const warrantyMonths = ({ duration, unit }) => duration * (unit === 'years' ? 12 : 1);
 
+const financeProblem = (message, field = 'payment.finance.downPayment') =>
+  ApiError.unprocessable(message, [{ field, message }]);
+
+/** Finance details with the loan amount worked out from the bill total. */
+const financeFor = (finance, billTotal) => {
+  if (finance.downPayment > billTotal) {
+    throw financeProblem(`Down payment (₹${finance.downPayment}) cannot be more than the bill (₹${billTotal})`);
+  }
+  return { ...finance, loanNumber: finance.loanNumber ?? null, loanAmount: roundMoney(billTotal - finance.downPayment) };
+};
+
 /**
  * Splits `total` (whole units: paise or points) across lines in proportion to `weights`,
  * so the parts always add up exactly (largest remainder). No part exceeds its weight when
@@ -224,6 +235,12 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     const pointsPerHundredRupees = settings.loyalty.pointsPerHundredRupees;
     const pointsEarned = calculatePurchasePoints(finalAmount, pointsPerHundredRupees);
 
+    // Bought on finance: the lender pays the bill minus the down payment
+    const payment = { ...input.payment, finance: null };
+    if (input.payment.method === 'Finance') {
+      payment.finance = financeFor(input.payment.finance, finalAmount);
+    }
+
     // ---- split the bill across its lines (in paise, so the parts add up exactly)
     const pricePaise = items.map((item) => toPaise(item.price));
     const discountPaise = allocate(toPaise(discount), pricePaise);
@@ -250,7 +267,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
         category: item.category,
         product: { ...item.product, brand: item.product.brand ?? inferBrand(item.product.name) },
         purchaseDate,
-        payment: input.payment,
+        payment,
         pricing: {
           purchaseAmount: item.price,
           discount: fromPaise(discountPaise[i]),
@@ -405,8 +422,8 @@ const mergeUpdate = (...parts) => {
  * invoice number, purchase date, payment and notes belong to the whole bill and are applied
  * to every product on it. Pricing (and therefore loyalty) is immutable.
  */
-export const updatePurchase = async (id, { warranty, product, ...billPatch }, admin) => {
-  const existing = await Purchase.findById(id, { status: 1, product: 1, purchaseDate: 1, warranty: 1, order: 1 }).lean();
+export const updatePurchase = async (id, { warranty, product, category, ...billPatch }, admin) => {
+  const existing = await Purchase.findById(id, { status: 1, product: 1, purchaseDate: 1, warranty: 1, order: 1, payment: 1, pricing: 1 }).lean();
   if (!existing) throw ApiError.notFound('Purchase not found');
   if (existing.status === PURCHASE_STATUSES.CANCELLED) {
     throw ApiError.conflict('Cancelled purchases cannot be edited');
@@ -428,8 +445,24 @@ export const updatePurchase = async (id, { warranty, product, ...billPatch }, ad
     throw duplicateInvoice();
   }
 
+  // Finance: only for "Finance" payments; the loan amount follows the bill total
+  if (billPatch.payment) {
+    const method = billPatch.payment.method ?? existing.payment.method;
+    if (billPatch.payment.finance) {
+      if (method !== 'Finance') throw financeProblem('Finance details are only for "Finance" payments', 'payment.finance');
+      const lines = existing.order?.id
+        ? await Purchase.find({ 'order.id': existing.order.id, status: PURCHASE_STATUSES.PURCHASED }, { pricing: 1 }).lean()
+        : [existing];
+      const billTotal = roundMoney(lines.reduce((sum, line) => sum + line.pricing.finalAmount, 0));
+      billPatch.payment.finance = financeFor(billPatch.payment.finance, billTotal);
+    } else if (method === 'Finance' && !existing.payment.finance) {
+      throw financeProblem('Add the finance details (company, down payment, EMI)', 'payment.finance');
+    }
+    if (billPatch.payment.method && method !== 'Finance') billPatch.payment.finance = null;
+  }
+
   const billSet = toSetPaths(billPatch);
-  const lineSet = toSetPaths(product ? { product } : {});
+  const lineSet = toSetPaths({ ...(product ? { product } : {}), ...(category ? { category } : {}) });
   if (product?.name && product.brand === undefined && !existing.product.brand) {
     lineSet['product.brand'] = inferBrand(product.name);
   }
@@ -480,7 +513,7 @@ export const updatePurchase = async (id, { warranty, product, ...billPatch }, ad
     },
     'Purchase updated'
   );
-  return serializePurchase(await findPurchaseForAdmin(id));
+  return getPurchaseForAdmin(id);
 };
 
 /**

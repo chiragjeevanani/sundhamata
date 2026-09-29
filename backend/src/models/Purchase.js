@@ -6,11 +6,29 @@ export const MAX_WARRANTY_MONTHS = 120;
 
 export const PURCHASE_CATEGORIES = Object.freeze(['phones', 'accessories', 'service']);
 export const PURCHASE_STATUSES = Object.freeze({ PURCHASED: 'Purchased', CANCELLED: 'Cancelled' });
-export const PAYMENT_METHODS = Object.freeze(['UPI', 'Cash', 'Card', 'Credit Card', 'Debit Card', 'EMI', 'Other']);
+// "Finance": bought on a loan (Bajaj Finserv, HDB …) with the details in payment.finance.
+// "EMI" is kept for purchases recorded before finance details existed.
+export const PAYMENT_METHODS = Object.freeze(['UPI', 'Cash', 'Card', 'Finance', 'Credit Card', 'Debit Card', 'EMI', 'Other']);
 // "Cancelled" is only ever set by the cancel workflow, never through a normal update.
 export const PAYMENT_STATUSES = Object.freeze(['Paid', 'Pending', 'Partially Paid', 'Cancelled']);
 
 const moneyField = { type: Number, required: true, min: 0 };
+
+// Consumer-finance details when the bill is paid through a lender (whole bill, same on every line)
+const financeSchema = new mongoose.Schema(
+  {
+    company: { type: String, required: true, trim: true, maxlength: 60 },
+    downPayment: { type: Number, required: true, min: 0 },
+    // Bill total minus the down payment (what the lender pays the store)
+    loanAmount: { type: Number, required: true, min: 0 },
+    emiAmount: { type: Number, required: true, min: 0 },
+    tenureMonths: { type: Number, required: true, min: 1, max: 60 },
+    // First EMI (calendar date at 00:00 UTC); later EMIs fall on the same day each month
+    firstEmiDate: { type: Date, required: true },
+    loanNumber: { type: String, trim: true, maxlength: 40, default: null },
+  },
+  { _id: false }
+);
 
 const purchaseSchema = new mongoose.Schema(
   {
@@ -44,6 +62,7 @@ const purchaseSchema = new mongoose.Schema(
     payment: {
       method: { type: String, enum: PAYMENT_METHODS, required: true },
       status: { type: String, enum: PAYMENT_STATUSES, required: true },
+      finance: { type: financeSchema, default: null },
     },
 
     pricing: {

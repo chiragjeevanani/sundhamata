@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { StatusBadge } from '../components/StatusBadge';
+import { describeEmi, emiSchedule, FINANCE_COMPANIES } from '../../../utils/finance';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { DetailsSkeleton } from '../components/SkeletonLoaders';
 import { formatINR, formatLongDate } from '../../../utils/formatters';
@@ -58,6 +59,9 @@ export const PurchaseDetailPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editPaymentStatus, setEditPaymentStatus] = useState('Paid');
   const [editPaymentMethod, setEditPaymentMethod] = useState('UPI');
+  const emptyFinance = { company: '', downPayment: '', emiAmount: '', tenureMonths: '12', firstEmiDate: '', loanNumber: '' };
+  const [editFinance, setEditFinance] = useState(emptyFinance);
+  const setEditFinanceField = (field) => (e) => setEditFinance((prev) => ({ ...prev, [field]: e.target.value }));
   const [editNotes, setEditNotes] = useState('');
   const [editProduct, setEditProduct] = useState({ brand: '', model: '', variant: '', color: '' });
   const imageInputRef = useRef(null);
@@ -84,6 +88,18 @@ export const PurchaseDetailPage = () => {
       setPurchase(data);
       setEditPaymentStatus(data.paymentStatus || 'Paid');
       setEditPaymentMethod(data.paymentMethod || 'UPI');
+      setEditFinance(
+        data.finance
+          ? {
+              company: data.finance.company,
+              downPayment: String(data.finance.downPayment),
+              emiAmount: String(data.finance.emiAmount),
+              tenureMonths: String(data.finance.tenureMonths),
+              firstEmiDate: data.finance.firstEmiDate,
+              loanNumber: data.finance.loanNumber ?? '',
+            }
+          : emptyFinance
+      );
       setEditNotes(data.notes || '');
       setEditProduct({
         brand: data.product?.brand || '',
@@ -132,6 +148,7 @@ export const PurchaseDetailPage = () => {
         product: Object.fromEntries(Object.entries(editProduct).map(([k, v]) => [k, v.trim()])),
         paymentStatus: editPaymentStatus,
         paymentMethod: editPaymentMethod,
+        finance: editPaymentMethod === 'Finance' ? editFinance : undefined,
         notes: editNotes.trim(),
       });
       setPurchase(updated);
@@ -463,15 +480,48 @@ export const PurchaseDetailPage = () => {
                 onChange={(e) => setEditPaymentMethod(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-normal text-stone-900 focus:outline-hidden"
               >
-                <option value="UPI">UPI</option>
                 <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
                 <option value="Card">Card</option>
+                <option value="Finance">Finance (EMI)</option>
                 <option value="Credit Card">Credit Card</option>
                 <option value="Debit Card">Debit Card</option>
-                <option value="EMI">EMI</option>
+                <option value="EMI">EMI (old)</option>
                 <option value="Other">Other</option>
               </select>
             </div>
+
+            {editPaymentMethod === 'Finance' && (
+              <div className="sm:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-lg border border-sky-200 bg-white/70 p-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block font-medium text-stone-700 mb-1" htmlFor="edit-finance-company">Finance Company</label>
+                  <input id="edit-finance-company" list="edit-finance-companies" value={editFinance.company} onChange={setEditFinanceField('company')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg" />
+                  <datalist id="edit-finance-companies">
+                    {FINANCE_COMPANIES.map((c) => <option key={c} value={c} />)}
+                  </datalist>
+                </div>
+                <div>
+                  <label className="block font-medium text-stone-700 mb-1" htmlFor="edit-finance-down">Down Payment (₹)</label>
+                  <input id="edit-finance-down" type="number" min="0" value={editFinance.downPayment} onChange={setEditFinanceField('downPayment')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg tabular-nums" />
+                </div>
+                <div>
+                  <label className="block font-medium text-stone-700 mb-1" htmlFor="edit-finance-emi">EMI (₹ / month)</label>
+                  <input id="edit-finance-emi" type="number" min="0" value={editFinance.emiAmount} onChange={setEditFinanceField('emiAmount')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg tabular-nums" />
+                </div>
+                <div>
+                  <label className="block font-medium text-stone-700 mb-1" htmlFor="edit-finance-months">Months</label>
+                  <input id="edit-finance-months" type="number" min="1" max="60" value={editFinance.tenureMonths} onChange={setEditFinanceField('tenureMonths')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg tabular-nums" />
+                </div>
+                <div>
+                  <label className="block font-medium text-stone-700 mb-1" htmlFor="edit-finance-date">First EMI Date</label>
+                  <input id="edit-finance-date" type="date" value={editFinance.firstEmiDate} onChange={setEditFinanceField('firstEmiDate')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg" />
+                </div>
+                <div>
+                  <label className="block font-medium text-stone-700 mb-1" htmlFor="edit-finance-loan">Loan / Agreement No.</label>
+                  <input id="edit-finance-loan" value={editFinance.loanNumber} onChange={setEditFinanceField('loanNumber')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-mono" />
+                </div>
+              </div>
+            )}
 
             <div className="sm:col-span-3 flex items-center justify-end gap-2 pt-1">
               <button
@@ -663,6 +713,31 @@ export const PurchaseDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Finance / EMI */}
+          {purchase.finance && (
+            <div className="p-5 sm:p-6 space-y-3">
+              <h3 className="text-sm font-semibold text-stone-900 pb-2 border-b border-stone-100 flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-brand-600" />
+                <span>Finance / EMI</span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-xs">
+                {[
+                  ['Finance company', purchase.finance.company],
+                  ['Loan / agreement no.', purchase.finance.loanNumber || '—'],
+                  ['Down payment', formatINR(purchase.finance.downPayment)],
+                  ['Loan amount', formatINR(purchase.finance.loanAmount)],
+                  ['EMI', describeEmi(purchase.finance)],
+                  ['EMI date', `Every month on the ${emiSchedule(purchase.finance).day} (${emiSchedule(purchase.finance).firstLabel} – ${emiSchedule(purchase.finance).lastLabel})`],
+                ].map(([label, value]) => (
+                  <div key={label} className="min-w-0">
+                    <div className="text-stone-500">{label}</div>
+                    <div className="font-medium text-stone-900 mt-0.5 break-words">{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* All products on this bill */}
           {purchase.billItems?.length > 1 && (
