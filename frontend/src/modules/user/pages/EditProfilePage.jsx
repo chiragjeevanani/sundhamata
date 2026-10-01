@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Gift, Lock, PartyPopper } from 'lucide-react';
+import { ArrowLeft, Check, Lock, PartyPopper } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../../../services/userService';
 import { GENDER_LABELS } from '../../../utils/formatters';
-import { describeOffer, offerService } from '../../../services/offerService';
 import { PhotoEditor } from '../../../components/PhotoEditor';
 
 const GENDERS = Object.entries(GENDER_LABELS).map(([id, label]) => ({ id, label }));
@@ -85,22 +84,6 @@ export const EditProfilePage = () => {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [photoError, setPhotoError] = useState('');
-  // New-customer offer still open → show what is needed to unlock the coupon
-  const [offer, setOffer] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-    offerService
-      .getWelcomeOffer()
-      .then((data) => active && setOffer(data.status === 'complete_profile' ? data : null))
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const offerFieldKeys = new Set((offer?.missingFields || []).map((f) => f.field));
-  const unlockHint = (key) => (offerFieldKeys.has(key) ? 'for your coupon' : 'optional');
 
   const today = todayLocal();
 
@@ -169,19 +152,6 @@ export const EditProfilePage = () => {
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="p-3.5 sm:p-4 space-y-3 pb-6">
-        {offer && (
-          <div className="rounded-xl bg-brand-50 border border-brand-200/80 p-3 flex gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white text-brand-600 flex items-center justify-center shrink-0 border border-brand-100">
-              <Gift className="w-4 h-4" />
-            </div>
-            <div className="text-[12px] leading-snug">
-              <p className="font-bold text-ink-900">Get {describeOffer(offer.offer)} on your next purchase</p>
-              <p className="text-stone-600 mt-0.5">
-                Fill in {offer.missingFields.map((f) => f.label.toLowerCase()).join(', ')} and save to unlock your coupon.
-              </p>
-            </div>
-          </div>
-        )}
         {welcome && (
           <div className="rounded-xl bg-brand-50 border border-brand-200/80 p-3 flex gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-white text-brand-600 flex items-center justify-center shrink-0 border border-brand-100">
@@ -237,7 +207,7 @@ export const EditProfilePage = () => {
             </div>
           </Field>
 
-          <Field label="Email" hint={unlockHint('email')} error={errors.email}>
+          <Field label="Email" hint="optional" error={errors.email}>
             <input
               type="email"
               inputMode="email"
@@ -251,7 +221,7 @@ export const EditProfilePage = () => {
         </Section>
 
         <Section title="Personal Details">
-          <Field label="Date of Birth" hint={unlockHint('dob')} error={errors.dob}>
+          <Field label="Date of Birth" hint="optional" error={errors.dob}>
             <input
               type="date"
               value={form.dob}
@@ -264,7 +234,7 @@ export const EditProfilePage = () => {
 
           <div className="space-y-1">
             <span className="block text-[11px] font-bold text-stone-600">
-              Gender <span className="font-medium text-stone-400">· {unlockHint('gender')}</span>
+              Gender <span className="font-medium text-stone-400">· optional</span>
             </span>
             <div className="flex flex-wrap gap-1.5">
               {GENDERS.map((g) => {
@@ -302,7 +272,7 @@ export const EditProfilePage = () => {
         </Section>
 
         <Section title="Address">
-          <Field label="Address" hint={unlockHint('address')} error={errors.address}>
+          <Field label="Address" hint="optional" error={errors.address}>
             <textarea
               value={form.address}
               onChange={set('address')}
@@ -314,7 +284,7 @@ export const EditProfilePage = () => {
             />
           </Field>
           <div className="grid grid-cols-2 gap-2.5">
-            <Field label="City" hint={offerFieldKeys.has('city') ? 'for your coupon' : undefined} error={errors.city}>
+            <Field label="City" error={errors.city}>
               <input
                 type="text"
                 value={form.city}
@@ -324,7 +294,7 @@ export const EditProfilePage = () => {
                 className={inputClass(errors.city)}
               />
             </Field>
-            <Field label="Pincode" hint={offerFieldKeys.has('pincode') ? 'for your coupon' : undefined} error={errors.pincode}>
+            <Field label="Pincode" error={errors.pincode}>
               <input
                 type="text"
                 inputMode="numeric"

@@ -194,12 +194,23 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     const { discount } = input.pricing;
     const amountAfterDiscount = roundMoney(subtotal - discount);
 
-    // Coupon (e.g. the welcome offer): comes off after the store discount, before points.
+    // Store discount split across the lines (in paise, so the parts add up exactly)
+    const pricePaise = items.map((item) => toPaise(item.price));
+    const discountPaise = allocate(toPaise(discount), pricePaise);
+    const afterDiscount = pricePaise.map((p, i) => p - discountPaise[i]);
+
+    // Voucher / coupon: after the store discount, before points. Some vouchers only apply to
+    // certain products (e.g. accessories), so only those lines count and get the discount.
     let coupon = null;
     let couponDiscount = 0;
+    let couponLines = items.map(() => true);
     if (input.couponCode) {
-      ({ coupon, discount: couponDiscount } = await prepareCouponForPurchase(
-        { code: input.couponCode, customerId: customer._id, amount: amountAfterDiscount },
+      ({ coupon, discount: couponDiscount, eligible: couponLines } = await prepareCouponForPurchase(
+        {
+          code: input.couponCode,
+          customerId: customer._id,
+          lines: items.map((item, i) => ({ category: item.category, amount: fromPaise(afterDiscount[i]) })),
+        },
         ctx
       ));
     }
@@ -241,11 +252,11 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
       payment.finance = financeFor(input.payment.finance, finalAmount);
     }
 
-    // ---- split the bill across its lines (in paise, so the parts add up exactly)
-    const pricePaise = items.map((item) => toPaise(item.price));
-    const discountPaise = allocate(toPaise(discount), pricePaise);
-    const afterDiscount = pricePaise.map((p, i) => p - discountPaise[i]);
-    const couponPaise = allocate(toPaise(couponDiscount), afterDiscount);
+    // ---- split the rest of the bill across its lines
+    const couponPaise = allocate(
+      toPaise(couponDiscount),
+      afterDiscount.map((p, i) => (couponLines[i] ? p : 0))
+    );
     const afterCoupon = afterDiscount.map((p, i) => p - couponPaise[i]);
     const loyaltyPaise = allocate(toPaise(loyaltyDiscount), afterCoupon);
     const finalPaise = afterCoupon.map((p, i) => p - loyaltyPaise[i]);

@@ -1,21 +1,11 @@
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Coupon, Customer, Purchase } from '../src/models/index.js';
-import { buildApp, createTestCustomer, DEV_OTP, loginAsAdmin, samplePurchase, useTestDatabase } from './helpers.js';
+import { Coupon, Customer, Purchase, StoreSettings } from '../src/models/index.js';
+import { buildApp, createTestCustomer, DEV_OTP, loginAsAdmin, useTestDatabase } from './helpers.js';
 
 useTestDatabase(import.meta.url);
 const app = buildApp();
 const api = () => request(app);
-
-const FULL_PROFILE = {
-  name: 'Neha Joshi',
-  email: 'neha@example.com',
-  dob: '1996-04-12',
-  gender: 'female',
-  address: '12, Shivam Society',
-  city: 'Ahmedabad',
-  pincode: '382405',
-};
 
 /** Self-registers a new app user and returns their auth header + id */
 const registerNewUser = async (mobile = '9000000031') => {
@@ -25,220 +15,228 @@ const registerNewUser = async (mobile = '9000000031') => {
 };
 
 const offerOf = (auth) => api().get('/api/v1/customer/offers/welcome').set('Authorization', auth);
-const claim = (auth) => api().post('/api/v1/customer/offers/welcome/claim').set('Authorization', auth);
-const updateProfile = (auth, body) => api().patch('/api/v1/customer/me').set('Authorization', auth).send(body);
+const claim = (auth, key) => api().post(`/api/v1/customer/offers/welcome/${key}/claim`).set('Authorization', auth);
 
 let adminAuth;
 beforeEach(async () => {
   ({ auth: adminAuth } = await loginAsAdmin(app));
 });
 
-describe('Welcome offer: complete your profile, get a coupon', () => {
-  it('asks a new customer to complete the profile, then issues one coupon', async () => {
+const patchVouchers = (welcomeVouchers) =>
+  api().patch('/api/v1/admin/settings').set('Authorization', adminAuth).send({ offers: { welcomeVouchers } });
+
+describe('Welcome vouchers: unlocked on joining the app', () => {
+  it('a new customer gets both vouchers straight away and claims them one by one', async () => {
     const { auth } = await registerNewUser();
 
     const before = await offerOf(auth).expect(200);
-    expect(before.body.data).toMatchObject({
-      status: 'complete_profile',
-      offer: { discountType: 'flat', discountValue: 200, minBillAmount: 1000, validityDays: 90 },
-    });
-    expect(before.body.data.missingFields.map((f) => f.field)).toEqual(['email', 'dob', 'gender', 'address', 'city', 'pincode']);
+    expect(before.body.data.status).toBe('ready');
+    expect(before.body.data.vouchers).toMatchObject([
+      {
+        key: 'glass',
+        title: 'Free 6D Toughened Glass',
+        campaignCode: 'WELCOME6D',
+        status: 'ready',
+        discount: { type: 'free_item', value: 299, itemName: '6D Toughened Glass' },
+        validityDays: 30,
+      },
+      {
+        key: 'accessories',
+        title: '₹200 off Mobile Accessories',
+        campaignCode: 'SAVE200',
+        status: 'ready',
+        discount: { type: 'flat', value: 200 },
+        minBillAmount: 2000,
+        appliesTo: ['accessories'],
+      },
+    ]);
 
-    // Claiming too early is refused and says what is missing
-    const early = await claim(auth).expect(422);
-    expect(early.body.errors.map((e) => e.field)).toContain('email');
+    const glass = (await claim(auth, 'glass').expect(201)).body.data.coupon;
+    expect(glass).toMatchObject({ campaignCode: 'WELCOME6D', status: 'active', appliesTo: ['accessories'] });
+    expect(glass.code).toMatch(/^SM-[A-Z0-9]{4}-[A-Z0-9]{4}$/);
+    const days = (new Date(glass.expiresAt) - Date.now()) / 86400000;
+    expect(days).toBeGreaterThan(29.9);
+    expect(days).toBeLessThanOrEqual(30);
 
-    await updateProfile(auth, FULL_PROFILE).expect(200);
-    expect((await offerOf(auth)).body.data.status).toBe('ready');
+    // Claiming again returns the same voucher; the other one is still waiting
+    expect((await claim(auth, 'glass').expect(200)).body.data.coupon.code).toBe(glass.code);
+    const middle = (await offerOf(auth)).body.data;
+    expect(middle.status).toBe('ready');
+    expect(middle.vouchers.map((v) => v.status)).toEqual(['claimed', 'ready']);
 
-    const first = await claim(auth).expect(201);
-    const coupon = first.body.data.coupon;
-    expect(coupon.code).toMatch(/^SM-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);
-    expect(coupon).toMatchObject({ status: 'active', discount: { type: 'flat', value: 200 }, minBillAmount: 1000 });
-    const days = (new Date(coupon.expiresAt) - Date.now()) / 86400000;
-    expect(days).toBeGreaterThan(89.9);
-    expect(days).toBeLessThanOrEqual(90);
-
-    // Claiming again returns the same coupon, never a second one
-    const again = await claim(auth).expect(200);
-    expect(again.body.data.coupon.code).toBe(coupon.code);
-    expect(await Coupon.countDocuments()).toBe(1);
-
-    const status = await offerOf(auth).expect(200);
-    expect(status.body.data).toMatchObject({ status: 'claimed', coupon: { code: coupon.code } });
+    await claim(auth, 'accessories').expect(201);
+    const after = (await offerOf(auth)).body.data;
+    expect(after.status).toBe('claimed');
+    expect(after.vouchers.every((v) => v.coupon?.status === 'active')).toBe(true);
 
     const mine = await api().get('/api/v1/customer/coupons').set('Authorization', auth).expect(200);
-    expect(mine.body.data.items.map((c) => c.code)).toEqual([coupon.code]);
+    expect(mine.body.data.items.map((c) => c.campaignCode).sort()).toEqual(['SAVE200', 'WELCOME6D']);
+    await claim(auth, 'unknown').expect(422);
   });
 
-  it('concurrent claims still produce a single coupon', async () => {
+  it('simultaneous claims still create one voucher', async () => {
     const { auth } = await registerNewUser('9000000032');
-    await updateProfile(auth, FULL_PROFILE).expect(200);
-    const results = await Promise.all([claim(auth), claim(auth), claim(auth)]);
-    const codes = new Set(results.map((r) => r.body.data.coupon.code));
-    expect(codes.size).toBe(1);
+    const results = await Promise.all([claim(auth, 'accessories'), claim(auth, 'accessories'), claim(auth, 'accessories')]);
+    expect(new Set(results.map((r) => r.body.data.coupon.code)).size).toBe(1);
     expect(await Coupon.countDocuments()).toBe(1);
   });
 
-  it('a placeholder name from the store does not count as complete', async () => {
-    // Store bills a purchase to a new number without a name, customer signs in later
-    await api()
-      .post('/api/v1/admin/purchases')
-      .set('Authorization', adminAuth)
-      .send({ ...samplePurchase('000000000000000000000000'), customerId: undefined, newCustomer: { mobile: '9000000033' } })
-      .expect(201);
-    await api().post('/api/v1/auth/customer/send-otp').send({ mobile: '9000000033' }).expect(200);
-    const login = await api().post('/api/v1/auth/customer/verify-otp').send({ mobile: '9000000033', otp: DEV_OTP }).expect(200);
-    const auth = `Bearer ${login.body.data.token}`;
-
-    const { name: _n, ...withoutName } = FULL_PROFILE;
-    await updateProfile(auth, withoutName).expect(200);
-    const res = await offerOf(auth).expect(200);
-    expect(res.body.data).toMatchObject({ status: 'complete_profile', missingFields: [{ field: 'name' }] });
-  });
-
-  it('existing customers (before the offer) are not eligible', async () => {
+  it('customers who joined before the offer do not get vouchers', async () => {
     await createTestCustomer();
-    await api().post('/api/v1/auth/customer/send-otp').send({ mobile: '9876543210' }).expect(200);
-    // createTestCustomer is store-created → first sign-in makes them a new app user; simulate an old one:
     await Customer.updateOne({ mobile: '+919876543210' }, { $set: { mobileVerifiedAt: new Date('2025-01-01') } });
+    await api().post('/api/v1/auth/customer/send-otp').send({ mobile: '9876543210' }).expect(200);
     const login = await api().post('/api/v1/auth/customer/verify-otp').send({ mobile: '9876543210', otp: DEV_OTP }).expect(200);
     const auth = `Bearer ${login.body.data.token}`;
-    expect((await offerOf(auth)).body.data.status).toBe('unavailable');
-    await claim(auth).expect(403);
+    expect((await offerOf(auth)).body.data).toEqual({ status: 'unavailable', vouchers: [] });
+    await claim(auth, 'glass').expect(403);
   });
 
-  it('the admin can switch the offer off and change its terms (new coupons only)', async () => {
+  it('the admin can change the terms, switch a voucher off, or switch both off', async () => {
     const { auth } = await registerNewUser('9000000034');
-    await updateProfile(auth, FULL_PROFILE).expect(200);
+    const res = await patchVouchers({ validityDays: 15, glass: { value: 399, itemName: '9D Glass' }, accessories: { enabled: false } }).expect(200);
+    expect(res.body.data.settings.offers.welcomeVouchers).toMatchObject({
+      enabled: true,
+      validityDays: 15,
+      glass: { code: 'WELCOME6D', itemName: '9D Glass', value: 399 },
+      accessories: { enabled: false, code: 'SAVE200' },
+    });
+    const offer = (await offerOf(auth)).body.data;
+    expect(offer.vouchers.map((v) => [v.key, v.title])).toEqual([['glass', 'Free 9D Glass']]);
+    await claim(auth, 'accessories').expect(404);
 
-    const patch = (welcome) =>
-      api().patch('/api/v1/admin/settings').set('Authorization', adminAuth).send({ offers: { welcome } });
-    await patch({ enabled: false }).expect(200);
+    await patchVouchers({ enabled: false }).expect(200);
     expect((await offerOf(auth)).body.data.status).toBe('unavailable');
 
-    const res = await patch({ enabled: true, discountType: 'percent', discountValue: 10, maxDiscount: 500, validityDays: 30 }).expect(200);
-    expect(res.body.data.settings.offers.welcome).toMatchObject({ discountType: 'percent', discountValue: 10, maxDiscount: 500, minBillAmount: 1000 });
-    const coupon = (await claim(auth).expect(201)).body.data.coupon;
-    expect(coupon.discount).toEqual({ type: 'percent', value: 10, maxAmount: 500 });
-
-    await patch({ discountType: 'percent', discountValue: 150 }).expect(422);
-    await patch({ validityDays: 0 }).expect(422);
-  });
-});
-
-describe('Redeeming a coupon at the counter', () => {
-  const issueCoupon = async (mobile, welcome) => {
-    if (welcome) {
-      await api().patch('/api/v1/admin/settings').set('Authorization', adminAuth).send({ offers: { welcome } }).expect(200);
-    }
-    const { auth, id } = await registerNewUser(mobile);
-    await updateProfile(auth, FULL_PROFILE).expect(200);
-    const coupon = (await claim(auth).expect(201)).body.data.coupon;
-    return { coupon, customerId: id, auth };
-  };
-  const bill = (customerId, overrides) =>
-    api().post('/api/v1/admin/purchases').set('Authorization', adminAuth).send(samplePurchase(customerId, overrides));
-
-  it('admin looks up the code (typed any way, or scanned) and sees the owner', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000041');
-    const messy = coupon.code.toLowerCase().replace(/-/g, ' ');
-    const res = await api().get(`/api/v1/admin/coupons/${encodeURIComponent(messy)}`).set('Authorization', adminAuth).expect(200);
-    expect(res.body.data).toMatchObject({ usable: true, coupon: { code: coupon.code }, customer: { id: customerId, name: 'Neha Joshi' } });
-    await api().get('/api/v1/admin/coupons/SM-XXXX-YYYY').set('Authorization', adminAuth).expect(404);
+    await patchVouchers({ accessories: { code: 'welcome6d' } }).expect(422); // same as the other voucher
+    await patchVouchers({ glass: { code: 'SM7KQ2XH4P' } }).expect(422); // looks like a personal code
+    await patchVouchers({ glass: { code: 'no spaces' } }).expect(422);
   });
 
-  it('takes the discount off the bill, before loyalty points, and can be used only once', async () => {
-    const { coupon, customerId, auth } = await issueCoupon('9000000042');
-    const res = await bill(customerId, { couponCode: coupon.code, pricing: { purchaseAmount: 25000, discount: 1000 } }).expect(201);
-    expect(res.body.data.purchase.pricing).toMatchObject({ purchaseAmount: 25000, discount: 1000, couponDiscount: 200, finalAmount: 23800 });
-    expect(res.body.data.purchase.coupon).toEqual({ code: coupon.code });
-    // Points are earned on what was actually paid
-    expect(res.body.data.purchase.loyalty.pointsEarned).toBe(238);
-
-    const again = await bill(customerId, { couponCode: coupon.code }).expect(422);
-    expect(again.body.errors[0]).toMatchObject({ field: 'couponCode', message: 'This coupon has already been used' });
-
-    const mine = await api().get('/api/v1/customer/coupons').set('Authorization', auth).expect(200);
-    expect(mine.body.data.items[0]).toMatchObject({ status: 'redeemed', purchaseId: res.body.data.purchase.id });
-  });
-
-  it('percentage coupons respect their cap', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000043', { discountType: 'percent', discountValue: 10, maxDiscount: 500 });
-    const res = await bill(customerId, { couponCode: coupon.code, pricing: { purchaseAmount: 20000, discount: 0 } }).expect(201);
-    expect(res.body.data.purchase.pricing).toMatchObject({ couponDiscount: 500, finalAmount: 19500 });
-  });
-
-  it.each([
-    ['another customer', async () => (await createTestCustomer())._id, /belongs to another customer/],
-    ['a bill below the minimum', async (ctx) => ctx.customerId, /at least ₹1,000/, { pricing: { purchaseAmount: 999, discount: 0 } }],
-    ['an unknown code', async (ctx) => ctx.customerId, /No coupon found/, { couponCode: 'SM-AAAA-BBBB' }],
-  ])('rejects %s and leaves the coupon unused', async (_label, customerFor, message, overrides = {}) => {
-    const ctx = await issueCoupon('9000000044');
-    const res = await bill(await customerFor(ctx), { couponCode: ctx.coupon.code, ...overrides }).expect(422);
-    expect(res.body.errors[0].message).toMatch(message);
-    expect((await Coupon.findOne({ code: ctx.coupon.code }).lean()).status).toBe('active');
-    expect(await Purchase.countDocuments()).toBe(0);
-  });
-
-  it('rejects an expired coupon', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000045');
-    await Coupon.updateOne({ code: coupon.code }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
-    const res = await bill(customerId, { couponCode: coupon.code }).expect(422);
-    expect(res.body.errors[0].message).toBe('This coupon has expired');
-  });
-
-  it('a failed purchase does not use up the coupon', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000046');
-    // Redeeming loyalty points the customer does not have fails the whole purchase
-    await bill(customerId, { couponCode: coupon.code, loyaltyRedemption: { points: 1000 } }).expect(422);
-    expect((await Coupon.findOne({ code: coupon.code }).lean()).status).toBe('active');
-  });
-
-  it('two counters using the same coupon at once: only one bill gets it', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000047');
-    const results = await Promise.all([bill(customerId, { couponCode: coupon.code }), bill(customerId, { couponCode: coupon.code })]);
-    expect(results.map((r) => r.status).sort()).toEqual([201, 422]);
-    expect(await Purchase.countDocuments({ 'coupon.code': coupon.code })).toBe(1);
-  });
-
-  it('cancelling the purchase gives the coupon back', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000048');
-    const res = await bill(customerId, { couponCode: coupon.code }).expect(201);
-    await api()
-      .post(`/api/v1/admin/purchases/${res.body.data.purchase.id}/cancel`)
-      .set('Authorization', adminAuth)
-      .send({ reason: 'Customer returned the phone' })
-      .expect(200);
-    expect(await Coupon.findOne({ code: coupon.code }).lean()).toMatchObject({ status: 'active', purchaseId: null });
-    await bill(customerId, { couponCode: coupon.code }).expect(201);
-  });
-
-  it('admin sees the customer coupons', async () => {
-    const { coupon, customerId } = await issueCoupon('9000000049');
-    const res = await api().get(`/api/v1/admin/customers/${customerId}/coupons`).set('Authorization', adminAuth).expect(200);
-    expect(res.body.data.items.map((c) => c.code)).toEqual([coupon.code]);
-  });
-});
-
-describe('Stores whose settings were saved before the offer existed', () => {
-  it('still run the offer with the default terms', async () => {
-    const { StoreSettings } = await import('../src/models/index.js');
+  it('stores whose settings predate the vouchers use the defaults', async () => {
     await api().get('/api/v1/admin/settings').set('Authorization', adminAuth).expect(200);
     await StoreSettings.collection.updateOne({}, { $unset: { offers: '' } });
+    const { auth } = await registerNewUser('9000000035');
+    const offer = (await offerOf(auth)).body.data;
+    expect(offer.vouchers.map((v) => v.campaignCode)).toEqual(['WELCOME6D', 'SAVE200']);
+  });
+});
 
-    const settings = await api().get('/api/v1/admin/settings').set('Authorization', adminAuth).expect(200);
-    expect(settings.body.data.settings.offers.welcome).toMatchObject({ enabled: true, discountValue: 200, minBillAmount: 1000 });
+describe('Redeeming welcome vouchers at the counter', () => {
+  const PHONE = { category: 'phones', product: { name: 'Redmi Note 14', imei: '358921104829104' }, price: 18000 };
+  const GLASS = { category: 'accessories', product: { name: '6D Toughened Glass' }, price: 299 };
+  const accessory = (price, name = 'boAt Airdopes 141') => ({ category: 'accessories', product: { name }, price });
 
-    const { auth } = await registerNewUser('9000000051');
-    expect((await offerOf(auth)).body.data).toMatchObject({ status: 'complete_profile', offer: { discountValue: 200 } });
-    await updateProfile(auth, FULL_PROFILE).expect(200);
-    const coupon = (await claim(auth).expect(201)).body.data.coupon;
-    expect(coupon).toMatchObject({ discount: { type: 'flat', value: 200 }, minBillAmount: 1000 });
+  const setup = async (mobile) => {
+    const { auth, id } = await registerNewUser(mobile);
+    const glass = (await claim(auth, 'glass').expect(201)).body.data.coupon;
+    const save = (await claim(auth, 'accessories').expect(201)).body.data.coupon;
+    return { auth, customerId: id, glass, save };
+  };
+  let invoice = 0;
+  const bill = (customerId, items, extra = {}) =>
+    api()
+      .post('/api/v1/admin/purchases')
+      .set('Authorization', adminAuth)
+      .send({
+        customerId,
+        invoiceNumber: `WV/${(invoice += 1)}`,
+        items,
+        payment: { method: 'Cash' },
+        pricing: { discount: 0 },
+        ...extra,
+      });
+  const lookup = (code, customerId) =>
+    api()
+      .get(`/api/v1/admin/coupons/${encodeURIComponent(code)}`)
+      .query(customerId ? { customerId } : {})
+      .set('Authorization', adminAuth);
 
-    // Saving just one field later keeps the others at their defaults
-    await api().patch('/api/v1/admin/settings').set('Authorization', adminAuth).send({ offers: { welcome: { validityDays: 30 } } }).expect(200);
-    const after = await api().get('/api/v1/admin/settings').set('Authorization', adminAuth).expect(200);
-    expect(after.body.data.settings.offers.welcome).toMatchObject({ enabled: true, discountValue: 200, validityDays: 30 });
+  it('WELCOME6D makes the toughened glass free; the rest of the bill is unchanged', async () => {
+    const { customerId } = await setup('9000000041');
+    const res = await bill(customerId, [PHONE, GLASS], { couponCode: 'welcome6d' }).expect(201);
+    const [phone, glassLine] = res.body.data.purchases;
+    expect(glassLine.pricing).toMatchObject({ couponDiscount: 299, finalAmount: 0 });
+    expect(phone.pricing).toMatchObject({ couponDiscount: 0, finalAmount: 18000 });
+    expect(res.body.data.order.totals).toMatchObject({ couponDiscount: 299, finalAmount: 18000 });
+  });
+
+  it('the free glass is worth up to the voucher value, and needs an accessory on the bill', async () => {
+    const { customerId } = await setup('9000000042');
+    const noAccessory = await bill(customerId, [PHONE], { couponCode: 'WELCOME6D' }).expect(422);
+    expect(noAccessory.body.errors[0].message).toMatch(/add the 6D Toughened Glass/);
+
+    const pricier = await bill(customerId, [{ ...GLASS, price: 499 }], { couponCode: 'WELCOME6D' }).expect(201);
+    expect(pricier.body.data.purchase.pricing).toMatchObject({ couponDiscount: 299, finalAmount: 200 });
+  });
+
+  it('SAVE200 needs ₹2,000 of accessories (phones do not count) and is taken off the accessories', async () => {
+    const { customerId } = await setup('9000000043');
+    const short = await bill(customerId, [PHONE, accessory(1500)], { couponCode: 'SAVE200' }).expect(422);
+    expect(short.body.errors[0].message).toMatch(/needs ₹2,000 of accessories on the bill \(now ₹1,500\)/);
+
+    const ok = await bill(customerId, [PHONE, accessory(1500), accessory(600, 'Type-C Cable')], { couponCode: 'SAVE200' }).expect(201);
+    const lines = ok.body.data.purchases;
+    expect(lines.map((l) => l.pricing.couponDiscount)).toEqual([0, 142.86, 57.14]);
+    expect(ok.body.data.order.totals).toMatchObject({ couponDiscount: 200, finalAmount: 19900 });
+  });
+
+  it('a voucher code needs the customer; the QR code identifies them by itself', async () => {
+    const { customerId, save } = await setup('9000000044');
+    const noCustomer = await lookup('SAVE200').expect(422);
+    expect(noCustomer.body.errors[0].message).toMatch(/Select the customer first/);
+
+    const typed = await lookup('save200', customerId).expect(200);
+    expect(typed.body.data).toMatchObject({ usable: true, coupon: { code: save.code }, customer: { id: customerId } });
+
+    const scanned = await lookup(save.code).expect(200);
+    expect(scanned.body.data.customer.id).toBe(customerId);
+
+    // Another customer who has not claimed it
+    const other = await createTestCustomer();
+    const notClaimed = await lookup('SAVE200', String(other._id)).expect(422);
+    expect(notClaimed.body.errors[0].message).toMatch(/has not claimed the SAVE200 voucher/);
+    await bill(String(other._id), [accessory(2500)], { couponCode: save.code }).expect(422); // someone else's QR
+  });
+
+  it('each voucher works once; cancelling the bill gives it back; expired vouchers are refused', async () => {
+    const { customerId, glass } = await setup('9000000045');
+    const first = await bill(customerId, [GLASS], { couponCode: 'WELCOME6D' }).expect(201);
+    const again = await bill(customerId, [GLASS], { couponCode: 'WELCOME6D' }).expect(422);
+    expect(again.body.errors[0].message).toBe('This voucher has already been used');
+
+    await api()
+      .post(`/api/v1/admin/purchases/${first.body.data.purchase.id}/cancel`)
+      .set('Authorization', adminAuth)
+      .send({ reason: 'Returned' })
+      .expect(200);
+    expect((await Coupon.findOne({ code: glass.code }).lean()).status).toBe('active');
+
+    await Coupon.updateOne({ code: glass.code }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
+    const expired = await bill(customerId, [GLASS], { couponCode: 'WELCOME6D' }).expect(422);
+    expect(expired.body.errors[0].message).toBe('This voucher has expired');
+    expect(await Purchase.countDocuments({ status: 'Purchased' })).toBe(0);
+  });
+
+  it('the customer sees each voucher as Active, Used or Expired', async () => {
+    const { auth, customerId, save } = await setup('9000000046');
+    await bill(customerId, [GLASS], { couponCode: 'WELCOME6D' }).expect(201);
+    await Coupon.updateOne({ code: save.code }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
+    const mine = (await api().get('/api/v1/customer/coupons').set('Authorization', auth).expect(200)).body.data.items;
+    const byCode = Object.fromEntries(mine.map((c) => [c.campaignCode, c.status]));
+    expect(byCode).toEqual({ WELCOME6D: 'redeemed', SAVE200: 'expired' });
+  });
+
+  it('a coupon issued by the earlier profile offer can still be used', async () => {
+    const rohit = await createTestCustomer();
+    await Coupon.create({
+      code: 'SM-AAAA-BBBB',
+      customerId: rohit._id,
+      kind: 'welcome',
+      discount: { type: 'flat', value: 200 },
+      minBillAmount: 1000,
+      expiresAt: new Date(Date.now() + 86400000),
+    });
+    const res = await bill(String(rohit._id), [PHONE], { couponCode: 'SM-AAAA-BBBB' }).expect(201);
+    expect(res.body.data.order.totals.couponDiscount).toBe(200);
   });
 });

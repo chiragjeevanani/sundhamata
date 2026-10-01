@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Gift, Save } from 'lucide-react';
+import { Gift, Headphones, Save, Smartphone } from 'lucide-react';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { AppStylesSettings } from '../components/AppStylesSettings';
-import { describeOffer } from '../../../utils/coupons';
-import { formatINR } from '../../../utils/formatters';
 import { useToast } from '../context/ToastContext';
 
 export const SettingsPage = () => {
@@ -29,13 +27,17 @@ export const SettingsPage = () => {
   const [minRedeemPoints, setMinRedeemPoints] = useState(0);
   const [theme, setTheme] = useState(null);
 
-  // New-customer offer: complete the profile in the app → one discount coupon
-  const [offerEnabled, setOfferEnabled] = useState(true);
-  const [offerType, setOfferType] = useState('flat');
-  const [offerValue, setOfferValue] = useState('200');
-  const [offerMaxDiscount, setOfferMaxDiscount] = useState('');
-  const [offerMinBill, setOfferMinBill] = useState('1000');
-  const [offerValidityDays, setOfferValidityDays] = useState('90');
+  // Welcome vouchers new app users unlock on registering (values as typed in the form)
+  const [vouchers, setVouchers] = useState({
+    enabled: true,
+    validityDays: '30',
+    glass: { enabled: true, code: 'WELCOME6D', itemName: '6D Toughened Glass', value: '299' },
+    accessories: { enabled: true, code: 'SAVE200', amount: '200', minBill: '2000' },
+  });
+  const setVoucherField = (group, field) => (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setVouchers((prev) => (group ? { ...prev, [group]: { ...prev[group], [field]: value } } : { ...prev, [field]: value }));
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -56,14 +58,14 @@ export const SettingsPage = () => {
         setRupeeValuePerPoint(s.loyalty?.rupeeValuePerPoint ?? 1.0);
         setMinRedeemPoints(s.loyalty?.minRedeemPoints ?? 0);
         setTheme(s.theme ?? null);
-        const welcome = s.offers?.welcome;
-        if (welcome) {
-          setOfferEnabled(welcome.enabled);
-          setOfferType(welcome.discountType);
-          setOfferValue(String(welcome.discountValue));
-          setOfferMaxDiscount(String(welcome.maxDiscount ?? ''));
-          setOfferMinBill(String(welcome.minBillAmount ?? 0));
-          setOfferValidityDays(String(welcome.validityDays));
+        const v = s.offers?.welcomeVouchers;
+        if (v) {
+          setVouchers({
+            enabled: v.enabled,
+            validityDays: String(v.validityDays),
+            glass: { ...v.glass, value: String(v.glass.value) },
+            accessories: { ...v.accessories, amount: String(v.accessories.amount), minBill: String(v.accessories.minBill) },
+          });
         }
       } finally {
         setLoading(false);
@@ -92,13 +94,21 @@ export const SettingsPage = () => {
           minRedeemPoints: Number(minRedeemPoints) || 0,
         },
         offers: {
-          welcome: {
-            enabled: offerEnabled,
-            discountType: offerType,
-            discountValue: Number(offerValue) || 0,
-            maxDiscount: offerType === 'percent' && offerMaxDiscount !== '' ? Number(offerMaxDiscount) : null,
-            minBillAmount: Number(offerMinBill) || 0,
-            validityDays: Number(offerValidityDays) || 1,
+          welcomeVouchers: {
+            enabled: vouchers.enabled,
+            validityDays: Number(vouchers.validityDays) || 30,
+            glass: {
+              enabled: vouchers.glass.enabled,
+              code: vouchers.glass.code.trim(),
+              itemName: vouchers.glass.itemName.trim(),
+              value: Number(vouchers.glass.value) || 0,
+            },
+            accessories: {
+              enabled: vouchers.accessories.enabled,
+              code: vouchers.accessories.code.trim(),
+              amount: Number(vouchers.accessories.amount) || 0,
+              minBill: Number(vouchers.accessories.minBill) || 0,
+            },
           },
         },
       });
@@ -277,7 +287,7 @@ export const SettingsPage = () => {
           </div>
         </div>
 
-        {/* New Customer Offer */}
+        {/* Welcome Vouchers (App Welcome Offers) */}
         <div className="p-5 sm:p-6 space-y-4 text-xs">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div className="flex items-start gap-2.5">
@@ -285,101 +295,94 @@ export const SettingsPage = () => {
                 <Gift className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">New Customer Offer</h3>
+                <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">App Welcome Vouchers</h3>
                 <p className="text-xs text-stone-400 font-normal">
-                  New app users who complete their profile get one coupon (QR + code), redeemed on Record Purchase.
+                  New customers unlock these right after registering in the app. One of each per customer; redeem on Record
+                  Purchase by typing the code (for the selected customer) or scanning the QR.
                 </p>
               </div>
             </div>
             <label className="inline-flex items-center gap-2 cursor-pointer select-none self-start">
-              <input
-                type="checkbox"
-                checked={offerEnabled}
-                onChange={(e) => setOfferEnabled(e.target.checked)}
-                className="w-4 h-4 accent-brand-600"
-              />
-              <span className="font-medium text-stone-700">{offerEnabled ? 'Offer is on' : 'Offer is off'}</span>
+              <input type="checkbox" checked={vouchers.enabled} onChange={setVoucherField(null, 'enabled')} className="w-4 h-4 accent-brand-600" />
+              <span className="font-medium text-stone-700">{vouchers.enabled ? 'Vouchers are on' : 'Vouchers are off'}</span>
             </label>
           </div>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3.5 ${offerEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
-            <div className="space-y-1">
-              <label className="font-medium text-stone-700 block">Discount</label>
-              <div className="flex gap-2">
-                <select
-                  value={offerType}
-                  onChange={(e) => setOfferType(e.target.value)}
-                  className="px-2.5 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer"
-                >
-                  <option value="flat">₹ off</option>
-                  <option value="percent">% off</option>
-                </select>
-                <input
-                  type="number"
-                  min="0"
-                  max={offerType === 'percent' ? 100 : undefined}
-                  step="1"
-                  value={offerValue}
-                  onChange={(e) => setOfferValue(e.target.value)}
-                  className="flex-1 min-w-0 px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
-                />
-              </div>
-            </div>
-
-            {offerType === 'percent' && (
+          <div className={`space-y-3.5 ${vouchers.enabled ? '' : 'opacity-50 pointer-events-none'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="space-y-1">
-                <label className="font-medium text-stone-700 block">Maximum Discount (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={offerMaxDiscount}
-                  onChange={(e) => setOfferMaxDiscount(e.target.value)}
-                  placeholder="No limit"
-                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
-                />
+                <label className="font-medium text-stone-700 block" htmlFor="voucher-validity">Valid For (days after claiming)</label>
+                <input id="voucher-validity" type="number" min="1" max="365" value={vouchers.validityDays} onChange={setVoucherField(null, 'validityDays')} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs tabular-nums`} />
               </div>
-            )}
-
-            <div className="space-y-1">
-              <label className="font-medium text-stone-700 block">Minimum Bill (₹)</label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={offerMinBill}
-                onChange={(e) => setOfferMinBill(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
-              />
-              <p className="text-[11px] text-stone-400">0 = any bill</p>
             </div>
 
-            <div className="space-y-1">
-              <label className="font-medium text-stone-700 block">Coupon Valid For (days)</label>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={offerValidityDays}
-                onChange={(e) => setOfferValidityDays(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 tabular-nums focus:outline-hidden focus:border-brand-600 shadow-2xs"
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+              {/* Voucher 1: free item */}
+              <div className="rounded-lg border border-stone-200 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-stone-800 flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-brand-600" />
+                    Voucher 1 · Free item
+                  </span>
+                  <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={vouchers.glass.enabled} onChange={setVoucherField('glass', 'enabled')} className="w-3.5 h-3.5 accent-brand-600" />
+                    <span className="text-stone-600">On</span>
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-code">Voucher Code</label>
+                    <input id="voucher-glass-code" value={vouchers.glass.code} onChange={setVoucherField('glass', 'code')} maxLength={20} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs font-mono uppercase`} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-value">Item Value (₹)</label>
+                    <input id="voucher-glass-value" type="number" min="0" value={vouchers.glass.value} onChange={setVoucherField('glass', 'value')} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs tabular-nums`} />
+                  </div>
+                  <div className="col-span-2 space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-item">Free Item</label>
+                    <input id="voucher-glass-item" value={vouchers.glass.itemName} onChange={setVoucherField('glass', 'itemName')} maxLength={60} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs" />
+                  </div>
+                </div>
+                <p className="text-[11px] text-stone-500">
+                  Customers see "Free {vouchers.glass.itemName || 'item'}". At the counter it is added to the bill and up to ₹
+                  {Number(vouchers.glass.value || 0).toLocaleString('en-IN')} is taken off.
+                </p>
+              </div>
+
+              {/* Voucher 2: discount on accessories */}
+              <div className="rounded-lg border border-stone-200 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-stone-800 flex items-center gap-1.5">
+                    <Headphones className="w-3.5 h-3.5 text-brand-600" />
+                    Voucher 2 · Accessories discount
+                  </span>
+                  <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={vouchers.accessories.enabled} onChange={setVoucherField('accessories', 'enabled')} className="w-3.5 h-3.5 accent-brand-600" />
+                    <span className="text-stone-600">On</span>
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2 space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-code">Voucher Code</label>
+                    <input id="voucher-acc-code" value={vouchers.accessories.code} onChange={setVoucherField('accessories', 'code')} maxLength={20} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs font-mono uppercase`} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-min">Buy Accessories Of (₹)</label>
+                    <input id="voucher-acc-min" type="number" min="0" value={vouchers.accessories.minBill} onChange={setVoucherField('accessories', 'minBill')} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs tabular-nums`} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-amount">Get Off (₹)</label>
+                    <input id="voucher-acc-amount" type="number" min="0" value={vouchers.accessories.amount} onChange={setVoucherField('accessories', 'amount')} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs tabular-nums`} />
+                  </div>
+                </div>
+                <p className="text-[11px] text-stone-500">
+                  "Buy ₹{Number(vouchers.accessories.minBill || 0).toLocaleString('en-IN')} mobile accessories & get ₹
+                  {Number(vouchers.accessories.amount || 0).toLocaleString('en-IN')} off". Only accessories on the bill count.
+                </p>
+              </div>
             </div>
+            <p className="text-[11px] text-stone-400">Changes apply to vouchers claimed from now on; vouchers already claimed keep their terms.</p>
           </div>
-
-          {offerEnabled && Number(offerValue) > 0 && (
-            <p className="text-[11px] text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
-              Customers will see: <span className="font-medium text-stone-800">
-                {describeOffer({
-                  discountType: offerType,
-                  discountValue: Number(offerValue),
-                  maxDiscount: offerType === 'percent' && offerMaxDiscount !== '' ? Number(offerMaxDiscount) : null,
-                })}
-              </span>
-              {Number(offerMinBill) > 0 ? ` on a bill of ${formatINR(Number(offerMinBill))} or more` : ''}, valid for {offerValidityDays} days.
-              Changes apply to coupons issued from now on.
-            </p>
-          )}
         </div>
       </form>
 

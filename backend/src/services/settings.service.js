@@ -1,6 +1,7 @@
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
-import { SETTINGS_KEY, StoreSettings } from '../models/StoreSettings.js';
+import { SETTINGS_KEY, StoreSettings, welcomeVouchersOf } from '../models/StoreSettings.js';
+import { ApiError } from '../utils/ApiError.js';
 
 const INITIAL_SETTINGS = {
   storeName: 'Sundhamata Mobile',
@@ -39,7 +40,20 @@ const toSetPaths = (patch, prefix = '') =>
   }, {});
 
 export const updateSettings = async (patch, admin) => {
-  await getSettings(); // ensure the singleton exists
+  const current = await getSettings(); // ensure the singleton exists
+
+  // The two welcome vouchers are told apart by their codes at the counter
+  const vouchers = patch.offers?.welcomeVouchers;
+  if (vouchers?.glass?.code || vouchers?.accessories?.code) {
+    const now = welcomeVouchersOf(current);
+    const glassCode = vouchers.glass?.code ?? now.glass.code;
+    const accessoriesCode = vouchers.accessories?.code ?? now.accessories.code;
+    if (glassCode === accessoriesCode) {
+      throw ApiError.unprocessable('The two vouchers need different codes', [
+        { field: 'offers.welcomeVouchers.accessories.code', message: 'Same code as the other voucher' },
+      ]);
+    }
+  }
   const $set = { ...toSetPaths(patch), updatedBy: admin._id };
   const updated = await StoreSettings.findOneAndUpdate(
     { key: SETTINGS_KEY },

@@ -384,16 +384,15 @@ Query: `page`, `limit`, `type` (`earned` | `redeemed` | `adjustment` | `expired`
 - Customers carry `isVerified` / `verifiedAt` (blue tick). A customer becomes verified once they both use the app (signed in with an OTP) and have an active purchase at the store — set when the purchase is recorded, or at sign-in for purchases billed before they joined. Registering alone is not enough. It is not removed by later cancellations. Existing customers who qualify are verified by the start-up migration.
 - `POST /customer/me/photo` (raw image body: JPG, PNG, WebP or GIF, max 5 MB; the app sends a 512 px square JPEG) sets or replaces the photo; `DELETE /customer/me/photo` removes it. Staff: `POST|DELETE /admin/customers/:id/photo`. Responses return the customer; `photo: { path, uploadedAt }` where `path` is `/customer-photos/<random key>` — served without login (for `<img>` tags) with `Cache-Control: private`, and the key changes on every replacement.
 
-### New-customer offer and coupons
+### Welcome vouchers and coupons
 
-New app users (self-registered, or signing in for the first time to an account the store created) who complete their profile get one welcome coupon. Required profile fields: name (not the placeholder "Customer"), email, date of birth, gender, address, city, pincode.
+New app users (self-registered, or signing in for the first time to an account the store created) unlock two welcome vouchers straight away ("App Welcome Offers"): **WELCOME6D** — a free 6D toughened glass (free item worth up to ₹299), and **SAVE200** — ₹200 off when the bill has ₹2,000 or more of accessories. Each is claimed separately, once per customer, and is valid for 30 days after claiming. Codes, values and validity are in settings (`offers.welcomeVouchers`).
 
-- `GET /customer/offers/welcome` → `{ status, offer, missingFields, coupon }`. `status` is `unavailable` (offer off or not a new app user), `complete_profile` (`missingFields: [{ field, label }]`), `ready`, or `claimed` (with `coupon`). `offer`: `{ discountType, discountValue, maxDiscount, minBillAmount, validityDays }`.
-- `POST /customer/offers/welcome/claim` → `201 { coupon }` the first time; claiming again returns the same coupon (`200`). `422` lists missing fields; `403` when not eligible.
+- `GET /customer/offers/welcome` → `{ status, vouchers }`. `status`: `unavailable` (off, or not a new app user), `ready` (a voucher still to claim) or `claimed`. Each voucher: `{ key: "glass"|"accessories", title, description, campaignCode, discount, minBillAmount, appliesTo, validityDays, status: "ready"|"claimed", coupon }`.
+- `POST /customer/offers/welcome/:key/claim` → `201 { coupon }` the first time; again returns the same voucher (`200`); `403` when not eligible, `404` when switched off.
 - `GET /customer/coupons` → `{ items: [coupon] }`.
 
-Coupon: `{ id, code: "SM-7KQ2-XH4P", discount: { type: "flat"|"percent", value, maxAmount }, minBillAmount, expiresAt, status: "active"|"redeemed"|"expired", redeemedAt, purchaseId }`. The app shows it as a QR code (containing just the code) plus the code.
-
+Coupon: `{ id, code: "SM-7KQ2-XH4P", campaignCode: "WELCOME6D", title, kind, discount: { type: "flat"|"percent"|"free_item", value, maxAmount, itemName }, appliesTo: ["accessories"], minBillAmount, expiresAt, status: "active"|"redeemed"|"expired", redeemedAt, purchaseId }`. The app shows the voucher code plus a QR containing the personal `code` (scanning it at the counter identifies the customer).
 ---
 
 ## Public store endpoint
@@ -714,10 +713,10 @@ Points are spent while recording a purchase (`loyaltyRedemption.points` on `POST
 
 ### Coupons at the counter
 
-- `GET /admin/coupons/:code` (any formatting: `sm7kq2xh4p`, `SM-7KQ2-XH4P`, a scanned QR) → `{ coupon, customer, usable, reason }`.
+- `GET /admin/coupons/:code?customerId=` — a personal code / scanned QR (any formatting) finds the coupon and its owner by itself; a voucher code like `WELCOME6D` needs `customerId` (the selected customer, i.e. their registered mobile) and finds that customer's voucher. → `{ coupon, customer, usable, reason }`.
 - `GET /admin/customers/:id/coupons` → `{ items }`.
 - Redeem by sending `couponCode` on `POST /admin/purchases`. Order on the bill: price − store discount − coupon − loyalty points = final amount (tax and earned points are on the final amount). The coupon must belong to the purchase's customer, be unexpired and unused, and the bill after the store discount must meet its `minBillAmount`; percentage coupons are capped at `maxAmount`. It is marked used in the same transaction (only one of two simultaneous bills can use it). The purchase stores `pricing.couponDiscount` and `coupon.code`.
-- Offer terms are in settings: `offers.welcome.{ enabled, discountType, discountValue, maxDiscount, minBillAmount, validityDays }` (defaults: on, ₹200 off, minimum bill ₹1,000, 90 days). Terms are copied onto each coupon when issued; changes affect new coupons only.
+- Vouchers with `appliesTo` (e.g. accessories) only count and discount those products: SAVE200 needs ₹2,000 of accessories (after the store discount) and its ₹200 is split over the accessory lines; WELCOME6D takes the free item's value (up to ₹299) off the accessories. Settings: `offers.welcomeVouchers.{ enabled, validityDays, glass: { enabled, code, itemName, value }, accessories: { enabled, code, amount, minBill } }`; terms are copied onto each voucher when claimed, so changes affect new claims only.
 
 ### Cancellation
 

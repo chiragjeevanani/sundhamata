@@ -3,6 +3,14 @@ import { optionalEmailSchema, optionalTextSchema } from './common.js';
 import { THEME_COLOR_KEYS } from '../models/StoreSettings.js';
 
 // "#rrggbb" → "#RRGGBB"; "" or null resets the colour to the built-in default.
+// Voucher code from the poster, e.g. "WELCOME6D": letters and digits (stored in capitals)
+const voucherCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z0-9]{4,20}$/, 'Use 4–20 letters or digits, e.g. WELCOME6D')
+  .refine((v) => !/^SM[A-Z0-9]{8}$/.test(v), 'This looks like a personal coupon code; choose another');
+
 const themeColor = z.preprocess(
   (v) => (typeof v === 'string' ? v.trim().toUpperCase() || null : v ?? null),
   z
@@ -64,17 +72,27 @@ export const updateSettingsSchema = z
       .optional(),
     offers: z
       .strictObject({
-        welcome: z
+        // Welcome vouchers new app users unlock on registering
+        welcomeVouchers: z
           .strictObject({
             enabled: z.boolean().optional(),
-            discountType: z.enum(['flat', 'percent']).optional(),
-            discountValue: z.coerce.number().min(0, 'Discount cannot be negative').max(1_000_000).optional(),
-            maxDiscount: z.preprocess(
-              (v) => (v === '' || v === undefined ? null : v),
-              z.coerce.number().min(0).max(1_000_000).nullable()
-            ).optional(),
-            minBillAmount: z.coerce.number().min(0).max(10_000_000).optional(),
-            validityDays: z.coerce.number().int().min(1, 'Validity must be at least 1 day').max(3650).optional(),
+            validityDays: z.coerce.number().int().min(1, 'Validity must be at least 1 day').max(365).optional(),
+            glass: z
+              .strictObject({
+                enabled: z.boolean().optional(),
+                code: voucherCodeSchema.optional(),
+                itemName: z.string().trim().min(2, 'Item name is required').max(60).optional(),
+                value: z.coerce.number().min(0, 'Value cannot be negative').max(100_000).optional(),
+              })
+              .optional(),
+            accessories: z
+              .strictObject({
+                enabled: z.boolean().optional(),
+                code: voucherCodeSchema.optional(),
+                amount: z.coerce.number().min(0, 'Discount cannot be negative').max(100_000).optional(),
+                minBill: z.coerce.number().min(0, 'Minimum cannot be negative').max(10_000_000).optional(),
+              })
+              .optional(),
           })
           .optional(),
       })
@@ -87,7 +105,10 @@ export const updateSettingsSchema = z
       .optional(),
   })
   .refine((obj) => Object.keys(obj).length > 0, { message: 'Provide at least one setting to update' })
-  .refine((obj) => !(obj.offers?.welcome?.discountType === 'percent' && obj.offers.welcome.discountValue > 100), {
-    message: 'A percentage discount cannot be more than 100%',
-    path: ['offers', 'welcome', 'discountValue'],
-  });
+  .refine(
+    (obj) => {
+      const v = obj.offers?.welcomeVouchers;
+      return !(v?.glass?.code && v?.accessories?.code && v.glass.code === v.accessories.code);
+    },
+    { message: 'The two vouchers need different codes', path: ['offers', 'welcomeVouchers', 'accessories', 'code'] }
+  );

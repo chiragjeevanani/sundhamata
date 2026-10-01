@@ -2,68 +2,84 @@ import { randomInt } from 'node:crypto';
 import { logger } from '../config/logger.js';
 import { Coupon } from '../models/index.js';
 import { COUPON_KINDS, COUPON_STATUSES } from '../models/Coupon.js';
-import { welcomeOfferOf } from '../models/StoreSettings.js';
+import { welcomeVouchersOf } from '../models/StoreSettings.js';
 import { ApiError } from '../utils/ApiError.js';
 import { serializeCoupon } from '../utils/serializers.js';
 import { getSettings } from './settings.service.js';
 
-// ---- welcome offer: complete the profile, get a coupon
+// ---- welcome vouchers: unlocked when a new customer joins the app, claimed one by one
 
 export const PLACEHOLDER_CUSTOMER_NAME = 'Customer';
 
-/** Profile fields a customer fills in to unlock the welcome coupon (anniversary is optional). */
-export const REQUIRED_PROFILE_FIELDS = Object.freeze([
-  { key: 'name', label: 'Full name' },
-  { key: 'email', label: 'Email' },
-  { key: 'dob', label: 'Date of birth' },
-  { key: 'gender', label: 'Gender' },
-  { key: 'address', label: 'Address' },
-  { key: 'city', label: 'City' },
-  { key: 'pincode', label: 'Pincode' },
-]);
+/**
+ * The welcome vouchers on offer (from settings), in display order. The terms are copied onto
+ * each coupon when it is claimed, so later changes only affect vouchers claimed afterwards.
+ */
+export const welcomeVoucherDefinitions = (settings) => {
+  const v = welcomeVouchersOf(settings);
+  if (!v.enabled) return [];
+  const accessoriesOnly = ['accessories'];
+  return [
+    {
+      key: 'glass',
+      kind: COUPON_KINDS.WELCOME_GLASS,
+      enabled: v.glass.enabled && v.glass.value > 0,
+      campaignCode: v.glass.code,
+      title: `Free ${v.glass.itemName}`,
+      description: `Join the Sundhamata Mobile app and get 1 ${v.glass.itemName} free`,
+      discount: { type: 'free_item', value: v.glass.value, itemName: v.glass.itemName, maxAmount: null },
+      minBillAmount: 0,
+      appliesTo: accessoriesOnly,
+    },
+    {
+      key: 'accessories',
+      kind: COUPON_KINDS.WELCOME_ACCESSORIES,
+      enabled: v.accessories.enabled && v.accessories.amount > 0,
+      campaignCode: v.accessories.code,
+      title: `₹${v.accessories.amount.toLocaleString('en-IN')} off Mobile Accessories`,
+      description: `Buy ₹${v.accessories.minBill.toLocaleString('en-IN')} of mobile accessories and get ₹${v.accessories.amount.toLocaleString('en-IN')} off`,
+      discount: { type: 'flat', value: v.accessories.amount, itemName: null, maxAmount: null },
+      minBillAmount: v.accessories.minBill,
+      appliesTo: accessoriesOnly,
+    },
+  ]
+    .filter((d) => d.enabled)
+    .map(({ enabled: _enabled, ...d }) => ({ ...d, validityDays: v.validityDays }));
+};
 
-export const missingProfileFields = (customer) =>
-  REQUIRED_PROFILE_FIELDS.filter(({ key }) => {
-    const value = customer[key];
-    if (key === 'name') return !value || value === PLACEHOLDER_CUSTOMER_NAME;
-    return value === null || value === undefined || value === '';
-  });
-
-/** Offer terms for the app ("₹200 off on a bill of ₹1,000 or more, valid 90 days") */
-const publicOfferTerms = (offer) => ({
-  discountType: offer.discountType,
-  discountValue: offer.discountValue,
-  maxDiscount: offer.maxDiscount ?? null,
-  minBillAmount: offer.minBillAmount ?? 0,
-  validityDays: offer.validityDays,
+const publicVoucher = (definition) => ({
+  key: definition.key,
+  title: definition.title,
+  description: definition.description,
+  campaignCode: definition.campaignCode,
+  discount: definition.discount,
+  minBillAmount: definition.minBillAmount,
+  appliesTo: definition.appliesTo,
+  validityDays: definition.validityDays,
 });
 
-const welcomeCouponOf = (customerId) =>
-  Coupon.findOne({ customerId, kind: COUPON_KINDS.WELCOME }).lean();
-
 /**
- * Where the customer stands with the welcome offer:
- * - "unavailable"      offer switched off, or the account is not a new app user
- * - "complete_profile" eligible; `missingFields` lists what is still needed
- * - "ready"            profile complete; the coupon can be claimed
- * - "claimed"          coupon already issued (included)
+ * The customer's welcome vouchers:
+ * - status "unavailable": vouchers switched off, or not a new app user (joined before the offer)
+ * - status "ready": at least one voucher still to claim
+ * - status "claimed": all claimed (each voucher then carries its coupon: Active / Used / Expired)
  */
 export const getWelcomeOfferStatus = async (customer) => {
-  const [settings, coupon] = await Promise.all([getSettings(), welcomeCouponOf(customer._id)]);
-  const offer = welcomeOfferOf(settings);
-  const terms = publicOfferTerms(offer);
-
-  if (coupon) return { status: 'claimed', offer: terms, missingFields: [], coupon: serializeCoupon(coupon) };
-  if (!offer.enabled || !customer.welcomeOffer?.eligible || !(offer.discountValue > 0)) {
-    return { status: 'unavailable', offer: null, missingFields: [], coupon: null };
-  }
-  const missing = missingProfileFields(customer);
-  return {
-    status: missing.length ? 'complete_profile' : 'ready',
-    offer: terms,
-    missingFields: missing.map(({ key, label }) => ({ field: key, label })),
-    coupon: null,
-  };
+  const [settings, coupons] = await Promise.all([
+    getSettings(),
+    Coupon.find({ customerId: customer._id, kind: { $in: [COUPON_KINDS.WELCOME_GLASS, COUPON_KINDS.WELCOME_ACCESSORIES] } }).lean(),
+  ]);
+  const byKind = new Map(coupons.map((c) => [c.kind, c]));
+  const eligible = Boolean(customer.welcomeOffer?.eligible);
+  const vouchers = welcomeVoucherDefinitions(settings)
+    .map((definition) => {
+      const coupon = byKind.get(definition.kind);
+      if (coupon) return { ...publicVoucher(definition), status: 'claimed', coupon: serializeCoupon(coupon) };
+      return eligible ? { ...publicVoucher(definition), status: 'ready', coupon: null } : null;
+    })
+    .filter(Boolean);
+  const status = !vouchers.length ? 'unavailable' : vouchers.some((v) => v.status === 'ready') ? 'ready' : 'claimed';
+  return { status, vouchers };
 };
 
 // Unambiguous characters only (no 0/O, 1/I/L) so codes are easy to read out and type.
@@ -71,7 +87,7 @@ const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const randomBlock = () => Array.from({ length: 4 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join('');
 const generateCode = () => `SM-${randomBlock()}-${randomBlock()}`;
 
-/** "sm 7kq2xh4p", "SM7KQ2XH4P", a scanned QR … → "SM-7KQ2-XH4P" */
+/** "sm 7kq2xh4p", "SM7KQ2XH4P", a scanned QR … → "SM-7KQ2-XH4P"; "welcome6d" → "WELCOME6D" */
 export const normalizeCouponCode = (input) => {
   const compact = String(input ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (/^SM[A-Z0-9]{8}$/.test(compact)) return `SM-${compact.slice(2, 6)}-${compact.slice(6)}`;
@@ -80,50 +96,43 @@ export const normalizeCouponCode = (input) => {
 
 const addDays = (date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 
-/** Issues the welcome coupon once the profile is complete. Claiming again returns the same coupon. */
-export const claimWelcomeCoupon = async (customer) => {
-  const status = await getWelcomeOfferStatus(customer);
-  if (status.status === 'claimed') return { coupon: status.coupon, created: false };
-  if (status.status === 'unavailable') {
-    throw ApiError.forbidden('This offer is not available for your account.');
-  }
-  if (status.status === 'complete_profile') {
-    throw ApiError.unprocessable(
-      'Complete your profile to get the coupon',
-      status.missingFields.map(({ field, label }) => ({ field, message: `${label} is required` }))
-    );
-  }
+/** Claims one welcome voucher (once per customer; claiming again returns the same voucher). */
+export const claimWelcomeVoucher = async (customer, key) => {
+  const definition = welcomeVoucherDefinitions(await getSettings()).find((d) => d.key === key);
+  if (!definition) throw ApiError.notFound('This voucher is not available');
+  const existing = await Coupon.findOne({ customerId: customer._id, kind: definition.kind }).lean();
+  if (existing) return { coupon: serializeCoupon(existing), created: false };
+  if (!customer.welcomeOffer?.eligible) throw ApiError.forbidden('Welcome vouchers are for new app users.');
 
-  const offer = welcomeOfferOf(await getSettings());
   const now = new Date();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     try {
       const coupon = await Coupon.create({
         code: generateCode(),
+        campaignCode: definition.campaignCode,
+        title: definition.title,
         customerId: customer._id,
-        kind: COUPON_KINDS.WELCOME,
-        discount: {
-          type: offer.discountType,
-          value: offer.discountValue,
-          maxAmount: offer.discountType === 'percent' ? offer.maxDiscount : null,
-        },
-        minBillAmount: offer.minBillAmount,
-        expiresAt: addDays(now, offer.validityDays),
+        kind: definition.kind,
+        onceKey: definition.kind,
+        discount: definition.discount,
+        appliesTo: definition.appliesTo,
+        minBillAmount: definition.minBillAmount,
+        expiresAt: addDays(now, definition.validityDays),
       });
-      logger.info({ customerId: customer.id, couponId: coupon.id }, 'Welcome coupon issued');
+      logger.info({ customerId: customer.id, couponId: coupon.id, kind: definition.kind }, 'Welcome voucher claimed');
       return { coupon: serializeCoupon(coupon.toObject()), created: true };
     } catch (err) {
       if (err?.code !== 11000) throw err;
-      // Claimed at the same moment from another device → return that coupon
-      const existing = await welcomeCouponOf(customer._id);
-      if (existing) return { coupon: serializeCoupon(existing), created: false };
+      // Claimed at the same moment from another device → return that voucher
+      const raced = await Coupon.findOne({ customerId: customer._id, kind: definition.kind }).lean();
+      if (raced) return { coupon: serializeCoupon(raced), created: false };
       // Otherwise the random code collided: try another one
     }
   }
-  throw new ApiError(500, 'Could not generate a coupon, please try again');
+  throw new ApiError(500, 'Could not create the voucher, please try again');
 };
 
-/** Marks the first sign-in of a new app user as eligible for the welcome offer. */
+/** Marks the first sign-in of a new app user as eligible for the welcome vouchers. */
 export const markWelcomeOfferEligible = (customer) => {
   if (customer.welcomeOffer?.eligible) return;
   customer.set('welcomeOffer', { eligible: true, eligibleSince: new Date() });
@@ -131,17 +140,17 @@ export const markWelcomeOfferEligible = (customer) => {
 
 export const listCustomerCoupons = async (customerId) => {
   const coupons = await Coupon.find({ customerId }).sort({ createdAt: -1 }).lean();
-  return coupons.map(serializeCoupon);
+  return coupons.map((c) => serializeCoupon(c));
 };
 
 // ---- redemption at the counter
 
-/** Discount (₹) this coupon gives on a bill of `amount` (after the store discount). */
+/** Discount (₹) this coupon gives on `amount` (the part of the bill it applies to, after the store discount). */
 export const couponDiscountFor = (coupon, amount) => {
   const raw =
     coupon.discount.type === 'percent'
       ? (amount * coupon.discount.value) / 100
-      : coupon.discount.value;
+      : coupon.discount.value; // flat, or free_item (its value)
   const cap = coupon.discount.maxAmount;
   const capped = cap === null || cap === undefined ? raw : Math.min(raw, cap);
   return Math.round(Math.min(capped, amount) * 100) / 100;
@@ -151,17 +160,41 @@ const couponProblem = (message) => ApiError.unprocessable(message, [{ field: 'co
 
 /** Why this coupon cannot be used right now, or null when it can. */
 const unusableReason = (coupon, now = new Date()) => {
-  if (coupon.status === COUPON_STATUSES.REDEEMED) return 'This coupon has already been used';
-  if (coupon.expiresAt <= now) return 'This coupon has expired';
+  if (coupon.status === COUPON_STATUSES.REDEEMED) return 'This voucher has already been used';
+  if (coupon.expiresAt <= now) return 'This voucher has expired';
   return null;
 };
 
+const CATEGORY_LABELS = { phones: 'mobiles', accessories: 'accessories', service: 'services' };
+const appliesToLabel = (coupon) =>
+  coupon.appliesTo?.length ? coupon.appliesTo.map((c) => CATEGORY_LABELS[c] ?? c).join(' / ') : null;
+
+/**
+ * Finds the coupon for a typed or scanned code. A personal code (inside the QR) identifies the
+ * customer by itself; a voucher code from the poster ("WELCOME6D") needs the customer
+ * (registered mobile) and finds that customer's voucher.
+ */
+const findCoupon = async (rawCode, customerId, session = null) => {
+  const code = normalizeCouponCode(rawCode);
+  const personal = await Coupon.findOne({ code }).session(session).lean();
+  if (personal) return personal;
+  const campaignExists = await Coupon.exists({ campaignCode: code }).session(session);
+  if (!campaignExists) return null;
+  if (!customerId) {
+    throw couponProblem(`Select the customer first: ${code} works with their registered mobile number`);
+  }
+  const own = await Coupon.findOne({ campaignCode: code, customerId }).sort({ createdAt: -1 }).session(session).lean();
+  if (!own) throw couponProblem(`This customer has not claimed the ${code} voucher in the app`);
+  return own;
+};
+
 /** Admin lookup before billing: the coupon, its owner, and whether it can be used. */
-export const lookupCouponForAdmin = async (code) => {
-  const coupon = await Coupon.findOne({ code: normalizeCouponCode(code) })
+export const lookupCouponForAdmin = async (code, { customerId } = {}) => {
+  const found = await findCoupon(code, customerId);
+  if (!found) throw ApiError.notFound('No voucher found with this code');
+  const coupon = await Coupon.findById(found._id)
     .populate('customerId', 'name mobile customerCode loyaltyPoints isActive verifiedAt photo')
     .lean();
-  if (!coupon) throw ApiError.notFound('No coupon found with this code');
   return {
     coupon: serializeCoupon(coupon),
     customer: {
@@ -181,22 +214,33 @@ export const lookupCouponForAdmin = async (code) => {
 
 /**
  * Checks a coupon for a bill and works out its discount (inside the purchase transaction).
- * @returns {{ coupon: object, discount: number }}
+ * @param {{ code, customerId, lines: Array<{ category: string, amount: number }> }} input
+ *   lines: each product's amount after the store discount
+ * @returns {{ coupon: object, discount: number, eligible: boolean[] }} eligible: which lines it applies to
  */
-export const prepareCouponForPurchase = async ({ code, customerId, amount }, { session }) => {
-  const coupon = await Coupon.findOne({ code: normalizeCouponCode(code) }).session(session).lean();
-  if (!coupon) throw couponProblem('No coupon found with this code');
+export const prepareCouponForPurchase = async ({ code, customerId, lines }, { session }) => {
+  const coupon = await findCoupon(code, customerId, session);
+  if (!coupon) throw couponProblem('No voucher found with this code');
   if (coupon.customerId.toString() !== customerId.toString()) {
-    throw couponProblem('This coupon belongs to another customer');
+    throw couponProblem('This voucher belongs to another customer');
   }
   const reason = unusableReason(coupon);
   if (reason) throw couponProblem(reason);
+
+  const eligible = lines.map((line) => !coupon.appliesTo?.length || coupon.appliesTo.includes(line.category));
+  const amount = Math.round(lines.reduce((sum, line, i) => sum + (eligible[i] ? line.amount : 0), 0) * 100) / 100;
+  const scope = appliesToLabel(coupon);
+  if (!(amount > 0)) {
+    throw couponProblem(`This voucher is for ${scope}: add ${coupon.discount.itemName ? `the ${coupon.discount.itemName}` : scope} to the bill`);
+  }
   if (amount < (coupon.minBillAmount ?? 0)) {
-    throw couponProblem(`This coupon needs a bill of at least ₹${coupon.minBillAmount.toLocaleString('en-IN')}`);
+    throw couponProblem(
+      `This voucher needs ₹${coupon.minBillAmount.toLocaleString('en-IN')} of ${scope ?? 'shopping'} on the bill (now ₹${amount.toLocaleString('en-IN')})`
+    );
   }
   const discount = couponDiscountFor(coupon, amount);
-  if (!(discount > 0)) throw couponProblem('This coupon gives no discount on this bill');
-  return { coupon, discount };
+  if (!(discount > 0)) throw couponProblem('This voucher gives no discount on this bill');
+  return { coupon, discount, eligible };
 };
 
 /** Atomically marks the coupon used by this purchase; fails if someone used it a moment earlier. */

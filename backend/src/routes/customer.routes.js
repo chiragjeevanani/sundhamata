@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import * as customer from '../controllers/customer.controller.js';
 import { requireCustomerAuth } from '../middleware/auth.js';
 import { rawImageUpload } from '../middleware/uploads.js';
@@ -30,9 +31,13 @@ export const createCustomerRouter = () => {
   router.get('/loyalty/transactions', validate({ query: ownTransactionsQuerySchema }), customer.listMyLoyaltyTransactions);
   router.get('/loyalty/transactions/:id', validate({ params: idParamsSchema }), customer.getMyLoyaltyTransaction);
 
-  // New-customer offer: complete the profile, then claim a discount coupon (QR + code)
+  // Welcome vouchers for new app users: claim each one (QR + code), redeem at the store
   router.get('/offers/welcome', customer.getMyWelcomeOffer);
-  router.post('/offers/welcome/claim', customer.claimMyWelcomeCoupon);
+  router.post(
+    '/offers/welcome/:key/claim',
+    validate({ params: z.object({ key: z.enum(['glass', 'accessories']) }) }),
+    customer.claimMyWelcomeVoucher
+  );
   router.get('/coupons', customer.listMyCoupons);
 
   return router;

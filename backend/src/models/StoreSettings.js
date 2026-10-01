@@ -2,23 +2,30 @@ import mongoose from 'mongoose';
 
 export const SETTINGS_KEY = 'store';
 
-// New-customer offer terms used until the admin changes them. Settings are read with .lean(),
-// so documents created before the offer existed have no `offers`: always merge with these.
-export const WELCOME_OFFER_DEFAULTS = Object.freeze({
+// Welcome vouchers for new app users (the "App Welcome Offers" poster). Settings are read with
+// .lean(), so documents created before these existed have no values: always merge with these.
+export const WELCOME_VOUCHER_DEFAULTS = Object.freeze({
   enabled: true,
-  discountType: 'flat',
-  discountValue: 200,
-  maxDiscount: null,
-  minBillAmount: 1000,
-  validityDays: 90,
+  // Days a voucher stays valid after the customer claims it
+  validityDays: 30,
+  // Voucher 1: a free item (staff add it to the bill and the voucher takes its price off)
+  glass: Object.freeze({ enabled: true, code: 'WELCOME6D', itemName: '6D Toughened Glass', value: 299 }),
+  // Voucher 2: flat discount when the accessories on the bill reach a minimum
+  accessories: Object.freeze({ enabled: true, code: 'SAVE200', amount: 200, minBill: 2000 }),
 });
 
-/** Effective welcome-offer terms (stored values over the defaults) */
-export const welcomeOfferOf = (settings) => {
-  const stored = settings?.offers?.welcome ?? {};
-  return Object.fromEntries(
-    Object.entries(WELCOME_OFFER_DEFAULTS).map(([key, fallback]) => [key, stored[key] ?? fallback])
-  );
+const mergeDefaults = (defaults, stored = {}) =>
+  Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => [key, stored?.[key] ?? fallback]));
+
+/** Effective welcome-voucher settings (stored values over the defaults) */
+export const welcomeVouchersOf = (settings) => {
+  const stored = settings?.offers?.welcomeVouchers ?? {};
+  return {
+    enabled: stored.enabled ?? WELCOME_VOUCHER_DEFAULTS.enabled,
+    validityDays: stored.validityDays ?? WELCOME_VOUCHER_DEFAULTS.validityDays,
+    glass: mergeDefaults(WELCOME_VOUCHER_DEFAULTS.glass, stored.glass),
+    accessories: mergeDefaults(WELCOME_VOUCHER_DEFAULTS.accessories, stored.accessories),
+  };
 };
 
 // Colours the admin can customise per app, as "#RRGGBB". null = the built-in logo colours.
@@ -61,14 +68,22 @@ const storeSettingsSchema = new mongoose.Schema(
     },
 
     offers: {
-      // New customers who complete their profile in the app get one coupon with these terms
-      welcome: {
-        enabled: { type: Boolean, default: WELCOME_OFFER_DEFAULTS.enabled },
-        discountType: { type: String, enum: ['flat', 'percent'], default: WELCOME_OFFER_DEFAULTS.discountType },
-        discountValue: { type: Number, min: 0, default: WELCOME_OFFER_DEFAULTS.discountValue },
-        maxDiscount: { type: Number, min: 0, default: WELCOME_OFFER_DEFAULTS.maxDiscount },
-        minBillAmount: { type: Number, min: 0, default: WELCOME_OFFER_DEFAULTS.minBillAmount },
-        validityDays: { type: Number, min: 1, default: WELCOME_OFFER_DEFAULTS.validityDays },
+      // Welcome vouchers new app users unlock on registering (see services/coupon.service.js)
+      welcomeVouchers: {
+        enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.enabled },
+        validityDays: { type: Number, min: 1, max: 365, default: WELCOME_VOUCHER_DEFAULTS.validityDays },
+        glass: {
+          enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.glass.enabled },
+          code: { type: String, trim: true, uppercase: true, maxlength: 20, default: WELCOME_VOUCHER_DEFAULTS.glass.code },
+          itemName: { type: String, trim: true, maxlength: 60, default: WELCOME_VOUCHER_DEFAULTS.glass.itemName },
+          value: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.glass.value },
+        },
+        accessories: {
+          enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.accessories.enabled },
+          code: { type: String, trim: true, uppercase: true, maxlength: 20, default: WELCOME_VOUCHER_DEFAULTS.accessories.code },
+          amount: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.accessories.amount },
+          minBill: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.accessories.minBill },
+        },
       },
     },
 

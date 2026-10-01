@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
 import { adminCouponService } from '../../../services/adminCouponService';
-import { couponDiscountFor, describeDiscount } from '../../../utils/coupons';
+import { couponDiscountFor, describeDiscount, describeMinimum, eligibleAmountFor } from '../../../utils/coupons';
 import { QrScannerModal } from '../components/QrScannerModal';
 import { PurchaseItemEditor } from '../components/PurchaseItemEditor';
 import { CustomerAvatar, VerifiedTick } from '../../../components/CustomerAvatar';
@@ -179,9 +179,14 @@ export const RecordPurchasePage = () => {
   // Coupon preview (the server re-checks owner, expiry, minimum bill and single use)
   const couponOwnerMismatch =
     appliedCoupon && (customerMode === 'new' || (selectedCustomer && selectedCustomer.id !== appliedCoupon.customer.id));
-  const couponBelowMinimum = appliedCoupon && amountAfterDiscount < (appliedCoupon.coupon.minBillAmount || 0);
+  // Some vouchers only count certain products (e.g. accessories); the store discount is shared out first
+  const couponBase = appliedCoupon
+    ? eligibleAmountFor(appliedCoupon.coupon, items) * (numericAmount > 0 ? amountAfterDiscount / numericAmount : 0)
+    : 0;
+  const couponBelowMinimum =
+    appliedCoupon && (couponBase <= 0 || couponBase < (appliedCoupon.coupon.minBillAmount || 0));
   const couponDiscount =
-    appliedCoupon && !couponOwnerMismatch && !couponBelowMinimum ? couponDiscountFor(appliedCoupon.coupon, amountAfterDiscount) : 0;
+    appliedCoupon && !couponOwnerMismatch && !couponBelowMinimum ? couponDiscountFor(appliedCoupon.coupon, couponBase) : 0;
   const amountAfterCoupon = Math.max(0, amountAfterDiscount - couponDiscount);
 
   // Loyalty redemption preview (the server re-checks balance, minimum and bill limit)
@@ -209,7 +214,9 @@ export const RecordPurchasePage = () => {
     setCouponChecking(true);
     setCouponError('');
     try {
-      const found = await adminCouponService.lookup(code);
+      // A voucher code like WELCOME6D is for the selected customer (registered mobile);
+      // a scanned QR identifies the customer by itself
+      const found = await adminCouponService.lookup(code, customerMode === 'existing' ? selectedCustomer?.id : undefined);
       if (!found.usable) {
         setCouponError(found.reason || 'This coupon cannot be used.');
         return;
@@ -229,7 +236,25 @@ export const RecordPurchasePage = () => {
         return;
       }
       setAppliedCoupon(found);
-      setCouponInput(found.coupon.code);
+      setCouponInput(found.coupon.campaignCode || found.coupon.code);
+      // Free-item voucher (e.g. WELCOME6D): put the free item on the bill if it is not there yet
+      const free = found.coupon.discount;
+      if (free.type === 'free_item' && free.itemName) {
+        const wanted = free.itemName.trim().toLowerCase();
+        const present = items.some((item) => item.name.trim().toLowerCase() === wanted);
+        if (!present) {
+          const freeLine = {
+            category: 'accessories',
+            name: free.itemName,
+            price: String(free.value),
+            warrantyDuration: '0',
+            warrantyUnit: 'months',
+          };
+          const blank = items.find((item) => !item.name.trim() && !item.price);
+          if (blank) updateItem(blank.key, freeLine);
+          else addItem(freeLine);
+        }
+      }
       setFormErrors((prev) => ({ ...prev, coupon: '' }));
     } catch (err) {
       setCouponError(err.message || 'Could not check this coupon.');
@@ -307,7 +332,9 @@ export const RecordPurchasePage = () => {
     if (couponOwnerMismatch) {
       errors.coupon = 'This coupon belongs to another customer. Remove it or select its owner.';
     } else if (couponBelowMinimum) {
-      errors.coupon = `This coupon needs a bill of at least ${formatINR(appliedCoupon.coupon.minBillAmount)}.`;
+      errors.coupon = appliedCoupon.coupon.minBillAmount > 0
+        ? `This voucher applies ${describeMinimum(appliedCoupon.coupon)}.`
+        : `Add ${appliedCoupon.coupon.discount.itemName || 'an eligible product'} to the bill for this voucher.`;
     } else if (couponInput.trim() && !appliedCoupon) {
       errors.coupon = 'Press Apply to check the coupon, or clear the code.';
     }
@@ -1052,10 +1079,12 @@ export const RecordPurchasePage = () => {
                   <div className="flex items-center gap-2.5">
                     <CustomerAvatar customer={appliedCoupon.customer} className="w-9 h-9 rounded-lg" textClassName="text-[10px]" />
                     <div>
-                    <span className="font-mono font-semibold text-stone-900 tracking-wider">{appliedCoupon.coupon.code}</span>
+                    <span className="font-mono font-semibold text-stone-900 tracking-wider">
+                      {appliedCoupon.coupon.campaignCode || appliedCoupon.coupon.code}
+                    </span>
                     <span className="ml-2 text-stone-500">{describeDiscount(appliedCoupon.coupon.discount)}</span>
-                    {appliedCoupon.coupon.minBillAmount > 0 && (
-                      <span className="ml-1 text-stone-400">· min bill {formatINR(appliedCoupon.coupon.minBillAmount)}</span>
+                    {describeMinimum(appliedCoupon.coupon) && (
+                      <span className="ml-1 text-stone-400">· {describeMinimum(appliedCoupon.coupon)}</span>
                     )}
                     <span className="block text-[11px] text-stone-400">
                       {appliedCoupon.customer.name} · valid till {formatDate(appliedCoupon.coupon.expiresAt)}
@@ -1128,7 +1157,9 @@ export const RecordPurchasePage = () => {
               )}
               {!formErrors.coupon && !couponOwnerMismatch && couponBelowMinimum && (
                 <p className="text-[11px] text-amber-700">
-                  Applies once the bill (after discount) reaches {formatINR(appliedCoupon.coupon.minBillAmount)}.
+                  {appliedCoupon.coupon.minBillAmount > 0
+                    ? `Applies ${describeMinimum(appliedCoupon.coupon)} (now ${formatINR(couponBase)}).`
+                    : `Add ${appliedCoupon.coupon.discount.itemName || 'an eligible product'} to the bill.`}
                 </p>
               )}
             </div>

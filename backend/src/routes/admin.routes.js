@@ -6,7 +6,7 @@ import { PERMISSIONS as P } from '../config/permissions.js';
 import { requireAdminAuth, requirePermission as can } from '../middleware/auth.js';
 import { rawBillUpload, rawImageUpload } from '../middleware/uploads.js';
 import { validate } from '../middleware/validate.js';
-import { idParamsSchema } from '../validators/common.js';
+import { idParamsSchema, objectIdSchema } from '../validators/common.js';
 import {
   adminCreateCustomerSchema,
   adminUpdateCustomerSchema,
@@ -73,7 +73,13 @@ export const createAdminRouter = () => {
   router.delete('/products/:id', can(P.PURCHASES_WRITE), validate({ params: idParamsSchema }), admin.deleteProduct);
 
   // Coupon lookup before billing (the coupon itself is redeemed with `couponCode` on POST /purchases)
-  router.get('/coupons/:code', can(P.PURCHASES_WRITE), validate({ params: couponCodeParamsSchema }), admin.lookupCoupon);
+  // A voucher code like WELCOME6D needs ?customerId= (the selected customer); a scanned QR does not
+  router.get(
+    '/coupons/:code',
+    can(P.PURCHASES_WRITE),
+    validate({ params: couponCodeParamsSchema, query: z.object({ customerId: objectIdSchema.optional() }) }),
+    admin.lookupCoupon
+  );
   router.get(
     '/customers/:id/coupons',
     can(P.CUSTOMERS_READ),

@@ -1,6 +1,6 @@
 // Explicit allow-list serializers: only fields listed here ever leave the API.
 import { ROLE_LABELS } from '../config/permissions.js';
-import { THEME_COLOR_KEYS, welcomeOfferOf } from '../models/StoreSettings.js';
+import { THEME_COLOR_KEYS, welcomeVouchersOf } from '../models/StoreSettings.js';
 import { getLoyaltyTier, pointsToRupees } from './loyalty.js';
 
 /** Date → "YYYY-MM-DD" (calendar dates are stored at 00:00 UTC) */
@@ -266,7 +266,7 @@ export const serializePublicStore = (s) => ({
 export const serializeSettings = (s) => ({
   ...serializePublicStore(s),
   tax: { gstRatePercent: s.tax?.gstRatePercent ?? 18 },
-  offers: { welcome: welcomeOfferOf(s) },
+  offers: { welcomeVouchers: welcomeVouchersOf(s) },
   updatedAt: s.updatedAt,
 });
 
@@ -276,12 +276,18 @@ export const serializeSettings = (s) => ({
 export const serializeCoupon = (c, now = new Date()) => ({
   id: idOf(c),
   code: c.code,
+  // Voucher code from the poster ("WELCOME6D") and its name, for welcome vouchers
+  campaignCode: c.campaignCode ?? null,
+  title: c.title ?? null,
   kind: c.kind,
   discount: {
     type: c.discount.type,
     value: c.discount.value,
     maxAmount: c.discount.maxAmount ?? null,
+    itemName: c.discount.itemName ?? null,
   },
+  // Product categories it applies to (empty = the whole bill)
+  appliesTo: c.appliesTo ?? [],
   minBillAmount: c.minBillAmount ?? 0,
   expiresAt: c.expiresAt,
   status: c.status === 'redeemed' ? 'redeemed' : new Date(c.expiresAt) <= now ? 'expired' : 'active',

@@ -239,7 +239,7 @@ export const CustomerDetailPage = () => {
             {coupons.map((c) => (
               <div key={c.id} className="px-5 py-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <span className="font-mono font-semibold text-stone-900 tracking-wider">{c.code}</span>
+                  <span className="font-mono font-semibold text-stone-900 tracking-wider">{c.campaignCode || c.code}</span>
                   <span className="ml-2 text-stone-600">{describeDiscount(c.discount)}</span>
                   {c.minBillAmount > 0 && <span className="ml-1 text-stone-400">· min bill {formatINR(c.minBillAmount)}</span>}
                 </div>

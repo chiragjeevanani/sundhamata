@@ -3,15 +3,31 @@
 
 import { formatINR } from './formatters';
 
-/** "₹200 off" / "10% off (up to ₹500)" */
-export const describeDiscount = ({ type, value, maxAmount } = {}) =>
-  type === 'percent'
+/** "₹200 off" / "10% off (up to ₹500)" / "Free 6D Toughened Glass" */
+export const describeDiscount = ({ type, value, maxAmount, itemName } = {}) => {
+  if (type === 'free_item') return `Free ${itemName || 'item'}`;
+  return type === 'percent'
     ? `${value}% off${maxAmount ? ` (up to ${formatINR(maxAmount)})` : ''}`
     : `${formatINR(value)} off`;
+};
 
-/** Offer terms from settings → the same wording as a coupon */
-export const describeOffer = (offer) =>
-  offer ? describeDiscount({ type: offer.discountType, value: offer.discountValue, maxAmount: offer.maxDiscount }) : '';
+const CATEGORY_WORDS = { phones: 'mobiles', accessories: 'accessories', service: 'services' };
+
+/** "on ₹2,000 of accessories" / "on a bill of ₹1,000 or more" / "" */
+export const describeMinimum = (coupon) => {
+  const scope = coupon?.appliesTo?.length ? coupon.appliesTo.map((c) => CATEGORY_WORDS[c] ?? c).join(' / ') : null;
+  if (coupon?.minBillAmount > 0) {
+    return scope ? `when you buy ${formatINR(coupon.minBillAmount)} of ${scope}` : `on a bill of ${formatINR(coupon.minBillAmount)} or more`;
+  }
+  return scope && coupon?.discount?.type !== 'free_item' ? `on ${scope}` : '';
+};
+
+/** Part of a bill a coupon applies to (some vouchers only count accessories) */
+export const eligibleAmountFor = (coupon, items) =>
+  items.reduce(
+    (sum, item) => sum + (!coupon?.appliesTo?.length || coupon.appliesTo.includes(item.category) ? Number(item.price) || 0 : 0),
+    0
+  );
 
 /** Discount (₹) a coupon gives on a bill of `amount` (after the store discount) */
 export const couponDiscountFor = (coupon, amount) => {

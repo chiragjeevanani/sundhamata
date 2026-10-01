@@ -157,7 +157,7 @@ export const getReportSummary = async (_req, res) => {
 // ---- Coupons (redeemed while recording a purchase via `couponCode`)
 
 export const lookupCoupon = async (req, res) => {
-  const data = await couponService.lookupCouponForAdmin(req.valid.params.code);
+  const data = await couponService.lookupCouponForAdmin(req.valid.params.code, { customerId: req.valid.query.customerId });
   sendSuccess(res, { data });
 };
 

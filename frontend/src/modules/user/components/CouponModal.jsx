@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import QRCode from 'qrcode';
 import { Check, Copy, Store, TicketPercent, X } from 'lucide-react';
-import { describeDiscount } from '../../../services/offerService';
-import { formatDate, formatINR } from '../../../utils/formatters';
+import { describeDiscount, describeMinimum } from '../../../services/offerService';
+import { formatDate } from '../../../utils/formatters';
 
 /** QR image for a coupon code (the QR contains just the code, so any scanner can read it) */
 export const CouponQr = ({ code, size = 200, dimmed = false }) => {
@@ -59,7 +59,7 @@ const CouponSheet = ({ coupon, onClose, title }) => {
   }, [onClose]);
 
   const copy = () => {
-    navigator.clipboard?.writeText(coupon.code);
+    navigator.clipboard?.writeText(coupon.campaignCode || coupon.code);
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -95,8 +95,8 @@ const CouponSheet = ({ coupon, onClose, title }) => {
           <TicketPercent className="w-6 h-6 mx-auto opacity-90" />
           <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] mt-1 opacity-90">{title}</p>
           <p className="text-2xl font-black tracking-tight mt-0.5">{describeDiscount(coupon.discount)}</p>
-          {coupon.minBillAmount > 0 && (
-            <p className="text-[11px] opacity-90">on a bill of {formatINR(coupon.minBillAmount)} or more</p>
+          {describeMinimum(coupon) && (
+            <p className="text-[11px] opacity-90">{describeMinimum(coupon)}</p>
           )}
         </div>
 
@@ -123,7 +123,7 @@ const CouponSheet = ({ coupon, onClose, title }) => {
             className="mx-auto flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 border border-stone-200 cursor-pointer"
             title="Copy code"
           >
-            <span className="font-mono text-[17px] font-bold tracking-[0.12em] text-ink-900">{coupon.code}</span>
+            <span className="font-mono text-[17px] font-bold tracking-[0.12em] text-ink-900">{coupon.campaignCode || coupon.code}</span>
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-stone-500" />}
           </button>
 
@@ -136,7 +136,8 @@ const CouponSheet = ({ coupon, onClose, title }) => {
                 <span className="font-semibold text-stone-700">{formatDate(coupon.expiresAt)}</span>
               </p>
             )}
-            <p>One-time use • Only for your account</p>
+            <p>One-time use • Only for your registered mobile number</p>
+            {coupon.campaignCode && <p className="font-mono text-[10px] text-stone-400">Ref {coupon.code}</p>}
           </div>
 
           {coupon.status === 'active' && (

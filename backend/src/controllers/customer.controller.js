@@ -69,12 +69,12 @@ export const getMyWelcomeOffer = async (req, res) => {
   sendSuccess(res, { data });
 };
 
-export const claimMyWelcomeCoupon = async (req, res) => {
-  const { coupon, created } = await couponService.claimWelcomeCoupon(req.customer);
+export const claimMyWelcomeVoucher = async (req, res) => {
+  const { coupon, created } = await couponService.claimWelcomeVoucher(req.customer, req.valid.params.key);
   sendSuccess(res, {
     statusCode: created ? 201 : 200,
     data: { coupon },
-    message: created ? 'Coupon unlocked' : 'Coupon already unlocked',
+    message: created ? 'Voucher claimed' : 'Voucher already claimed',
   });
 };
 

@@ -1,16 +1,26 @@
 import mongoose from 'mongoose';
 
-export const COUPON_KINDS = Object.freeze({ WELCOME: 'welcome' });
+export const COUPON_KINDS = Object.freeze({
+  // Earlier single welcome coupon (complete the profile); still redeemable if issued
+  WELCOME: 'welcome',
+  // Welcome vouchers: free 6D toughened glass, and ₹200 off ₹2,000 of accessories
+  WELCOME_GLASS: 'welcome_glass',
+  WELCOME_ACCESSORIES: 'welcome_accessories',
+});
 export const COUPON_STATUSES = Object.freeze({ ACTIVE: 'active', REDEEMED: 'redeemed' });
-export const DISCOUNT_TYPES = Object.freeze(['flat', 'percent']);
+// free_item: takes the item's value (up to `value`) off the bill, e.g. a free toughened glass
+export const DISCOUNT_TYPES = Object.freeze(['flat', 'percent', 'free_item']);
 
 // Personal discount coupon (e.g. the welcome offer for completing the profile).
 // The offer terms are copied in when the coupon is issued, so later changes to the
 // offer settings never change a coupon the customer already holds.
 const couponSchema = new mongoose.Schema(
   {
-    // "SM-7KQ2-XH4P": printed under the QR code and typed/scanned at the counter
+    // "SM-7KQ2-XH4P": personal code inside the QR (scanning it also identifies the customer)
     code: { type: String, required: true, unique: true, immutable: true },
+    // Shared voucher code from the poster ("WELCOME6D"); typed at the counter for the selected customer
+    campaignCode: { type: String, default: null },
+    title: { type: String, default: null },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true, immutable: true },
     kind: { type: String, enum: Object.values(COUPON_KINDS), required: true, immutable: true },
 
@@ -20,7 +30,13 @@ const couponSchema = new mongoose.Schema(
       value: { type: Number, required: true, min: 0 },
       // Cap for percentage coupons (₹); null = no cap
       maxAmount: { type: Number, min: 0, default: null },
+      // free_item: what the customer gets (its value is `value`)
+      itemName: { type: String, default: null },
     },
+    // Only these product categories count towards the minimum and get the discount (empty = all)
+    appliesTo: { type: [String], default: [] },
+    // Set for one-per-customer vouchers (= kind): enforced by a unique index
+    onceKey: { type: String },
     // Bill (after any store discount) must be at least this much
     minBillAmount: { type: Number, min: 0, default: 0 },
     expiresAt: { type: Date, required: true },
@@ -39,6 +55,11 @@ couponSchema.index(
   { customerId: 1, kind: 1 },
   { unique: true, partialFilterExpression: { kind: COUPON_KINDS.WELCOME } }
 );
+couponSchema.index(
+  { customerId: 1, onceKey: 1 },
+  { unique: true, name: 'one_per_customer', partialFilterExpression: { onceKey: { $exists: true } } }
+);
+couponSchema.index({ customerId: 1, campaignCode: 1 });
 couponSchema.index({ customerId: 1, createdAt: -1 });
 
 export const Coupon = mongoose.model('Coupon', couponSchema);
