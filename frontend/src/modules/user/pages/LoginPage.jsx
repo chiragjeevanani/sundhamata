@@ -343,7 +343,7 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-ink-950 text-stone-100">
       {/* Centered Top Brand Logo - Seamless Dark-Theme Hero Logo */}
-      <div className="flex flex-col items-center text-center pt-4 pb-2 sm:pt-6 sm:pb-3">
+      <div className="flex flex-col items-center text-center pt-8 pb-1 sm:pt-12 sm:pb-2">
         <div className="relative flex flex-col items-center">
           {/* Transparent, perfectly blended high-resolution brand logo without any awkward bounding box */}
           <div className="w-52 h-auto max-w-[240px] flex items-center justify-center transition-transform hover:scale-[1.02]">
