@@ -177,8 +177,10 @@ export const RecordPurchasePage = () => {
   const amountAfterDiscount = Math.max(0, numericAmount - numericDiscount);
 
   // Coupon preview (the server re-checks owner, expiry, minimum bill and single use)
+  // (an offer code checked before choosing the customer has no owner yet: `customer` is null)
   const couponOwnerMismatch =
-    appliedCoupon && (customerMode === 'new' || (selectedCustomer && selectedCustomer.id !== appliedCoupon.customer.id));
+    appliedCoupon?.customer &&
+    (customerMode === 'new' || (selectedCustomer && selectedCustomer.id !== appliedCoupon.customer.id));
   // Some vouchers only count certain products (e.g. accessories); the store discount is shared out first
   const couponBase = appliedCoupon
     ? eligibleAmountFor(appliedCoupon.coupon, items) * (numericAmount > 0 ? amountAfterDiscount / numericAmount : 0)
@@ -221,12 +223,13 @@ export const RecordPurchasePage = () => {
         setCouponError(found.reason || 'This coupon cannot be used.');
         return;
       }
-      if (!found.customer.isActive) {
+      if (!found.customer) {
+        // An offer code (e.g. DIWALI500) for any customer: checked again for the customer when saving
+      } else if (!found.customer.isActive) {
         setCouponError('This coupon belongs to a deactivated customer.');
         return;
-      }
-      // Scanning the coupon also picks the customer when none is chosen yet
-      if (customerMode === 'new' || !selectedCustomer) {
+      } else if (customerMode === 'new' || !selectedCustomer) {
+        // Scanning the coupon also picks the customer when none is chosen yet
         setCustomerMode('existing');
         setSelectedCustomer(found.customer);
         setRedeemPoints('');
@@ -1060,14 +1063,14 @@ export const RecordPurchasePage = () => {
               </div>
             )}
 
-            {/* Customer coupon (welcome offer QR / code) */}
+            {/* Customer coupon: QR from the app, a welcome voucher code, or an offer code from Admin → Coupons */}
             <div className="rounded-lg border border-brand-200/70 bg-brand-50/40 p-3.5 space-y-2 text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label htmlFor="coupon-code" className="font-medium text-stone-800 flex items-center gap-1.5">
                   <TicketPercent className="w-3.5 h-3.5 text-brand-600" />
                   <span>Customer Coupon</span>
                 </label>
-                <span className="text-stone-500">Scan the QR on the customer's phone or type the code</span>
+                <span className="text-stone-500">Scan the QR on the customer's phone, or type a coupon code like DIWALI500</span>
               </div>
 
               {appliedCoupon ? (
@@ -1077,7 +1080,13 @@ export const RecordPurchasePage = () => {
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <CustomerAvatar customer={appliedCoupon.customer} className="w-9 h-9 rounded-lg" textClassName="text-[10px]" />
+                    {appliedCoupon.customer ? (
+                      <CustomerAvatar customer={appliedCoupon.customer} className="w-9 h-9 rounded-lg" textClassName="text-[10px]" />
+                    ) : (
+                      <span className="w-9 h-9 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-600">
+                        <TicketPercent className="w-4 h-4" />
+                      </span>
+                    )}
                     <div>
                     <span className="font-mono font-semibold text-stone-900 tracking-wider">
                       {appliedCoupon.coupon.campaignCode || appliedCoupon.coupon.code}
@@ -1087,7 +1096,8 @@ export const RecordPurchasePage = () => {
                       <span className="ml-1 text-stone-400">· {describeMinimum(appliedCoupon.coupon)}</span>
                     )}
                     <span className="block text-[11px] text-stone-400">
-                      {appliedCoupon.customer.name} · valid till {formatDate(appliedCoupon.coupon.expiresAt)}
+                      {appliedCoupon.customer ? appliedCoupon.customer.name : appliedCoupon.coupon.title || 'Store offer'}
+                      {appliedCoupon.coupon.issuedOnBill ? ' · offer code, saved to the customer with this bill' : ` · valid till ${formatDate(appliedCoupon.coupon.expiresAt)}`}
                     </span>
                     </div>
                   </div>
@@ -1123,7 +1133,7 @@ export const RecordPurchasePage = () => {
                         applyCoupon();
                       }
                     }}
-                    placeholder="SM-XXXX-XXXX"
+                    placeholder="Code or QR"
                     autoComplete="off"
                     spellCheck={false}
                     className={`w-44 px-3 py-2 bg-white border rounded-lg font-mono font-medium tracking-wider text-stone-900 uppercase focus:outline-hidden focus:border-brand-600 shadow-2xs ${

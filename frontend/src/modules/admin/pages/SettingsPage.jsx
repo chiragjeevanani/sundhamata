@@ -31,8 +31,8 @@ export const SettingsPage = () => {
   const [vouchers, setVouchers] = useState({
     enabled: true,
     validityDays: '30',
-    glass: { enabled: true, code: 'WELCOME6D', itemName: '6D Toughened Glass', value: '299' },
-    accessories: { enabled: true, code: 'SAVE200', amount: '200', minBill: '2000' },
+    glass: { enabled: true, unlock: 'register', code: 'WELCOME6D', itemName: '6D Toughened Glass', value: '299' },
+    accessories: { enabled: true, unlock: 'profile', code: 'SAVE200', amount: '200', minBill: '2000' },
   });
   const setVoucherField = (group, field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -99,12 +99,14 @@ export const SettingsPage = () => {
             validityDays: Number(vouchers.validityDays) || 30,
             glass: {
               enabled: vouchers.glass.enabled,
+              unlock: vouchers.glass.unlock,
               code: vouchers.glass.code.trim(),
               itemName: vouchers.glass.itemName.trim(),
               value: Number(vouchers.glass.value) || 0,
             },
             accessories: {
               enabled: vouchers.accessories.enabled,
+              unlock: vouchers.accessories.unlock,
               code: vouchers.accessories.code.trim(),
               amount: Number(vouchers.accessories.amount) || 0,
               minBill: Number(vouchers.accessories.minBill) || 0,
@@ -297,8 +299,9 @@ export const SettingsPage = () => {
               <div>
                 <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">App Welcome Vouchers</h3>
                 <p className="text-xs text-stone-400 font-normal">
-                  New customers unlock these right after registering in the app. One of each per customer; redeem on Record
-                  Purchase by typing the code (for the selected customer) or scanning the QR.
+                  New app users get them as scratch cards: one right after registering, one when their profile is 100% complete
+                  (anniversary and photo are optional). One of each per customer; redeem on Record Purchase by typing the code
+                  (for the selected customer) or scanning the QR.
                 </p>
               </div>
             </div>
@@ -330,6 +333,13 @@ export const SettingsPage = () => {
                   </label>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2 space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-unlock">Unlocks</label>
+                    <select id="voucher-glass-unlock" value={vouchers.glass.unlock} onChange={setVoucherField('glass', 'unlock')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer">
+                      <option value="register">Right after registering</option>
+                      <option value="profile">When the profile is 100% complete</option>
+                    </select>
+                  </div>
                   <div className="space-y-1">
                     <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-code">Voucher Code</label>
                     <input id="voucher-glass-code" value={vouchers.glass.code} onChange={setVoucherField('glass', 'code')} maxLength={20} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs font-mono uppercase`} />
@@ -362,6 +372,13 @@ export const SettingsPage = () => {
                   </label>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2 space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-unlock">Unlocks</label>
+                    <select id="voucher-acc-unlock" value={vouchers.accessories.unlock} onChange={setVoucherField('accessories', 'unlock')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer">
+                      <option value="register">Right after registering</option>
+                      <option value="profile">When the profile is 100% complete</option>
+                    </select>
+                  </div>
                   <div className="col-span-2 space-y-1">
                     <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-code">Voucher Code</label>
                     <input id="voucher-acc-code" value={vouchers.accessories.code} onChange={setVoucherField('accessories', 'code')} maxLength={20} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs font-mono uppercase`} />

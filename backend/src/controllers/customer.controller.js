@@ -1,5 +1,6 @@
 import * as customerPhotoService from '../services/customerPhoto.service.js';
 import * as couponService from '../services/coupon.service.js';
+import * as offerService from '../services/offer.service.js';
 import * as billService from '../services/bill.service.js';
 import * as customerService from '../services/customer.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
@@ -96,4 +97,19 @@ export const uploadMyPhoto = async (req, res) => {
 export const deleteMyPhoto = async (req, res) => {
   const customer = await customerPhotoService.removeCustomerPhoto(req.customer._id, { by: 'customer', actorId: req.customer.id });
   sendSuccess(res, { data: { customer: serializeCustomer(customer) }, message: 'Photo removed' });
+};
+
+// ---- Offers created by the store (scratch to claim)
+
+export const listMyOffers = async (req, res) => {
+  sendSuccess(res, { data: await offerService.listOffersForCustomer(req.customer) });
+};
+
+export const claimMyOffer = async (req, res) => {
+  const { coupon, created } = await offerService.claimOffer(req.customer, req.valid.params.id);
+  sendSuccess(res, {
+    statusCode: created ? 201 : 200,
+    data: { coupon },
+    message: created ? 'Offer claimed' : 'Offer already claimed',
+  });
 };

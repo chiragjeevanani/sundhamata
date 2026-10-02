@@ -20,6 +20,7 @@ import {
   updatePurchaseSchema,
 } from '../validators/purchase.validators.js';
 import { createProductSchema, listProductsQuerySchema, updateProductSchema } from '../validators/product.validators.js';
+import { createOfferSchema, updateOfferSchema } from '../validators/offer.validators.js';
 import { updateSettingsSchema } from '../validators/settings.validators.js';
 
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
@@ -80,6 +81,16 @@ export const createAdminRouter = () => {
     validate({ params: couponCodeParamsSchema, query: z.object({ customerId: objectIdSchema.optional() }) }),
     admin.lookupCoupon
   );
+  // Offers: coupon campaigns the staff create (codes like DIWALI500; claimed in the app or used at the counter)
+  router.get('/offers', can(P.SETTINGS_READ), admin.listOffers);
+  router.post('/offers', can(P.SETTINGS_WRITE), validate({ body: createOfferSchema }), admin.createOffer);
+  router.patch(
+    '/offers/:id',
+    can(P.SETTINGS_WRITE),
+    validate({ params: idParamsSchema, body: updateOfferSchema }),
+    admin.updateOffer
+  );
+  router.delete('/offers/:id', can(P.SETTINGS_WRITE), validate({ params: idParamsSchema }), admin.deleteOffer);
   router.get(
     '/customers/:id/coupons',
     can(P.CUSTOMERS_READ),

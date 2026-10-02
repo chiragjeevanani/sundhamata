@@ -386,13 +386,18 @@ Query: `page`, `limit`, `type` (`earned` | `redeemed` | `adjustment` | `expired`
 
 ### Welcome vouchers and coupons
 
-New app users (self-registered, or signing in for the first time to an account the store created) unlock two welcome vouchers straight away ("App Welcome Offers"): **WELCOME6D** — a free 6D toughened glass (free item worth up to ₹299), and **SAVE200** — ₹200 off when the bill has ₹2,000 or more of accessories. Each is claimed separately, once per customer, and is valid for 30 days after claiming. Codes, values and validity are in settings (`offers.welcomeVouchers`).
+New app users (self-registered, or signing in for the first time to an account the store created) get two welcome vouchers ("App Welcome Offers"), shown as scratch cards: **WELCOME6D** — a free 6D toughened glass (free item worth up to ₹299) unlocks right after registering; **SAVE200** — ₹200 off when the bill has ₹2,000 or more of accessories — unlocks once the profile is 100% complete (name, email, date of birth, gender, address, city, pincode; anniversary and photo are optional). Scratching a card claims it. Each is once per customer and valid for 30 days after claiming. Codes, values, validity and when each unlocks (`unlock: "register"|"profile"`) are in settings (`offers.welcomeVouchers`).
 
-- `GET /customer/offers/welcome` → `{ status, vouchers }`. `status`: `unavailable` (off, or not a new app user), `ready` (a voucher still to claim) or `claimed`. Each voucher: `{ key: "glass"|"accessories", title, description, campaignCode, discount, minBillAmount, appliesTo, validityDays, status: "ready"|"claimed", coupon }`.
-- `POST /customer/offers/welcome/:key/claim` → `201 { coupon }` the first time; again returns the same voucher (`200`); `403` when not eligible, `404` when switched off.
+- `GET /customer/offers/welcome` → `{ status, vouchers, profile: { percent, missingFields } }`. `status`: `unavailable` (off, or not a new app user), `ready` (a voucher to claim), `locked` (only profile-locked ones left) or `claimed`. Each voucher: `{ key: "glass"|"accessories", title, description, campaignCode, discount, minBillAmount, appliesTo, validityDays, unlock, status: "ready"|"locked"|"claimed", coupon }`.
+- `POST /customer/offers/welcome/:key/claim` → `201 { coupon }` the first time; again returns the same voucher (`200`); `422` (with the missing fields) while a profile-locked voucher is still locked; `403` when not eligible, `404` when switched off.
 - `GET /customer/coupons` → `{ items: [coupon] }`.
 
-Coupon: `{ id, code: "SM-7KQ2-XH4P", campaignCode: "WELCOME6D", title, kind, discount: { type: "flat"|"percent"|"free_item", value, maxAmount, itemName }, appliesTo: ["accessories"], minBillAmount, expiresAt, status: "active"|"redeemed"|"expired", redeemedAt, purchaseId }`. The app shows the voucher code plus a QR containing the personal `code` (scanning it at the counter identifies the customer).
+Coupon: `{ id, code: "SM-7KQ2-XH4P", campaignCode: "WELCOME6D", title, kind: "welcome_glass"|"welcome_accessories"|"offer"|…, offerId, discount: { type: "flat"|"percent"|"free_item", value, maxAmount, itemName }, appliesTo: ["accessories"], minBillAmount, expiresAt, status: "active"|"redeemed"|"expired", redeemedAt, purchaseId }`. The app shows the voucher code plus a QR containing the personal `code` (scanning it at the counter identifies the customer).
+
+### Store offers (created on Admin → Coupons)
+
+- `GET /customer/offers` → `{ offers, profile }`. Offers that are on, started, not ended, shown in the app and meant for this customer, newest first: `{ id, customTitle, title, description, campaignCode, discount, minBillAmount, appliesTo, validityDays, endsAt, unlock: "register"|"profile", status: "ready"|"locked"|"claimed", coupon }`. `locked` = a "100% profile complete" offer while the profile is incomplete. Offers the customer has used up (or that reached their total limit) are left out; their coupons stay in `/customer/coupons`.
+- `POST /customer/offers/:id/claim` → `201 { coupon }` (kind `offer`, the customer's own QR); again → the same unused coupon (`200`). `422` with the reason (not for this customer, profile incomplete, already used, paused, ended); `404` for counter-only offers.
 ---
 
 ## Public store endpoint
@@ -711,12 +716,25 @@ Points are spent while recording a purchase (`loyaltyRedemption.points` on `POST
 - Rules (422 with field `loyaltyRedemption.points`): whole points; not more than the customer's balance; at least `loyalty.minRedeemPoints` per redemption (0 = no minimum); not worth more than the bill; not allowed when `rupeeValuePerPoint` is 0.
 - The ledger gets a `redeemed` / `redemption` entry (negative points) for the purchase, before the `earned` entry. Both happen in the same transaction as the purchase, and the debit is conditional, so two bills can never spend the same points.
 
+### Offers (Admin → Coupons)
+
+Coupon campaigns the staff create themselves, e.g. `DIWALI500`.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/admin/offers` | All offers, newest first, each with `status` (`active`/`scheduled`/`paused`/`ended`/`used_up`) and `stats: { used, customers }` |
+| POST | `/admin/offers` | `code` (4–20 letters/digits, unique, not a welcome voucher code → 409), `discount: { type: "flat"\|"percent"\|"free_item", value, maxAmount (percent), itemName (free_item) }` required. Optional: `title` (null = named after the discount, e.g. "₹500 off Mobiles"), `description`, `appliesTo` (`phones`/`accessories`/`service`; empty = whole bill), `minBillAmount`, `audience` (`all` default, `first_purchase`, `new_app_users`, `profile_complete`), `startsAt` / `endsAt` (`YYYY-MM-DD`, store time; `endsAt` = through that day), `validityDays` (claimed coupon valid this long, never past `endsAt`), `usesPerCustomer` (default 1), `totalUses` (bills across all customers; null = no limit), `isActive`, `showInApp` (false = counter-only code) |
+| PATCH | `/admin/offers/:id` | Any of the above. Terms apply to coupons claimed from then on; a new `code` also replaces the code on coupons already claimed. `isActive: false` pauses it (claimed coupons cannot be used either) |
+| DELETE | `/admin/offers/:id` | Only while nobody has claimed or used it (409 otherwise: pause it instead) |
+
+Every use goes through the customer's own coupon (kind `offer`): claimed in the app, or created when staff type the offer code on a bill. `redeemedCount` counts bills for `totalUses`; cancelling a bill gives the use back.
+
 ### Coupons at the counter
 
-- `GET /admin/coupons/:code?customerId=` — a personal code / scanned QR (any formatting) finds the coupon and its owner by itself; a voucher code like `WELCOME6D` needs `customerId` (the selected customer, i.e. their registered mobile) and finds that customer's voucher. → `{ coupon, customer, usable, reason }`.
+- `GET /admin/coupons/:code?customerId=` — a personal code / scanned QR (any formatting) finds the coupon and its owner by itself; a voucher code like `WELCOME6D` or an offer code like `DIWALI500` needs `customerId` (the selected customer, i.e. their registered mobile) and finds that customer's coupon. → `{ coupon, customer, usable, reason }`. For an offer the customer has not claimed, `coupon` is a preview (`code` = the offer code, `issuedOnBill: true`) and their coupon is created when the bill is saved. An offer for `all` / `first_purchase` can be checked without `customerId` (`customer: null`), e.g. for a walk-in recorded with just a mobile number.
 - `GET /admin/customers/:id/coupons` → `{ items }`.
 - Redeem by sending `couponCode` on `POST /admin/purchases`. Order on the bill: price − store discount − coupon − loyalty points = final amount (tax and earned points are on the final amount). The coupon must belong to the purchase's customer, be unexpired and unused, and the bill after the store discount must meet its `minBillAmount`; percentage coupons are capped at `maxAmount`. It is marked used in the same transaction (only one of two simultaneous bills can use it). The purchase stores `pricing.couponDiscount` and `coupon.code`.
-- Vouchers with `appliesTo` (e.g. accessories) only count and discount those products: SAVE200 needs ₹2,000 of accessories (after the store discount) and its ₹200 is split over the accessory lines; WELCOME6D takes the free item's value (up to ₹299) off the accessories. Settings: `offers.welcomeVouchers.{ enabled, validityDays, glass: { enabled, code, itemName, value }, accessories: { enabled, code, amount, minBill } }`; terms are copied onto each voucher when claimed, so changes affect new claims only.
+- Vouchers with `appliesTo` (e.g. accessories) only count and discount those products: SAVE200 needs ₹2,000 of accessories (after the store discount) and its ₹200 is split over the accessory lines; WELCOME6D takes the free item's value (up to ₹299) off the accessories. Settings: `offers.welcomeVouchers.{ enabled, validityDays, glass: { enabled, unlock, code, itemName, value }, accessories: { enabled, unlock, code, amount, minBill } }`; terms are copied onto each voucher when claimed, so changes affect new claims only.
 
 ### Cancellation
 

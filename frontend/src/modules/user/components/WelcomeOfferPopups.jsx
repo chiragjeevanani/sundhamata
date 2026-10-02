@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { UserRoundPen, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { offerService } from '../../../services/offerService';
 import { CouponModal } from './CouponModal';
@@ -10,38 +10,43 @@ import { VoucherCard } from './VoucherCard';
 
 // Screens where the popup may appear (exact paths: never on the profile form or during login)
 const POPUP_ROUTES = ['/home', '/profile', '/purchases', '/loyalty'];
-// "Later" hides the popup for the rest of this visit
+// "Later" hides the popup for this visit — until another voucher unlocks
 const DISMISS_KEY = 'sm_vouchers_later';
 
-const dismissedThisVisit = () => {
+const readDismissed = () => {
   try {
-    return sessionStorage.getItem(DISMISS_KEY) === '1';
+    return sessionStorage.getItem(DISMISS_KEY);
   } catch {
-    return false;
+    return null;
   }
 };
-const rememberDismissed = () => {
+const rememberDismissed = (value) => {
   try {
-    sessionStorage.setItem(DISMISS_KEY, '1');
+    sessionStorage.setItem(DISMISS_KEY, value);
   } catch {
     // storage blocked: the popup may show again on the next screen, which is harmless
   }
 };
 
+/** Which vouchers are waiting to be scratched, e.g. "glass" or "glass,accessories" */
+const readyKeysOf = (vouchers) =>
+  vouchers
+    .filter((v) => v.status === 'ready')
+    .map((v) => v.key)
+    .join(',');
+
 /**
- * Welcome vouchers for new app users: right after registering, "Congratulations! You unlocked
- * 2 Welcome Vouchers" with both vouchers and a Claim Now button on each. A claimed voucher turns
- * into a scratch card that reveals its code; the QR for the counter is one tap away.
+ * Welcome offers for new app users, as scratch cards:
+ * - right after registering: the welcome voucher, plus "Complete 100% of your profile and get
+ *   another offer" (the second voucher shown locked, with progress)
+ * - once the profile is complete: "Profile 100% complete! You unlocked another offer"
  */
 export const WelcomeOfferPopups = () => {
   const { isAuthenticated } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [vouchers, setVouchers] = useState([]);
+  const [offer, setOffer] = useState(null);
   const [open, setOpen] = useState(false);
-  const [claiming, setClaiming] = useState(null);
-  const [claimedNow, setClaimedNow] = useState(() => new Set());
-  const [error, setError] = useState('');
   const [qrCoupon, setQrCoupon] = useState(null);
 
   const onPopupRoute = POPUP_ROUTES.includes(pathname);
@@ -53,8 +58,9 @@ export const WelcomeOfferPopups = () => {
       .getWelcomeOffer()
       .then((data) => {
         if (!active) return;
-        setVouchers(data.vouchers);
-        if (data.status === 'ready' && !dismissedThisVisit()) setOpen(true);
+        setOffer(data);
+        const readyKeys = readyKeysOf(data.vouchers);
+        if (readyKeys && readDismissed() !== readyKeys) setOpen(true);
       })
       .catch(() => {});
     return () => {
@@ -62,26 +68,30 @@ export const WelcomeOfferPopups = () => {
     };
   }, [isAuthenticated, onPopupRoute, pathname, open]);
 
+  const vouchers = offer?.vouchers ?? [];
+  // Shown in the popup: what can be scratched now, and what completing the profile unlocks
+  const shown = vouchers.filter((v) => v.status !== 'claimed' || v.justClaimed);
+  const locked = vouchers.filter((v) => v.status === 'locked');
+  const unlockedByProfile = shown.some((v) => v.unlock === 'profile' && v.status !== 'locked');
+
   const close = () => {
-    if (vouchers.some((v) => v.status === 'ready')) rememberDismissed();
+    const readyKeys = readyKeysOf(vouchers);
+    if (readyKeys) rememberDismissed(readyKeys);
     setOpen(false);
   };
 
   const claim = async (key) => {
-    setClaiming(key);
-    setError('');
-    try {
-      const coupon = await offerService.claimVoucher(key);
-      setVouchers((prev) => prev.map((v) => (v.key === key ? { ...v, status: 'claimed', coupon } : v)));
-      setClaimedNow((prev) => new Set(prev).add(key));
-    } catch (err) {
-      setError(err.message || 'Could not claim the voucher. Please try again.');
-    } finally {
-      setClaiming(null);
-    }
+    const coupon = await offerService.claimVoucher(key);
+    setOffer((prev) => ({
+      ...prev,
+      vouchers: prev.vouchers.map((v) => (v.key === key ? { ...v, status: 'claimed', coupon, justClaimed: true } : v)),
+    }));
   };
 
-  const allClaimed = vouchers.length > 0 && vouchers.every((v) => v.status === 'claimed');
+  const goCompleteProfile = () => {
+    setOpen(false);
+    navigate('/profile/edit?offer=1');
+  };
 
   return (
     <>
@@ -96,7 +106,7 @@ export const WelcomeOfferPopups = () => {
               className="fixed inset-0 z-[55] bg-stone-900/70 backdrop-blur-xs flex items-end sm:items-center justify-center sm:p-4"
               role="dialog"
               aria-modal="true"
-              aria-label="Welcome vouchers"
+              aria-label="Welcome offer"
             >
               <motion.div
                 initial={{ y: 40, opacity: 0 }}
@@ -116,30 +126,53 @@ export const WelcomeOfferPopups = () => {
                     <X className="w-4 h-4" />
                   </button>
                   <div className="relative">
-                    <div className="text-4xl" aria-hidden="true">🎁</div>
-                    <h2 className="mt-2 text-[22px] font-black leading-tight">Congratulations!</h2>
+                    <div className="text-4xl" aria-hidden="true">{unlockedByProfile ? '🎉' : '🎁'}</div>
+                    <h2 className="mt-2 text-[22px] font-black leading-tight">
+                      {unlockedByProfile ? 'Profile 100% complete!' : 'Welcome to Sundhamata Mobile!'}
+                    </h2>
                     <p className="mt-1 text-[13px] text-white/85">
-                      You unlocked <span className="font-black text-brand-300">{vouchers.length} Welcome Voucher{vouchers.length === 1 ? '' : 's'}</span>
+                      {unlockedByProfile ? 'You unlocked another offer' : 'You unlocked a Welcome Offer'}
                     </p>
                     <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
-                      Exclusive for our app users
+                      Scratch the card to claim it
                     </p>
                   </div>
                 </div>
 
                 <div className="px-4 py-4 space-y-3 -mt-3 relative">
-                  {vouchers.map((voucher, i) => (
-                    <VoucherCard
-                      key={voucher.key}
-                      voucher={voucher}
-                      number={i + 1}
-                      claiming={claiming === voucher.key}
-                      onClaim={() => claim(voucher.key)}
-                      scratch={claimedNow.has(voucher.key)}
-                      onShowQr={setQrCoupon}
-                    />
-                  ))}
-                  {error && <p className="text-[11px] text-rose-600 text-center">{error}</p>}
+                  {shown
+                    .filter((v) => v.status !== 'locked')
+                    .map((voucher) => (
+                      <VoucherCard
+                        key={voucher.key}
+                        voucher={voucher}
+                        number={vouchers.indexOf(voucher) + 1}
+                        onClaim={() => claim(voucher.key)}
+                        onShowQr={setQrCoupon}
+                      />
+                    ))}
+
+                  {/* Complete the profile → another offer */}
+                  {locked.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 pt-1">
+                        <span className="h-px flex-1 bg-brand-200" />
+                        <span className="text-[11px] font-black uppercase tracking-wider text-brand-700">
+                          Complete 100% profile &amp; get another offer
+                        </span>
+                        <span className="h-px flex-1 bg-brand-200" />
+                      </div>
+                      {locked.map((voucher) => (
+                        <VoucherCard
+                          key={voucher.key}
+                          voucher={voucher}
+                          number={vouchers.indexOf(voucher) + 1}
+                          profile={offer.profile}
+                          onCompleteProfile={goCompleteProfile}
+                        />
+                      ))}
+                    </>
+                  )}
 
                   <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10.5px] text-stone-500 px-1">
                     <li>• Valid for {vouchers[0]?.validityDays ?? 30} days after claiming</li>
@@ -148,19 +181,28 @@ export const WelcomeOfferPopups = () => {
                     <li>• Valid at Sundhamata Mobile only</li>
                   </ul>
 
-                  {allClaimed ? (
+                  {locked.length > 0 ? (
+                    <div className="flex gap-2">
+                      <button onClick={close} className="flex-1 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-700 text-xs font-bold cursor-pointer">
+                        Later
+                      </button>
+                      <button
+                        onClick={goCompleteProfile}
+                        className="flex-[2] py-2.5 rounded-xl bg-ink-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <UserRoundPen className="w-3.5 h-3.5" />
+                        Complete Profile
+                      </button>
+                    </div>
+                  ) : (
                     <button
                       onClick={() => {
-                        setOpen(false);
+                        close();
                         navigate('/coupons');
                       }}
                       className="w-full py-2.5 rounded-xl bg-ink-900 text-white text-xs font-bold cursor-pointer"
                     >
                       View My Vouchers
-                    </button>
-                  ) : (
-                    <button onClick={close} className="w-full py-1.5 text-[11.5px] font-semibold text-stone-500 hover:text-stone-700 cursor-pointer">
-                      Later
                     </button>
                   )}
                 </div>

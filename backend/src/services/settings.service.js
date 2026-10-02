@@ -1,5 +1,6 @@
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
+import { Offer } from '../models/Offer.js';
 import { SETTINGS_KEY, StoreSettings, welcomeVouchersOf } from '../models/StoreSettings.js';
 import { ApiError } from '../utils/ApiError.js';
 
@@ -52,6 +53,14 @@ export const updateSettings = async (patch, admin) => {
       throw ApiError.unprocessable('The two vouchers need different codes', [
         { field: 'offers.welcomeVouchers.accessories.code', message: 'Same code as the other voucher' },
       ]);
+    }
+    // …and from the offers on Admin → Coupons
+    for (const [key, code] of [['glass', vouchers.glass?.code], ['accessories', vouchers.accessories?.code]]) {
+      if (code && (await Offer.exists({ code }))) {
+        throw ApiError.conflict(`The code ${code} is already used by an offer on the Coupons page`, [
+          { field: `offers.welcomeVouchers.${key}.code`, message: 'Used by an offer on the Coupons page' },
+        ]);
+      }
     }
   }
   const $set = { ...toSetPaths(patch), updatedBy: admin._id };

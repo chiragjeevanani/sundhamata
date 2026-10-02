@@ -38,6 +38,9 @@ export const createCustomerRouter = () => {
     validate({ params: z.object({ key: z.enum(['glass', 'accessories']) }) }),
     customer.claimMyWelcomeVoucher
   );
+  // Offers created by the store: scratch to claim (the customer's own QR + code)
+  router.get('/offers', customer.listMyOffers);
+  router.post('/offers/:id/claim', validate({ params: idParamsSchema }), customer.claimMyOffer);
   router.get('/coupons', customer.listMyCoupons);
 
   return router;

@@ -14,6 +14,17 @@ const registerNewUser = async (mobile = '9000000031') => {
   return { auth: `Bearer ${res.body.data.token}`, id: res.body.data.customer.id };
 };
 
+// Everything a "100% complete" profile needs — no anniversary (not everyone is married)
+const FULL_PROFILE = {
+  email: 'neha@example.com',
+  dob: '1996-04-12',
+  gender: 'female',
+  address: '12, Shivam Society',
+  city: 'Ahmedabad',
+  pincode: '382405',
+};
+const updateProfile = (auth, body) => api().patch('/api/v1/customer/me').set('Authorization', auth).send(body);
+
 const offerOf = (auth) => api().get('/api/v1/customer/offers/welcome').set('Authorization', auth);
 const claim = (auth, key) => api().post(`/api/v1/customer/offers/welcome/${key}/claim`).set('Authorization', auth);
 
@@ -25,8 +36,8 @@ beforeEach(async () => {
 const patchVouchers = (welcomeVouchers) =>
   api().patch('/api/v1/admin/settings').set('Authorization', adminAuth).send({ offers: { welcomeVouchers } });
 
-describe('Welcome vouchers: unlocked on joining the app', () => {
-  it('a new customer gets both vouchers straight away and claims them one by one', async () => {
+describe('Welcome vouchers: one on joining, one for a 100% complete profile', () => {
+  it('voucher 1 unlocks on registering; voucher 2 once the profile is complete (anniversary optional)', async () => {
     const { auth } = await registerNewUser();
 
     const before = await offerOf(auth).expect(200);
@@ -37,6 +48,7 @@ describe('Welcome vouchers: unlocked on joining the app', () => {
         title: 'Free 6D Toughened Glass',
         campaignCode: 'WELCOME6D',
         status: 'ready',
+        unlock: 'register',
         discount: { type: 'free_item', value: 299, itemName: '6D Toughened Glass' },
         validityDays: 30,
       },
@@ -44,12 +56,16 @@ describe('Welcome vouchers: unlocked on joining the app', () => {
         key: 'accessories',
         title: '₹200 off Mobile Accessories',
         campaignCode: 'SAVE200',
-        status: 'ready',
+        status: 'locked',
+        unlock: 'profile',
         discount: { type: 'flat', value: 200 },
         minBillAmount: 2000,
         appliesTo: ['accessories'],
       },
     ]);
+    // Only the name is filled in at registration: 1 of 7 details
+    expect(before.body.data.profile.percent).toBe(14);
+    expect(before.body.data.profile.missingFields.map((f) => f.field)).toEqual(['email', 'dob', 'gender', 'address', 'city', 'pincode']);
 
     const glass = (await claim(auth, 'glass').expect(201)).body.data.coupon;
     expect(glass).toMatchObject({ campaignCode: 'WELCOME6D', status: 'active', appliesTo: ['accessories'] });
@@ -58,11 +74,21 @@ describe('Welcome vouchers: unlocked on joining the app', () => {
     expect(days).toBeGreaterThan(29.9);
     expect(days).toBeLessThanOrEqual(30);
 
-    // Claiming again returns the same voucher; the other one is still waiting
+    // Claiming again returns the same voucher; the other one is still locked
     expect((await claim(auth, 'glass').expect(200)).body.data.coupon.code).toBe(glass.code);
     const middle = (await offerOf(auth)).body.data;
-    expect(middle.status).toBe('ready');
-    expect(middle.vouchers.map((v) => v.status)).toEqual(['claimed', 'ready']);
+    expect(middle.status).toBe('locked');
+    expect(middle.vouchers.map((v) => v.status)).toEqual(['claimed', 'locked']);
+    const early = await claim(auth, 'accessories').expect(422);
+    expect(early.body.errors.map((e) => e.field)).toContain('email');
+
+    // Completing the profile (without an anniversary) unlocks voucher 2
+    await updateProfile(auth, { ...FULL_PROFILE, email: '' }).expect(200);
+    expect((await offerOf(auth)).body.data.profile).toMatchObject({ percent: 86, missingFields: [{ field: 'email' }] });
+    await updateProfile(auth, FULL_PROFILE).expect(200);
+    const unlocked = (await offerOf(auth)).body.data;
+    expect(unlocked).toMatchObject({ status: 'ready', profile: { percent: 100, missingFields: [] } });
+    expect(unlocked.vouchers.map((v) => v.status)).toEqual(['claimed', 'ready']);
 
     await claim(auth, 'accessories').expect(201);
     const after = (await offerOf(auth)).body.data;
@@ -76,7 +102,7 @@ describe('Welcome vouchers: unlocked on joining the app', () => {
 
   it('simultaneous claims still create one voucher', async () => {
     const { auth } = await registerNewUser('9000000032');
-    const results = await Promise.all([claim(auth, 'accessories'), claim(auth, 'accessories'), claim(auth, 'accessories')]);
+    const results = await Promise.all([claim(auth, 'glass'), claim(auth, 'glass'), claim(auth, 'glass')]);
     expect(new Set(results.map((r) => r.body.data.coupon.code)).size).toBe(1);
     expect(await Coupon.countDocuments()).toBe(1);
   });
@@ -87,7 +113,7 @@ describe('Welcome vouchers: unlocked on joining the app', () => {
     await api().post('/api/v1/auth/customer/send-otp').send({ mobile: '9876543210' }).expect(200);
     const login = await api().post('/api/v1/auth/customer/verify-otp').send({ mobile: '9876543210', otp: DEV_OTP }).expect(200);
     const auth = `Bearer ${login.body.data.token}`;
-    expect((await offerOf(auth)).body.data).toEqual({ status: 'unavailable', vouchers: [] });
+    expect((await offerOf(auth)).body.data).toMatchObject({ status: 'unavailable', vouchers: [] });
     await claim(auth, 'glass').expect(403);
   });
 
@@ -112,6 +138,17 @@ describe('Welcome vouchers: unlocked on joining the app', () => {
     await patchVouchers({ glass: { code: 'no spaces' } }).expect(422);
   });
 
+  it('the admin can choose when each voucher unlocks', async () => {
+    await patchVouchers({ glass: { unlock: 'profile' }, accessories: { unlock: 'register' } }).expect(200);
+    const { auth } = await registerNewUser('9000000036');
+    const offer = (await offerOf(auth)).body.data;
+    expect(offer.vouchers.map((v) => [v.key, v.status])).toEqual([
+      ['glass', 'locked'],
+      ['accessories', 'ready'],
+    ]);
+    await patchVouchers({ glass: { unlock: 'later' } }).expect(422);
+  });
+
   it('stores whose settings predate the vouchers use the defaults', async () => {
     await api().get('/api/v1/admin/settings').set('Authorization', adminAuth).expect(200);
     await StoreSettings.collection.updateOne({}, { $unset: { offers: '' } });
@@ -129,6 +166,7 @@ describe('Redeeming welcome vouchers at the counter', () => {
   const setup = async (mobile) => {
     const { auth, id } = await registerNewUser(mobile);
     const glass = (await claim(auth, 'glass').expect(201)).body.data.coupon;
+    await updateProfile(auth, FULL_PROFILE).expect(200);
     const save = (await claim(auth, 'accessories').expect(201)).body.data.coupon;
     return { auth, customerId: id, glass, save };
   };

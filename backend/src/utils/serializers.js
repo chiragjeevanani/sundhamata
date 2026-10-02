@@ -280,6 +280,7 @@ export const serializeCoupon = (c, now = new Date()) => ({
   campaignCode: c.campaignCode ?? null,
   title: c.title ?? null,
   kind: c.kind,
+  offerId: c.offerId ? idOf(c.offerId) : null,
   discount: {
     type: c.discount.type,
     value: c.discount.value,

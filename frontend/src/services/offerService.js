@@ -19,6 +19,20 @@ export const offerService = {
     return data.coupon;
   },
 
+  /**
+   * Offers created by the store: { offers: [{ id, title, customTitle, description, campaignCode, discount,
+   * minBillAmount, appliesTo, endsAt, unlock, status: 'ready' | 'locked' | 'claimed', coupon }], profile }
+   */
+  getOffers() {
+    return customerApi.get('/customer/offers');
+  },
+
+  /** Claims a store offer (scratch card); claiming again returns the same coupon. */
+  async claimOffer(id) {
+    const data = await customerApi.post(`/customer/offers/${encodeURIComponent(id)}/claim`);
+    return data.coupon;
+  },
+
   async listCoupons() {
     const data = await customerApi.get('/customer/coupons');
     return data.items;

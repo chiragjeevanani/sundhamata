@@ -13,6 +13,7 @@ import { LoyaltyAdminPage } from '../pages/LoyaltyAdminPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { ProductsPage } from '../pages/ProductsPage';
+import { OffersPage } from '../pages/OffersPage';
 
 export const adminRoutes = [
   {
@@ -54,6 +55,10 @@ export const adminRoutes = [
       {
         path: 'products',
         element: <ProductsPage />,
+      },
+      {
+        path: 'coupons',
+        element: <OffersPage />,
       },
       {
         path: 'loyalty',

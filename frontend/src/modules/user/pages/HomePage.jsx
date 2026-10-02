@@ -7,6 +7,7 @@ import {
   ChevronRight,
   PhoneCall,
   Sparkles,
+  TicketPercent,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { PurchaseCard } from '../components/PurchaseCard';
@@ -17,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { VerifiedTick } from '../../../components/CustomerAvatar';
 import { purchaseService } from '../../../services/purchaseService';
 import { loyaltyService } from '../../../services/loyaltyService';
+import { offerService } from '../../../services/offerService';
 import { formatINR, formatDate } from '../../../utils/formatters';
 
 export const HomePage = () => {
@@ -29,6 +31,8 @@ export const HomePage = () => {
   const [summary, setSummary] = useState(null);
   const [recentPurchases, setRecentPurchases] = useState([]);
   const [loyaltySummary, setLoyaltySummary] = useState(null);
+  // Store offers waiting to be scratched (Admin → Coupons); never blocks the page
+  const [newOffers, setNewOffers] = useState([]);
 
   const loadHomeData = async () => {
     setLoading(true);
@@ -51,6 +55,10 @@ export const HomePage = () => {
 
   useEffect(() => {
     loadHomeData();
+    offerService
+      .getOffers()
+      .then((data) => setNewOffers(data.offers.filter((o) => o.status === 'ready')))
+      .catch(() => {});
   }, []);
 
   const customerFirstName = user?.name ? user.name.split(' ')[0] : '';
@@ -120,6 +128,26 @@ export const HomePage = () => {
                 </div>
               </button>
             </div>
+
+            {/* New store offers: scratch to claim on My Coupons */}
+            {newOffers.length > 0 && (
+              <button
+                onClick={() => navigate('/coupons')}
+                className="w-full rounded-xl bg-ink-900 text-white p-3 flex items-center gap-3 text-left cursor-pointer relative overflow-hidden group"
+              >
+                <span className="absolute -right-6 -top-10 w-28 h-28 rounded-full bg-brand-500/40 blur-2xl" aria-hidden="true" />
+                <span className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-amber-300 to-brand-500 text-ink-900 flex items-center justify-center shrink-0">
+                  <TicketPercent className="w-4.5 h-4.5" />
+                </span>
+                <span className="relative flex-1 min-w-0">
+                  <span className="block text-[13px] font-black leading-tight truncate">
+                    {newOffers.length === 1 ? newOffers[0].customTitle || newOffers[0].title : `${newOffers.length} new offers for you`}
+                  </span>
+                  <span className="block text-[11px] text-white/70 mt-0.5">Scratch to claim your coupon</span>
+                </span>
+                <ChevronRight className="relative w-4 h-4 text-white/70 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            )}
 
             {/* Latest Purchase Highlight */}
             {latestPurchase && (

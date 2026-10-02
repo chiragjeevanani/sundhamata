@@ -307,7 +307,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
     onRollback(() => Purchase.deleteMany({ 'order.id': orderId }));
     const first = lines[0];
 
-    if (coupon) await markCouponRedeemed({ couponId: coupon._id, purchaseId: first._id, admin }, ctx);
+    if (coupon) await markCouponRedeemed({ coupon, purchaseId: first._id, admin }, ctx);
 
     // App user + purchase at the store = verified (blue tick)
     await verifyAfterPurchase(customer, ctx);

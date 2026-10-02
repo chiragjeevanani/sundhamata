@@ -17,6 +17,7 @@ import {
   User,
   Home,
   TicketPercent,
+  Gift,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
@@ -25,6 +26,7 @@ import { GENDER_LABELS, formatCalendarDate } from '../../../utils/formatters';
 import { PhotoEditor } from '../../../components/PhotoEditor';
 import { VerifiedTick } from '../../../components/CustomerAvatar';
 import { userService } from '../../../services/userService';
+import { describeDiscount, offerService } from '../../../services/offerService';
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
@@ -68,6 +70,21 @@ export const ProfilePage = () => {
   ];
 
   const [photoError, setPhotoError] = useState('');
+  // Welcome voucher still locked behind a 100% complete profile
+  const [lockedOffer, setLockedOffer] = useState(null);
+  useEffect(() => {
+    let active = true;
+    offerService
+      .getWelcomeOffer()
+      .then((data) => {
+        const locked = data.vouchers?.find((v) => v.status === 'locked');
+        if (active) setLockedOffer(locked ? { voucher: locked, profile: data.profile } : null);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [user]);
   const updatePhoto = async (action) => {
     setPhotoError('');
     await action();
@@ -133,6 +150,32 @@ export const ProfilePage = () => {
             Edit
           </button>
         </div>
+
+        {/* Complete the profile → another offer */}
+        {lockedOffer && (
+          <button
+            onClick={() => navigate('/profile/edit?offer=1')}
+            className="w-full text-left rounded-xl bg-brand-50 border border-brand-200/80 p-3 space-y-2 cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white text-brand-600 flex items-center justify-center shrink-0 border border-brand-100">
+                <Gift className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0 text-[12px] leading-snug">
+                <p className="font-bold text-ink-900">
+                  Profile {lockedOffer.profile.percent}% complete
+                </p>
+                <p className="text-stone-600">
+                  Complete it to unlock {lockedOffer.voucher.discount.type === 'free_item' ? describeDiscount(lockedOffer.voucher.discount) : lockedOffer.voucher.title}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-brand-700 shrink-0" />
+            </div>
+            <div className="h-2 rounded-full bg-white border border-brand-100 overflow-hidden">
+              <div className="h-full bg-brand-500 rounded-full" style={{ width: `${lockedOffer.profile.percent}%` }} />
+            </div>
+          </button>
+        )}
 
         {/* Personal Details */}
         <div className="bg-white rounded-xl border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] overflow-hidden">

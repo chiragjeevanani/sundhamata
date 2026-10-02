@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { optionalEmailSchema, optionalTextSchema } from './common.js';
-import { THEME_COLOR_KEYS } from '../models/StoreSettings.js';
+import { THEME_COLOR_KEYS, VOUCHER_UNLOCKS } from '../models/StoreSettings.js';
 
 // "#rrggbb" → "#RRGGBB"; "" or null resets the colour to the built-in default.
 // Voucher code from the poster, e.g. "WELCOME6D": letters and digits (stored in capitals)
-const voucherCodeSchema = z
+export const voucherCodeSchema = z
   .string()
   .trim()
   .toUpperCase()
@@ -80,6 +80,7 @@ export const updateSettingsSchema = z
             glass: z
               .strictObject({
                 enabled: z.boolean().optional(),
+                unlock: z.enum(VOUCHER_UNLOCKS).optional(),
                 code: voucherCodeSchema.optional(),
                 itemName: z.string().trim().min(2, 'Item name is required').max(60).optional(),
                 value: z.coerce.number().min(0, 'Value cannot be negative').max(100_000).optional(),
@@ -88,6 +89,7 @@ export const updateSettingsSchema = z
             accessories: z
               .strictObject({
                 enabled: z.boolean().optional(),
+                unlock: z.enum(VOUCHER_UNLOCKS).optional(),
                 code: voucherCodeSchema.optional(),
                 amount: z.coerce.number().min(0, 'Discount cannot be negative').max(100_000).optional(),
                 minBill: z.coerce.number().min(0, 'Minimum cannot be negative').max(10_000_000).optional(),

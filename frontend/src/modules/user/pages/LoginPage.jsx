@@ -341,10 +341,10 @@ export const LoginPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-cream-50">
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-ink-950 text-stone-100">
       {/* Centered Top Brand Logo */}
       <div className="flex flex-col items-center text-center pt-2 sm:pt-4">
-        <BrandLogo size="md" showTagline={true} />
+        <BrandLogo size="md" showTagline={true} light={true} />
       </div>
 
       {/* Main Authentication Flow Container */}
@@ -364,16 +364,16 @@ export const LoginPage = () => {
               className="space-y-4"
             >
               <div className="space-y-1 text-center sm:text-left">
-                <h2 className="text-xl sm:text-2xl font-black text-ink-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   Welcome to Sundhamata Mobile
                 </h2>
-                <p className="text-xs text-stone-500 leading-relaxed font-normal">
+                <p className="text-xs text-stone-400 leading-relaxed font-normal">
                   Sign in or create your account using your mobile number.
                 </p>
               </div>
 
               {error && (
-                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                <div className="p-2.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-medium">
                   {error}
                 </div>
               )}
@@ -382,12 +382,12 @@ export const LoginPage = () => {
                 <div className="space-y-1.5">
                   <label
                     htmlFor="mobile-input"
-                    className="block text-xs font-bold text-stone-700 uppercase tracking-wider"
+                    className="block text-xs font-bold text-stone-300 uppercase tracking-wider"
                   >
                     Mobile Number
                   </label>
-                  <div className="relative flex items-center rounded-xl border border-stone-300 bg-white focus-within:border-ink-900 focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
-                    <div className="px-3 py-2.5 bg-stone-50 border-r border-stone-200 text-stone-700 font-bold text-sm flex items-center gap-1.5 select-none shrink-0">
+                  <div className="relative flex items-center rounded-xl border border-stone-800 bg-stone-900/90 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 transition-all shadow-2xs overflow-hidden">
+                    <div className="px-3 py-2.5 bg-stone-800/80 border-r border-stone-800 text-stone-200 font-bold text-sm flex items-center gap-1.5 select-none shrink-0">
                       <span>🇮🇳</span>
                       <span>+91</span>
                     </div>
@@ -404,7 +404,7 @@ export const LoginPage = () => {
                         if (error) setError('');
                       }}
                       placeholder="Enter mobile number"
-                      className="w-full px-3 py-2.5 text-stone-900 font-bold text-base tracking-wider placeholder:text-stone-300 focus:outline-hidden font-mono"
+                      className="w-full px-3 py-2.5 text-white font-bold text-base tracking-wider placeholder:text-stone-600 focus:outline-hidden font-mono bg-transparent"
                       autoFocus
                     />
                   </div>
@@ -413,11 +413,11 @@ export const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading || mobile.replace(/\D/g, '').length !== 10}
-                  className="w-full py-3 px-4 rounded-xl bg-ink-900 hover:bg-ink-800 disabled:bg-stone-200 disabled:text-stone-400 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
+                  className="w-full py-3 px-4 rounded-xl bg-white hover:bg-stone-100 disabled:bg-stone-800 disabled:text-stone-500 text-ink-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="inline-block w-3.5 h-3.5 border-2 border-stone-400 border-t-stone-900 rounded-full animate-spin" />
                       <span>{loadingText || 'Checking your account...'}</span>
                     </span>
                   ) : (
@@ -430,34 +430,34 @@ export const LoginPage = () => {
               </form>
 
               {/* Subtle Legal Notice */}
-              <p className="text-[11px] text-stone-400 text-center leading-relaxed pt-1">
+              <p className="text-[11px] text-stone-500 text-center leading-relaxed pt-1">
                 By continuing, you agree to our{' '}
-                <span className="text-stone-600 font-medium">Terms</span> &{' '}
-                <span className="text-stone-600 font-medium">Privacy Policy</span>.
+                <span className="text-stone-300 font-medium">Terms</span> &{' '}
+                <span className="text-stone-300 font-medium">Privacy Policy</span>.
               </p>
 
               {/* Discreet Testing Shortcut Strip (development builds only) */}
               {import.meta.env.DEV && (
-              <div className="pt-2 border-t border-stone-200/60 flex items-center justify-center gap-2 text-xs text-stone-500">
-                <span className="text-[11px] text-stone-400">Quick Test:</span>
+              <div className="pt-2 border-t border-stone-800/80 flex items-center justify-center gap-2 text-xs text-stone-400">
+                <span className="text-[11px] text-stone-500">Quick Test:</span>
                 <button
                   type="button"
                   onClick={() => {
                     setMobile('9876543210');
                     setError('');
                   }}
-                  className="text-[11px] font-semibold text-brand-700 hover:text-brand-900 transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold text-brand-400 hover:text-brand-300 transition-colors cursor-pointer"
                 >
                   Existing User
                 </button>
-                <span className="text-stone-300">•</span>
+                <span className="text-stone-600">•</span>
                 <button
                   type="button"
                   onClick={() => {
                     setMobile('9999988888');
                     setError('');
                   }}
-                  className="text-[11px] font-semibold text-brand-700 hover:text-brand-900 transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold text-brand-400 hover:text-brand-300 transition-colors cursor-pointer"
                 >
                   New Customer
                 </button>
@@ -484,22 +484,22 @@ export const LoginPage = () => {
                 <button
                   type="button"
                   onClick={handleGoBack}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-stone-800 mb-1 -ml-1 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-white mb-1 -ml-1 transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Back</span>
                 </button>
 
-                <h2 className="text-xl sm:text-2xl font-black text-ink-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   Let's get you started
                 </h2>
-                <p className="text-xs text-stone-500 leading-relaxed font-normal">
+                <p className="text-xs text-stone-400 leading-relaxed font-normal">
                   Just a few details before we verify your number.
                 </p>
               </div>
 
               {error && (
-                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                <div className="p-2.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-medium">
                   {error}
                 </div>
               )}
@@ -509,9 +509,9 @@ export const LoginPage = () => {
                 <div className="space-y-1">
                   <label
                     htmlFor="name-input"
-                    className="block text-xs font-bold text-stone-700"
+                    className="block text-xs font-bold text-stone-300"
                   >
-                    Full Name <span className="text-rose-500">*</span>
+                    Full Name <span className="text-rose-400">*</span>
                   </label>
                   <input
                     id="name-input"
@@ -524,15 +524,15 @@ export const LoginPage = () => {
                       }
                     }}
                     placeholder="Enter your name"
-                    className={`w-full px-3 py-2.5 bg-white rounded-xl border text-stone-900 font-semibold text-sm transition-all shadow-2xs focus:outline-hidden ${
+                    className={`w-full px-3 py-2.5 bg-stone-900/90 rounded-xl border text-white font-semibold text-sm transition-all shadow-2xs focus:outline-hidden placeholder:text-stone-600 ${
                       fieldErrors.name
-                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-100'
-                        : 'border-stone-300 focus:border-ink-900 focus:ring-2 focus:ring-brand-100'
+                        ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                        : 'border-stone-800 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'
                     }`}
                     autoFocus
                   />
                   {fieldErrors.name && (
-                    <p className="text-[11px] text-rose-600 font-medium">
+                    <p className="text-[11px] text-rose-400 font-medium">
                       {fieldErrors.name}
                     </p>
                   )}
@@ -541,7 +541,7 @@ export const LoginPage = () => {
                 {/* Pre-filled Mobile Number (Read-only) */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-stone-700">
+                    <label className="block text-xs font-bold text-stone-300">
                       Mobile Number
                     </label>
                     <span className="text-[10px] text-stone-400 font-medium flex items-center gap-0.5">
@@ -549,8 +549,8 @@ export const LoginPage = () => {
                       <span>Pre-filled</span>
                     </span>
                   </div>
-                  <div className="flex items-center rounded-xl border border-stone-200 bg-stone-100/90 px-3 py-2.5 text-stone-700 font-mono text-sm font-semibold select-none shadow-2xs">
-                    <span className="text-stone-400 mr-2 font-medium">🇮🇳 +91</span>
+                  <div className="flex items-center rounded-xl border border-stone-800/80 bg-stone-900/50 px-3 py-2.5 text-stone-300 font-mono text-sm font-semibold select-none shadow-2xs">
+                    <span className="text-stone-500 mr-2 font-medium">🇮🇳 +91</span>
                     <span>
                       {mobile.length === 10
                         ? `${mobile.slice(0, 5)} ${mobile.slice(5)}`
@@ -561,8 +561,8 @@ export const LoginPage = () => {
 
                 {/* Interest Selector (3 compact options with Lucide icons) */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-stone-700">
-                    Interest <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-stone-300">
+                    Interest <span className="text-rose-400">*</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {interestOptions.map((item) => {
@@ -580,13 +580,13 @@ export const LoginPage = () => {
                           }}
                           className={`py-2.5 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-ink-900 border-ink-900 text-white shadow-xs'
-                              : 'bg-white border-stone-200/90 hover:border-stone-300 text-stone-700 hover:bg-stone-50'
+                              ? 'bg-stone-800 border-brand-500 text-white shadow-xs ring-1 ring-brand-500'
+                              : 'bg-stone-900/90 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700 hover:bg-stone-850'
                           }`}
                         >
                           <Icon
                             className={`w-4.5 h-4.5 ${
-                              isSelected ? 'text-brand-400' : 'text-stone-500'
+                              isSelected ? 'text-brand-400' : 'text-stone-400'
                             }`}
                           />
                           <span className="text-xs font-bold tracking-tight">
@@ -597,7 +597,7 @@ export const LoginPage = () => {
                     })}
                   </div>
                   {fieldErrors.interest && (
-                    <p className="text-[11px] text-rose-600 font-medium">
+                    <p className="text-[11px] text-rose-400 font-medium">
                       {fieldErrors.interest}
                     </p>
                   )}
@@ -607,12 +607,12 @@ export const LoginPage = () => {
                 <div className="space-y-1">
                   <label
                     htmlFor="budget-input"
-                    className="block text-xs font-bold text-stone-700"
+                    className="block text-xs font-bold text-stone-300"
                   >
-                    Budget <span className="font-normal text-stone-400">(Optional)</span>
+                    Budget <span className="font-normal text-stone-500">(Optional)</span>
                   </label>
-                  <div className="relative flex items-center rounded-xl border border-stone-300 bg-white focus-within:border-ink-900 focus-within:ring-2 focus-within:ring-brand-100 transition-all shadow-2xs overflow-hidden">
-                    <span className="pl-3 text-stone-400 font-bold text-sm select-none">
+                  <div className="relative flex items-center rounded-xl border border-stone-800 bg-stone-900/90 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 transition-all shadow-2xs overflow-hidden">
+                    <span className="pl-3 text-stone-500 font-bold text-sm select-none">
                       ₹
                     </span>
                     <input
@@ -626,12 +626,12 @@ export const LoginPage = () => {
                           setFieldErrors((prev) => ({ ...prev, budget: '' }));
                         }
                       }}
-                      placeholder="e.g. ₹30,000"
-                      className="w-full px-2.5 py-2.5 text-stone-900 font-semibold text-sm placeholder:text-stone-300 focus:outline-hidden font-mono"
+                      placeholder="e.g. 30,000"
+                      className="w-full px-2.5 py-2.5 text-white font-semibold text-sm placeholder:text-stone-600 focus:outline-hidden font-mono bg-transparent"
                     />
                   </div>
                   {fieldErrors.budget && (
-                    <p className="text-[11px] text-rose-600 font-medium">
+                    <p className="text-[11px] text-rose-400 font-medium">
                       {fieldErrors.budget}
                     </p>
                   )}
@@ -641,11 +641,11 @@ export const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3 px-4 rounded-xl bg-ink-900 hover:bg-ink-800 disabled:bg-stone-200 disabled:text-stone-400 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
+                  className="w-full mt-2 py-3 px-4 rounded-xl bg-white hover:bg-stone-100 disabled:bg-stone-800 disabled:text-stone-500 text-ink-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="inline-block w-3.5 h-3.5 border-2 border-stone-400 border-t-stone-900 rounded-full animate-spin" />
                       <span>{loadingText || 'Creating your account...'}</span>
                     </span>
                   ) : (
@@ -677,25 +677,25 @@ export const LoginPage = () => {
                 <button
                   type="button"
                   onClick={handleGoBack}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-stone-800 mb-1 -ml-1 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-white mb-1 -ml-1 transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>{isNewUser ? 'Back to details' : 'Change number'}</span>
                 </button>
 
-                <h2 className="text-xl sm:text-2xl font-black text-ink-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   Verify your mobile number
                 </h2>
-                <p className="text-xs text-stone-500 leading-relaxed font-normal">
+                <p className="text-xs text-stone-400 leading-relaxed font-normal">
                   We've sent a 6-digit OTP to{' '}
-                  <span className="font-bold text-stone-800 font-mono">
+                  <span className="font-bold text-white font-mono">
                     {maskPhone(mobile)}
                   </span>
                 </p>
               </div>
 
               {error && (
-                <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                <div className="p-2.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs font-medium">
                   {error}
                 </div>
               )}
@@ -716,10 +716,10 @@ export const LoginPage = () => {
                         onChange={(e) => handleOtpChange(idx, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                         onPaste={handleOtpPaste}
-                        className={`w-10 sm:w-11 h-12 sm:h-13 text-center text-lg sm:text-xl font-bold font-mono bg-white rounded-xl border transition-all shadow-2xs tabular-nums focus:outline-hidden ${
+                        className={`w-10 sm:w-11 h-12 sm:h-13 text-center text-lg sm:text-xl font-bold font-mono rounded-xl border transition-all shadow-2xs tabular-nums focus:outline-hidden ${
                           digit
-                            ? 'border-ink-900 text-ink-900 ring-1 ring-ink-900'
-                            : 'border-stone-300 text-stone-800 focus:border-ink-900 focus:ring-2 focus:ring-brand-100'
+                            ? 'bg-stone-850 border-brand-400 text-white ring-1 ring-brand-400'
+                            : 'bg-stone-900/90 border-stone-800 text-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'
                         }`}
                       />
                     ))}
@@ -729,17 +729,17 @@ export const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading || otp.join('').length !== 6}
-                  className="w-full py-3 px-4 rounded-xl bg-ink-900 hover:bg-ink-800 disabled:bg-stone-200 disabled:text-stone-400 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
+                  className="w-full py-3 px-4 rounded-xl bg-white hover:bg-stone-100 disabled:bg-stone-800 disabled:text-stone-500 text-ink-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="inline-block w-3.5 h-3.5 border-2 border-stone-400 border-t-stone-900 rounded-full animate-spin" />
                       <span>{loadingText || 'Verifying code...'}</span>
                     </span>
                   ) : (
                     <>
                       <span>Verify & Continue</span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-200" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     </>
                   )}
                 </button>
@@ -747,22 +747,22 @@ export const LoginPage = () => {
 
               {/* OTP Resend Timer Controls */}
               <div className="text-center pt-1 space-y-1">
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-stone-400">
                   {canResend ? (
                     <span>
                       Didn't receive the OTP?{' '}
                       <button
                         type="button"
                         onClick={handleResendOtp}
-                        className="font-bold text-brand-700 hover:text-brand-900 underline underline-offset-2 cursor-pointer"
+                        className="font-bold text-brand-400 hover:text-brand-300 underline underline-offset-2 cursor-pointer"
                       >
                         Resend OTP
                       </button>
                     </span>
                   ) : (
-                    <span className="text-stone-400 font-medium">
+                    <span className="text-stone-500 font-medium">
                       Resend OTP in{' '}
-                      <span className="font-mono font-bold text-stone-600">
+                      <span className="font-mono font-bold text-stone-300">
                         {timer}s
                       </span>
                     </span>
@@ -778,7 +778,7 @@ export const LoginPage = () => {
                       setStep('mobile');
                       setError('');
                     }}
-                    className="text-[11px] font-semibold text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                    className="text-[11px] font-semibold text-stone-500 hover:text-stone-300 transition-colors cursor-pointer"
                   >
                     Change mobile number
                   </button>
@@ -798,14 +798,14 @@ export const LoginPage = () => {
               transition={{ duration: 0.2 }}
               className="py-10 flex flex-col items-center justify-center text-center space-y-3"
             >
-              <div className="w-13 h-13 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shadow-xs">
+              <div className="w-13 h-13 rounded-2xl bg-emerald-950/60 border border-emerald-800/80 text-emerald-400 flex items-center justify-center shadow-xs">
                 <CheckCircle2 className="w-6.5 h-6.5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base sm:text-lg font-black text-ink-900 tracking-tight">
+                <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
                   {welcomeMessage}
                 </h3>
-                <p className="text-xs text-stone-500 font-medium">
+                <p className="text-xs text-stone-400 font-medium">
                   Taking you to your account...
                 </p>
               </div>
@@ -815,8 +815,8 @@ export const LoginPage = () => {
       </div>
 
       {/* Trust & Retail Security Badge */}
-      <div className="pt-3 border-t border-stone-200/60 flex items-center justify-center gap-1.5 text-stone-400 text-[11px]">
-        <Lock className="w-3 h-3 text-stone-400" />
+      <div className="pt-3 border-t border-stone-800/80 flex items-center justify-center gap-1.5 text-stone-500 text-[11px]">
+        <Lock className="w-3 h-3 text-stone-500" />
         <span>Official Sundhamata Mobile Customer Access</span>
       </div>
     </div>

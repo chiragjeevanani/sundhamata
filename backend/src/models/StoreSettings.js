@@ -4,14 +4,17 @@ export const SETTINGS_KEY = 'store';
 
 // Welcome vouchers for new app users (the "App Welcome Offers" poster). Settings are read with
 // .lean(), so documents created before these existed have no values: always merge with these.
+export const VOUCHER_UNLOCKS = Object.freeze(['register', 'profile']);
+
 export const WELCOME_VOUCHER_DEFAULTS = Object.freeze({
   enabled: true,
   // Days a voucher stays valid after the customer claims it
   validityDays: 30,
   // Voucher 1: a free item (staff add it to the bill and the voucher takes its price off)
-  glass: Object.freeze({ enabled: true, code: 'WELCOME6D', itemName: '6D Toughened Glass', value: 299 }),
+  // unlock: "register" = right after registering, "profile" = once the profile is 100% complete
+  glass: Object.freeze({ enabled: true, unlock: 'register', code: 'WELCOME6D', itemName: '6D Toughened Glass', value: 299 }),
   // Voucher 2: flat discount when the accessories on the bill reach a minimum
-  accessories: Object.freeze({ enabled: true, code: 'SAVE200', amount: 200, minBill: 2000 }),
+  accessories: Object.freeze({ enabled: true, unlock: 'profile', code: 'SAVE200', amount: 200, minBill: 2000 }),
 });
 
 const mergeDefaults = (defaults, stored = {}) =>
@@ -74,12 +77,14 @@ const storeSettingsSchema = new mongoose.Schema(
         validityDays: { type: Number, min: 1, max: 365, default: WELCOME_VOUCHER_DEFAULTS.validityDays },
         glass: {
           enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.glass.enabled },
+          unlock: { type: String, enum: VOUCHER_UNLOCKS, default: WELCOME_VOUCHER_DEFAULTS.glass.unlock },
           code: { type: String, trim: true, uppercase: true, maxlength: 20, default: WELCOME_VOUCHER_DEFAULTS.glass.code },
           itemName: { type: String, trim: true, maxlength: 60, default: WELCOME_VOUCHER_DEFAULTS.glass.itemName },
           value: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.glass.value },
         },
         accessories: {
           enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.accessories.enabled },
+          unlock: { type: String, enum: VOUCHER_UNLOCKS, default: WELCOME_VOUCHER_DEFAULTS.accessories.unlock },
           code: { type: String, trim: true, uppercase: true, maxlength: 20, default: WELCOME_VOUCHER_DEFAULTS.accessories.code },
           amount: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.accessories.amount },
           minBill: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.accessories.minBill },

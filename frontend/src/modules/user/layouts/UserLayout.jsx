@@ -56,10 +56,10 @@ export const UserLayout = () => {
 
       {/* Main Responsive Mobile Shell Container */}
       <div
-        className={`w-full bg-cream-50 min-h-screen transition-all duration-200 relative flex flex-col ${
+        className={`w-full ${isLoginPage ? 'bg-ink-950' : 'bg-cream-50'} min-h-screen transition-all duration-200 relative flex flex-col ${
           deviceMode === 'mobile'
-            ? 'max-w-md sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border sm:border-stone-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)] sm:overflow-hidden'
-            : 'max-w-2xl sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border sm:border-stone-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)] sm:overflow-hidden'
+            ? `max-w-md sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border ${isLoginPage ? 'sm:border-stone-800/80 sm:shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'sm:border-stone-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)]'} sm:overflow-hidden`
+            : `max-w-2xl sm:my-3 sm:min-h-[88vh] sm:rounded-2xl sm:border ${isLoginPage ? 'sm:border-stone-800/80 sm:shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : 'sm:border-stone-200/90 sm:shadow-[0_4px_24px_rgba(15,32,66,0.06)]'} sm:overflow-hidden`
         }`}
       >
         {/* Page Content Container with subtle page transition and compact bottom padding */}

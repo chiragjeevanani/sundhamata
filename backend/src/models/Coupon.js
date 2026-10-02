@@ -6,6 +6,8 @@ export const COUPON_KINDS = Object.freeze({
   // Welcome vouchers: free 6D toughened glass, and ₹200 off ₹2,000 of accessories
   WELCOME_GLASS: 'welcome_glass',
   WELCOME_ACCESSORIES: 'welcome_accessories',
+  // From an offer created by the staff (Admin → Coupons)
+  OFFER: 'offer',
 });
 export const COUPON_STATUSES = Object.freeze({ ACTIVE: 'active', REDEEMED: 'redeemed' });
 // free_item: takes the item's value (up to `value`) off the bill, e.g. a free toughened glass
@@ -23,6 +25,8 @@ const couponSchema = new mongoose.Schema(
     title: { type: String, default: null },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true, immutable: true },
     kind: { type: String, enum: Object.values(COUPON_KINDS), required: true, immutable: true },
+    // kind "offer": the offer it was issued from
+    offerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Offer', default: null, immutable: true },
 
     discount: {
       type: { type: String, enum: DISCOUNT_TYPES, required: true },
@@ -35,7 +39,8 @@ const couponSchema = new mongoose.Schema(
     },
     // Only these product categories count towards the minimum and get the discount (empty = all)
     appliesTo: { type: [String], default: [] },
-    // Set for one-per-customer vouchers (= kind): enforced by a unique index
+    // Set for one-per-customer vouchers (= kind), and "offer:<id>:<n>" for a customer's n-th
+    // use of an offer: enforced by a unique index
     onceKey: { type: String },
     // Bill (after any store discount) must be at least this much
     minBillAmount: { type: Number, min: 0, default: 0 },
@@ -60,6 +65,7 @@ couponSchema.index(
   { unique: true, name: 'one_per_customer', partialFilterExpression: { onceKey: { $exists: true } } }
 );
 couponSchema.index({ customerId: 1, campaignCode: 1 });
+couponSchema.index({ offerId: 1, customerId: 1 }, { partialFilterExpression: { offerId: { $type: 'objectId' } } });
 couponSchema.index({ customerId: 1, createdAt: -1 });
 
 export const Coupon = mongoose.model('Coupon', couponSchema);

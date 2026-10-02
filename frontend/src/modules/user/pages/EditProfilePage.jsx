@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Lock, PartyPopper } from 'lucide-react';
+import { ArrowLeft, Check, Gift, Lock, PartyPopper } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../../../services/userService';
 import { GENDER_LABELS } from '../../../utils/formatters';
 import { PhotoEditor } from '../../../components/PhotoEditor';
+import { describeDiscount, offerService } from '../../../services/offerService';
 
 const GENDERS = Object.entries(GENDER_LABELS).map(([id, label]) => ({ id, label }));
 
@@ -84,6 +85,23 @@ export const EditProfilePage = () => {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [photoError, setPhotoError] = useState('');
+  // A welcome voucher that unlocks when the profile is 100% complete (anniversary and photo optional)
+  const [offer, setOffer] = useState(null);
+  useEffect(() => {
+    let active = true;
+    offerService
+      .getWelcomeOffer()
+      .then((data) => {
+        const locked = data.vouchers?.find((v) => v.status === 'locked');
+        if (active && locked) setOffer({ voucher: locked, profile: data.profile });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  const neededForOffer = new Set((offer?.profile?.missingFields ?? []).map((f) => f.field));
+  const hint = (field) => (neededForOffer.has(field) ? 'needed for your offer' : 'optional');
 
   const today = todayLocal();
 
@@ -152,6 +170,26 @@ export const EditProfilePage = () => {
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="p-3.5 sm:p-4 space-y-3 pb-6">
+        {offer && (
+          <div className="rounded-xl bg-brand-50 border border-brand-200/80 p-3 space-y-2">
+            <div className="flex gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white text-brand-600 flex items-center justify-center shrink-0 border border-brand-100">
+                <Gift className="w-4 h-4" />
+              </div>
+              <div className="text-[12px] leading-snug">
+                <p className="font-bold text-ink-900">
+                  Complete 100% of your profile to unlock {offer.voucher.discount.type === 'free_item' ? describeDiscount(offer.voucher.discount) : offer.voucher.title}
+                </p>
+                <p className="text-stone-600 mt-0.5">
+                  Profile {offer.profile.percent}% complete · fill the fields marked &ldquo;needed for your offer&rdquo; and save.
+                </p>
+              </div>
+            </div>
+            <div className="h-2 rounded-full bg-white border border-brand-100 overflow-hidden">
+              <div className="h-full bg-brand-500 rounded-full" style={{ width: `${offer.profile.percent}%` }} />
+            </div>
+          </div>
+        )}
         {welcome && (
           <div className="rounded-xl bg-brand-50 border border-brand-200/80 p-3 flex gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-white text-brand-600 flex items-center justify-center shrink-0 border border-brand-100">
@@ -207,7 +245,7 @@ export const EditProfilePage = () => {
             </div>
           </Field>
 
-          <Field label="Email" hint="optional" error={errors.email}>
+          <Field label="Email" hint={hint('email')} error={errors.email}>
             <input
               type="email"
               inputMode="email"
@@ -221,7 +259,7 @@ export const EditProfilePage = () => {
         </Section>
 
         <Section title="Personal Details">
-          <Field label="Date of Birth" hint="optional" error={errors.dob}>
+          <Field label="Date of Birth" hint={hint('dob')} error={errors.dob}>
             <input
               type="date"
               value={form.dob}
@@ -234,7 +272,7 @@ export const EditProfilePage = () => {
 
           <div className="space-y-1">
             <span className="block text-[11px] font-bold text-stone-600">
-              Gender <span className="font-medium text-stone-400">· optional</span>
+              Gender <span className="font-medium text-stone-400">· {hint('gender')}</span>
             </span>
             <div className="flex flex-wrap gap-1.5">
               {GENDERS.map((g) => {
@@ -272,7 +310,7 @@ export const EditProfilePage = () => {
         </Section>
 
         <Section title="Address">
-          <Field label="Address" hint="optional" error={errors.address}>
+          <Field label="Address" hint={hint('address')} error={errors.address}>
             <textarea
               value={form.address}
               onChange={set('address')}
@@ -284,7 +322,7 @@ export const EditProfilePage = () => {
             />
           </Field>
           <div className="grid grid-cols-2 gap-2.5">
-            <Field label="City" error={errors.city}>
+            <Field label="City" hint={neededForOffer.has('city') ? 'needed for your offer' : undefined} error={errors.city}>
               <input
                 type="text"
                 value={form.city}
@@ -294,7 +332,7 @@ export const EditProfilePage = () => {
                 className={inputClass(errors.city)}
               />
             </Field>
-            <Field label="Pincode" error={errors.pincode}>
+            <Field label="Pincode" hint={neededForOffer.has('pincode') ? 'needed for your offer' : undefined} error={errors.pincode}>
               <input
                 type="text"
                 inputMode="numeric"

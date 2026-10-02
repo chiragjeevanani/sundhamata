@@ -1,6 +1,7 @@
 import * as customerPhotoService from '../services/customerPhoto.service.js';
 import * as productService from '../services/product.service.js';
 import * as couponService from '../services/coupon.service.js';
+import * as offerService from '../services/offer.service.js';
 import * as analyticsService from '../services/analytics.service.js';
 import * as billService from '../services/bill.service.js';
 import * as productImageService from '../services/productImage.service.js';
@@ -200,4 +201,25 @@ export const deleteCustomerPhoto = async (req, res) => {
   await customerPhotoService.removeCustomerPhoto(req.valid.params.id, { by: 'admin', actorId: req.admin.id });
   const customer = await customerService.getCustomerWithStats(req.valid.params.id);
   sendSuccess(res, { data: { customer }, message: 'Photo removed' });
+};
+
+// ---- Offers (Admin → Coupons): coupon campaigns created by the staff
+
+export const listOffers = async (_req, res) => {
+  sendSuccess(res, { data: { items: await offerService.listOffers() } });
+};
+
+export const createOffer = async (req, res) => {
+  const offer = await offerService.createOffer(req.valid.body, req.admin);
+  sendCreated(res, { data: { offer }, message: 'Offer created' });
+};
+
+export const updateOffer = async (req, res) => {
+  const offer = await offerService.updateOffer(req.valid.params.id, req.valid.body, req.admin);
+  sendSuccess(res, { data: { offer }, message: 'Offer updated' });
+};
+
+export const deleteOffer = async (req, res) => {
+  await offerService.deleteOffer(req.valid.params.id, req.admin);
+  sendSuccess(res, { message: 'Offer deleted' });
 };

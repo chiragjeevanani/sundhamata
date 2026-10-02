@@ -5,22 +5,23 @@ import React from 'react';
  * Features the official SM Headset & Plug brand mark.
  * Tagline: "Smart Phones • Smart People"
  */
-export const BrandLogo = ({ size = 'md', showTagline = true, light = false, className = '' }) => {
+export const BrandLogo = ({ size = 'md', showTagline = true, light = false, logoSrc, className = '' }) => {
   const isSm = size === 'sm';
   const isLg = size === 'lg';
 
   const imgSizeClass = isSm ? 'w-8 h-8' : isLg ? 'w-12 h-12' : 'w-10 h-10';
+  const activeLogoSrc = logoSrc || (light ? '/logo-dark.png' : '/logo.png');
 
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
       {/* Brand Logo Emblem */}
       <div
         className={`relative flex items-center justify-center shrink-0 rounded-xl overflow-hidden shadow-xs transition-transform ${
-          light ? 'bg-stone-900/60 ring-1 ring-white/20' : 'bg-black/90 ring-1 ring-stone-800'
+          light ? 'bg-stone-900/80 ring-1 ring-white/15' : 'bg-black/90 ring-1 ring-stone-800'
         } ${imgSizeClass}`}
       >
         <img
-          src="/logo.png"
+          src={activeLogoSrc}
           alt="Sundhamata Mobile"
           className="w-full h-full object-contain p-0.5 rounded-xl"
         />

@@ -13,23 +13,29 @@ const STATUS_BADGE = {
 };
 const STATUS_LABEL = { active: 'Active', redeemed: 'Used', expired: 'Expired' };
 
-/** My Coupons: welcome vouchers (claim here too) and any other coupons, each Active / Used / Expired */
+/** My Coupons: welcome vouchers and store offers (scratch to claim), and all other coupons: Active / Used / Expired */
 export const CouponsPage = () => {
   const navigate = useNavigate();
   const [vouchers, setVouchers] = useState(null);
+  const [offers, setOffers] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [others, setOthers] = useState([]);
   const [error, setError] = useState('');
-  const [claiming, setClaiming] = useState(null);
-  const [claimedNow, setClaimedNow] = useState(() => new Set());
   const [qrCoupon, setQrCoupon] = useState(null);
 
   useEffect(() => {
     let active = true;
-    Promise.all([offerService.getWelcomeOffer().catch(() => ({ vouchers: [] })), offerService.listCoupons()])
-      .then(([offer, coupons]) => {
+    Promise.all([
+      offerService.getWelcomeOffer().catch(() => ({ vouchers: [] })),
+      offerService.getOffers().catch(() => ({ offers: [] })),
+      offerService.listCoupons(),
+    ])
+      .then(([welcome, store, coupons]) => {
         if (!active) return;
-        const shown = new Set(offer.vouchers.map((v) => v.coupon?.id).filter(Boolean));
-        setVouchers(offer.vouchers);
+        const shown = new Set([...welcome.vouchers, ...store.offers].map((v) => v.coupon?.id).filter(Boolean));
+        setVouchers(welcome.vouchers);
+        setOffers(store.offers);
+        setProfile(welcome.profile ?? store.profile ?? null);
         setOthers(coupons.filter((c) => !shown.has(c.id)));
       })
       .catch((err) => active && setError(err.message || 'Could not load your coupons.'));
@@ -38,21 +44,18 @@ export const CouponsPage = () => {
     };
   }, []);
 
+  // Scratching a card claims it (VoucherCard shows any error on the card itself)
   const claim = async (key) => {
-    setClaiming(key);
-    setError('');
-    try {
-      const coupon = await offerService.claimVoucher(key);
-      setVouchers((prev) => prev.map((v) => (v.key === key ? { ...v, status: 'claimed', coupon } : v)));
-      setClaimedNow((prev) => new Set(prev).add(key));
-    } catch (err) {
-      setError(err.message || 'Could not claim the voucher.');
-    } finally {
-      setClaiming(null);
-    }
+    const coupon = await offerService.claimVoucher(key);
+    setVouchers((prev) => prev.map((v) => (v.key === key ? { ...v, status: 'claimed', coupon } : v)));
   };
 
-  const empty = vouchers && vouchers.length === 0 && others.length === 0;
+  const claimOffer = async (id) => {
+    const coupon = await offerService.claimOffer(id);
+    setOffers((prev) => prev.map((o) => (o.id === id ? { ...o, status: 'claimed', coupon } : o)));
+  };
+
+  const empty = vouchers && vouchers.length === 0 && offers.length === 0 && others.length === 0;
 
   return (
     <div className="flex-1 flex flex-col">
@@ -87,10 +90,27 @@ export const CouponsPage = () => {
                 key={voucher.key}
                 voucher={voucher}
                 number={i + 1}
-                claiming={claiming === voucher.key}
+                profile={profile}
                 onClaim={() => claim(voucher.key)}
-                scratch={claimedNow.has(voucher.key)}
                 onShowQr={setQrCoupon}
+                onCompleteProfile={() => navigate('/profile/edit?offer=1')}
+              />
+            ))}
+          </section>
+        )}
+
+        {offers.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-stone-500 pt-1">Offers for you</h2>
+            {offers.map((offer) => (
+              <VoucherCard
+                key={offer.id}
+                voucher={offer}
+                label="Store Offer"
+                profile={profile}
+                onClaim={() => claimOffer(offer.id)}
+                onShowQr={setQrCoupon}
+                onCompleteProfile={() => navigate('/profile/edit?offer=1')}
               />
             ))}
           </section>
