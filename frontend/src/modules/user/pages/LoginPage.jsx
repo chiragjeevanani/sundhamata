@@ -342,13 +342,35 @@ export const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-ink-950 text-stone-100">
-      {/* Centered Top Brand Logo */}
-      <div className="flex flex-col items-center text-center pt-2 sm:pt-4">
-        <BrandLogo size="md" showTagline={true} light={true} />
+      {/* Centered Top Brand Logo - Hero Placement with sharp, larger branding */}
+      <div className="flex flex-col items-center text-center pt-3 pb-2 sm:pt-6 sm:pb-3">
+        <div className="relative flex flex-col items-center">
+          {/* Prominent High-Resolution Emblem Container with glow and crisp render */}
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-black/95 p-2 ring-1 ring-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.6)] flex items-center justify-center overflow-hidden mb-3 transition-transform hover:scale-[1.02]">
+            <img
+              src="/logo-dark.png"
+              alt="Sundhamata Mobile"
+              className="w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+              style={{ imageRendering: 'auto' }}
+            />
+          </div>
+          {/* Brand Typography */}
+          <div className="flex items-center gap-1.5 leading-none">
+            <span className="text-xl sm:text-2xl font-black text-white tracking-tight font-sans">
+              SUNDHAMATA
+            </span>
+            <span className="text-sm sm:text-base font-bold text-brand-400">
+              MOBILE
+            </span>
+          </div>
+          <span className="text-[9.5px] sm:text-[10.5px] font-semibold tracking-[0.18em] uppercase text-stone-400 mt-1.5">
+            Smart Phones • Smart People
+          </span>
+        </div>
       </div>
 
       {/* Main Authentication Flow Container */}
-      <div className="flex-1 flex flex-col justify-center my-4 max-w-sm mx-auto w-full">
+      <div className="flex-1 flex flex-col justify-center my-3 max-w-sm mx-auto w-full">
         <AnimatePresence mode="wait" custom={direction}>
           {/* ======================================================== */}
           {/* STEP 1: MOBILE NUMBER ENTRY SCREEN                       */}
