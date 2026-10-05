@@ -31,6 +31,13 @@ export const interestSchema = z.enum(CUSTOMER_INTERESTS, {
 // Empty string / null from optional form fields → null.
 const emptyToNull = (v) => (v === '' || v === undefined ? null : v);
 
+export const optionalInterestSchema = z.preprocess(
+  emptyToNull,
+  z.enum(CUSTOMER_INTERESTS, {
+    error: `Interest must be one of: ${CUSTOMER_INTERESTS.join(', ')}`,
+  }).nullable()
+);
+
 export const optionalBudgetSchema = z.preprocess(
   emptyToNull,
   z.coerce

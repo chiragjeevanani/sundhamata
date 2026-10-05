@@ -10,7 +10,7 @@ const customerSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, maxlength: 80 },
     // Normalized E.164 Indian mobile, e.g. "+919876543210". See utils/mobile.js.
     mobile: { type: String, required: true, unique: true, match: /^\+91[6-9]\d{9}$/ },
-    interest: { type: String, required: true, enum: CUSTOMER_INTERESTS },
+    interest: { type: String, enum: [...CUSTOMER_INTERESTS, null], default: null },
     budget: { type: Number, min: 0, default: null },
     email: { type: String, trim: true, lowercase: true, maxlength: 254, default: null },
     address: { type: String, trim: true, maxlength: 250, default: null },

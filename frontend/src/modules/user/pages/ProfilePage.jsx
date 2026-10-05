@@ -18,6 +18,7 @@ import {
   Home,
   TicketPercent,
   Gift,
+  IndianRupee,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
@@ -67,6 +68,12 @@ export const ProfilePage = () => {
     { icon: User, label: 'Gender', value: GENDER_LABELS[user?.gender] },
     { icon: Heart, label: 'Anniversary', value: formatCalendarDate(user?.anniversaryDate) },
     { icon: Home, label: 'Address', value: fullAddress },
+    { icon: Sparkles, label: 'Interested In', value: interest },
+    {
+      icon: IndianRupee,
+      label: 'Shopping Budget',
+      value: user?.budget != null && user?.budget !== '' ? `₹${Number(user.budget).toLocaleString('en-IN')}` : null,
+    },
   ];
 
   const [photoError, setPhotoError] = useState('');

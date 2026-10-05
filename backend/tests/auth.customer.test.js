@@ -60,13 +60,13 @@ describe('Customer registration', () => {
     expect(stored.registrationSource).toBe('self');
   });
 
-  it('requires name, valid mobile and interest; budget is optional', async () => {
+  it('requires name and valid mobile; interest and budget are optional', async () => {
     const res = await api().post('/api/v1/auth/customer/register').send({ mobile: '12345' }).expect(422);
     const fields = res.body.errors.map((e) => e.field);
-    expect(fields).toEqual(expect.arrayContaining(['name', 'mobile', 'interest']));
+    expect(fields).toEqual(expect.arrayContaining(['name', 'mobile']));
     expect(res.body.success).toBe(false);
 
-    await register({ mobile: '9123456780', budget: undefined }).expect(200);
+    await register({ mobile: '9123456780', interest: undefined, budget: undefined }).expect(200);
     await register({ mobile: '9123456781', budget: -5 }).expect(422);
     await register({ mobile: '9123456782', interest: 'Laptops' }).expect(422);
   });

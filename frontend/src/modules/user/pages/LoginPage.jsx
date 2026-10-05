@@ -5,9 +5,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  Smartphone,
-  Headphones,
-  Wrench,
   Lock,
   Sparkles,
 } from 'lucide-react';
@@ -45,8 +42,6 @@ export const LoginPage = () => {
   // Form states
   const [mobile, setMobile] = useState('');
   const [name, setName] = useState('');
-  const [interest, setInterest] = useState(''); // 'Mobile' | 'Accessories' | 'Service'
-  const [budget, setBudget] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
 
   // Flow meta
@@ -146,14 +141,6 @@ export const LoginPage = () => {
       errors.name = 'Please enter a valid full name';
     }
 
-    if (!interest) {
-      errors.interest = "Please select what you're interested in";
-    }
-
-    if (budget && (isNaN(Number(budget)) || Number(budget) < 0)) {
-      errors.budget = 'Please enter a valid positive budget';
-    }
-
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -166,8 +153,6 @@ export const LoginPage = () => {
       await registerCustomer({
         name: cleanName,
         mobile,
-        interest,
-        budget: budget ? Number(budget) : null,
       });
 
       setTimer(30);
@@ -333,19 +318,14 @@ export const LoginPage = () => {
     }),
   };
 
-  // Selectable Interests Options
-  const interestOptions = [
-    { id: 'Mobile', label: 'Mobile', icon: Smartphone },
-    { id: 'Accessories', label: 'Accessories', icon: Headphones },
-    { id: 'Service', label: 'Service', icon: Wrench },
-  ];
+
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-ink-950 text-stone-100">
-      {/* Centered Top Brand Logo - Seamless Dark-Theme Hero Logo */}
-      <div className="flex flex-col items-center text-center pt-8 pb-1 sm:pt-12 sm:pb-2">
-        <div className="relative flex flex-col items-center">
-          {/* Transparent, perfectly blended high-resolution brand logo without any awkward bounding box */}
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-ink-950 text-stone-100 overflow-y-auto">
+      {/* Centered Content Block: Logo + Auth Flow together */}
+      <div className="flex-1 flex flex-col justify-center items-center my-auto py-4 max-w-sm mx-auto w-full">
+        {/* Brand Logo - positioned slightly down with cohesive, clean spacing to heading */}
+        <div className="flex flex-col items-center text-center mb-5 sm:mb-6">
           <div className="w-52 h-auto max-w-[240px] flex items-center justify-center transition-transform hover:scale-[1.02]">
             <img
               src="/logo-dark.png"
@@ -355,11 +335,10 @@ export const LoginPage = () => {
             />
           </div>
         </div>
-      </div>
 
-      {/* Main Authentication Flow Container */}
-      <div className="flex-1 flex flex-col justify-center my-3 max-w-sm mx-auto w-full">
-        <AnimatePresence mode="wait" custom={direction}>
+        {/* Main Authentication Flow Container */}
+        <div className="w-full">
+          <AnimatePresence mode="wait" custom={direction}>
           {/* ======================================================== */}
           {/* STEP 1: MOBILE NUMBER ENTRY SCREEN                       */}
           {/* ======================================================== */}
@@ -569,83 +548,7 @@ export const LoginPage = () => {
                   </div>
                 </div>
 
-                {/* Interest Selector (3 compact options with Lucide icons) */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-stone-300">
-                    Interest <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {interestOptions.map((item) => {
-                      const Icon = item.icon;
-                      const isSelected = interest === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setInterest(item.id);
-                            if (fieldErrors.interest) {
-                              setFieldErrors((prev) => ({ ...prev, interest: '' }));
-                            }
-                          }}
-                          className={`py-2.5 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-stone-800 border-brand-500 text-white shadow-xs ring-1 ring-brand-500'
-                              : 'bg-stone-900/90 border-stone-800 text-stone-400 hover:text-stone-200 hover:border-stone-700 hover:bg-stone-850'
-                          }`}
-                        >
-                          <Icon
-                            className={`w-4.5 h-4.5 ${
-                              isSelected ? 'text-brand-400' : 'text-stone-400'
-                            }`}
-                          />
-                          <span className="text-xs font-bold tracking-tight">
-                            {item.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {fieldErrors.interest && (
-                    <p className="text-[11px] text-rose-400 font-medium">
-                      {fieldErrors.interest}
-                    </p>
-                  )}
-                </div>
 
-                {/* Budget (Optional) */}
-                <div className="space-y-1">
-                  <label
-                    htmlFor="budget-input"
-                    className="block text-xs font-bold text-stone-300"
-                  >
-                    Budget <span className="font-normal text-stone-500">(Optional)</span>
-                  </label>
-                  <div className="relative flex items-center rounded-xl border border-stone-800 bg-stone-900/90 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 transition-all shadow-2xs overflow-hidden">
-                    <span className="pl-3 text-stone-500 font-bold text-sm select-none">
-                      ₹
-                    </span>
-                    <input
-                      id="budget-input"
-                      type="number"
-                      inputMode="numeric"
-                      value={budget}
-                      onChange={(e) => {
-                        setBudget(e.target.value);
-                        if (fieldErrors.budget) {
-                          setFieldErrors((prev) => ({ ...prev, budget: '' }));
-                        }
-                      }}
-                      placeholder="e.g. 30,000"
-                      className="w-full px-2.5 py-2.5 text-white font-semibold text-sm placeholder:text-stone-600 focus:outline-hidden font-mono bg-transparent"
-                    />
-                  </div>
-                  {fieldErrors.budget && (
-                    <p className="text-[11px] text-rose-400 font-medium">
-                      {fieldErrors.budget}
-                    </p>
-                  )}
-                </div>
 
                 {/* Primary CTA */}
                 <button
@@ -822,10 +725,11 @@ export const LoginPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </div>
 
       {/* Trust & Retail Security Badge */}
-      <div className="pt-3 border-t border-stone-800/80 flex items-center justify-center gap-1.5 text-stone-500 text-[11px]">
+      <div className="pt-3 border-t border-stone-800/80 flex items-center justify-center gap-1.5 text-stone-500 text-[11px] shrink-0">
         <Lock className="w-3 h-3 text-stone-500" />
         <span>Official Sundhamata Mobile Customer Access</span>
       </div>

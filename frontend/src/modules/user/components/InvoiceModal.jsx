@@ -81,7 +81,7 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
             {/* Header */}
             <div className="flex items-start justify-between border-b border-stone-200 pb-4">
               <div>
-                <BrandLogo size="md" />
+                <BrandLogo size="md" animated={false} />
                 <p className="text-[10.5px] text-stone-500 mt-2 max-w-[210px] leading-relaxed">
                   {store?.legalName || store?.name}
                   <br />

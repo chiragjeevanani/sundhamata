@@ -218,6 +218,24 @@ describe('Redeeming welcome vouchers at the counter', () => {
     expect(ok.body.data.order.totals).toMatchObject({ couponDiscount: 200, finalAmount: 19900 });
   });
 
+  it('SAVE200 cannot be given at the counter to a customer whose profile is incomplete', async () => {
+    await setup('9000000047'); // someone else already holds SAVE200
+    const { auth, id } = await registerNewUser('9000000048');
+    await claim(auth, 'glass').expect(201);
+
+    const typed = await lookup('SAVE200', id).expect(422);
+    expect(typed.body.errors[0].message).toMatch(/has not claimed the SAVE200 voucher/);
+    await bill(id, [accessory(2500)], { couponCode: 'SAVE200' }).expect(422);
+    expect(await Coupon.countDocuments({ customerId: id, campaignCode: 'SAVE200' })).toBe(0);
+    expect(await Purchase.countDocuments({ customerId: id })).toBe(0);
+
+    // Completing the profile unlocks it in the app; then it works at the counter
+    await updateProfile(auth, FULL_PROFILE).expect(200);
+    await claim(auth, 'accessories').expect(201);
+    const ok = await bill(id, [accessory(2500)], { couponCode: 'SAVE200' }).expect(201);
+    expect(ok.body.data.order.totals.couponDiscount).toBe(200);
+  });
+
   it('a voucher code needs the customer; the QR code identifies them by itself', async () => {
     const { customerId, save } = await setup('9000000044');
     const noCustomer = await lookup('SAVE200').expect(422);

@@ -26,7 +26,8 @@ const toForm = (user) => ({
   address: user?.address ?? '',
   city: user?.city ?? '',
   pincode: user?.pincode ?? '',
-  interest: user?.interest ?? 'Mobile',
+  interest: user?.interest ?? '',
+  budget: user?.budget != null ? String(user.budget) : '',
 });
 
 const validate = (form) => {
@@ -37,6 +38,9 @@ const validate = (form) => {
   }
   if (form.pincode.trim() && !/^[1-9]\d{5}$/.test(form.pincode.trim())) {
     errors.pincode = 'Pincode must be a valid 6-digit code';
+  }
+  if (form.budget && (isNaN(Number(form.budget)) || Number(form.budget) < 0)) {
+    errors.budget = 'Please enter a valid positive budget';
   }
   const today = todayLocal();
   if (form.dob && form.dob > today) errors.dob = 'Date of birth cannot be in the future';
@@ -136,7 +140,8 @@ export const EditProfilePage = () => {
         address: form.address.trim(),
         city: form.city.trim(),
         pincode: form.pincode.trim(),
-        interest: form.interest,
+        interest: form.interest || null,
+        budget: form.budget ? Number(form.budget) : null,
       });
       await refreshUser().catch(() => {});
       goBack();
@@ -347,28 +352,57 @@ export const EditProfilePage = () => {
         </Section>
 
         <Section title="Preferences">
-          <div className="space-y-1">
-            <span className="block text-[11px] font-bold text-stone-600">Interested In</span>
-            <div className="grid grid-cols-3 gap-1.5">
-              {INTERESTS.map((item) => {
-                const selected = form.interest === item;
-                return (
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="block text-[11px] font-bold text-stone-600">
+                  Interested In <span className="font-normal text-stone-400">· optional</span>
+                </span>
+                {form.interest && (
                   <button
-                    key={item}
                     type="button"
-                    aria-pressed={selected}
-                    onClick={() => set('interest')(item)}
-                    className={`py-1.5 rounded-lg border text-[11.5px] font-semibold transition-colors cursor-pointer ${
-                      selected
-                        ? 'bg-brand-50 border-brand-500 text-brand-700'
-                        : 'bg-white border-stone-200 text-stone-700 hover:border-brand-300'
-                    }`}
+                    onClick={() => set('interest')('')}
+                    className="text-[10px] font-semibold text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
                   >
-                    {item}
+                    Clear
                   </button>
-                );
-              })}
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {INTERESTS.map((item) => {
+                  const selected = form.interest === item;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => set('interest')(selected ? '' : item)}
+                      className={`py-1.5 rounded-lg border text-[11.5px] font-semibold transition-colors cursor-pointer ${
+                        selected
+                          ? 'bg-brand-50 border-brand-500 text-brand-700 font-bold'
+                          : 'bg-white border-stone-200 text-stone-700 hover:border-brand-300'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            <Field label="Shopping Budget" hint="optional" error={errors.budget}>
+              <div className="relative flex items-center rounded-lg border border-stone-200 bg-white focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100 transition-colors overflow-hidden">
+                <span className="pl-3 text-stone-500 font-bold text-xs select-none">₹</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={form.budget}
+                  onChange={(e) => set('budget')(e.target.value)}
+                  placeholder="e.g. 30,000"
+                  className="w-full px-2.5 py-2 text-[13px] text-stone-900 placeholder:text-stone-400 focus:outline-hidden font-mono tabular-nums"
+                />
+              </div>
+            </Field>
           </div>
         </Section>
 

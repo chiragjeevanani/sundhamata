@@ -43,9 +43,20 @@ export const Header = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5">
-            <BrandLogo size="sm" showTagline={false} />
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (location.pathname === '/home') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                navigate('/home');
+              }
+            }}
+            className="flex items-center gap-1.5 cursor-pointer text-left focus:outline-hidden transition-transform active:scale-[0.98]"
+            aria-label="Sundhamata Mobile Home"
+          >
+            <BrandLogo size="sm" showTagline={false} animated={true} />
+          </button>
         )}
 
         {/* Right Action / Profile Icon */}

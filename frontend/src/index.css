@@ -118,3 +118,13 @@ html, body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ==========================================================================
+   Sundhamata Brand Logo Typography
+   Interactive Framer Motion spring physics with tactile hover/tap response
+   ========================================================================== */
+.brand-logo-container {
+  will-change: transform;
+}
+
+

@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { interestSchema, mobileSchema, nameSchema, optionalBudgetSchema } from './common.js';
+import { mobileSchema, nameSchema, optionalBudgetSchema, optionalInterestSchema } from './common.js';
 
 export const mobileBodySchema = z.object({ mobile: mobileSchema });
 
 export const registerCustomerSchema = z.object({
   name: nameSchema,
   mobile: mobileSchema,
-  interest: interestSchema,
+  interest: optionalInterestSchema.optional(),
   budget: optionalBudgetSchema.optional(),
 });
 

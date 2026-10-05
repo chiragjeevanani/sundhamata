@@ -6,6 +6,7 @@ import {
   optionalBudgetSchema,
   optionalEmailSchema,
   optionalGenderSchema,
+  optionalInterestSchema,
   optionalPastDateSchema,
   optionalPincodeSchema,
   optionalTextSchema,
@@ -32,7 +33,7 @@ const requireAtLeastOneField = (obj) => Object.keys(obj).length > 0;
 export const updateMyProfileSchema = z
   .strictObject({
     name: nameSchema.optional(),
-    interest: interestSchema.optional(),
+    interest: optionalInterestSchema.optional(),
     profileImage: optionalUrlSchema.optional(),
     ...profileFields,
   })

@@ -271,6 +271,31 @@ describe('Offers in the customer app', () => {
     await claim(auth, offer.id).expect(201);
   });
 
+  it('staff cannot give a profile-complete offer at the counter while the profile is incomplete', async () => {
+    await createOffer({ code: 'PROFILE100', discount: { type: 'flat', value: 100 }, audience: 'profile_complete' }).expect(201);
+    const { auth, id } = await registerAppUser('9000000077');
+
+    // Typed at the counter: refused, nothing issued, no discount
+    const looked = await lookup('PROFILE100', id).expect(422);
+    expect(looked.body.errors[0].message).toBe('PROFILE100 needs a 100% complete profile in the app');
+    const refused = await bill(id, [CASE], 'PROFILE100').expect(422);
+    expect(refused.body.errors[0].message).toBe('PROFILE100 needs a 100% complete profile in the app');
+    // A walk-in recorded with just a mobile number cannot use it either
+    await lookup('PROFILE100').expect(422);
+    await bill({ mobile: '9876500077' }, [CASE], 'PROFILE100').expect(422);
+    expect(await Coupon.countDocuments({ kind: 'offer' })).toBe(0);
+    expect((await Offer.findOne({ code: 'PROFILE100' }).lean()).redeemedCount).toBe(0);
+
+    // Once the profile is complete, the same code works at the counter
+    await api()
+      .patch('/api/v1/customer/me')
+      .set('Authorization', auth)
+      .send({ email: 'kiran@example.com', dob: '1993-08-21', gender: 'male', address: '9, Ram Nagar', city: 'Vadodara', pincode: '390001' })
+      .expect(200);
+    const ok = await bill(id, [CASE], 'PROFILE100').expect(201);
+    expect(ok.body.data.order.totals.couponDiscount).toBe(100);
+  });
+
   it('new-app-user offers are only for customers who joined through the app', async () => {
     await createOffer({ code: 'APPNEW', discount: { type: 'flat', value: 100 }, audience: 'new_app_users' }).expect(201);
     const { auth } = await registerAppUser('9000000075');

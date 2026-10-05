@@ -75,7 +75,7 @@ export const verifyOtpAndSignIn = async (mobile, otp) => {
         {
           name: challenge.registration.name,
           mobile,
-          interest: challenge.registration.interest,
+          interest: challenge.registration.interest ?? null,
           budget: challenge.registration.budget ?? null,
         },
         { source: 'self', verified: true }

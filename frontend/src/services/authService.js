@@ -28,10 +28,15 @@ export const authService = {
 
   /**
    * Start registration of a new customer. The account is created only after OTP verification.
-   * @param {{name: string, mobile: string, interest: string, budget?: number|null}} data
+   * @param {{name: string, mobile: string, interest?: string|null, budget?: number|null}} data
    */
   registerCustomer({ name, mobile, interest, budget }) {
-    return publicApi.post('/auth/customer/register', { name, mobile, interest, budget: budget ?? null });
+    return publicApi.post('/auth/customer/register', {
+      name,
+      mobile,
+      ...(interest ? { interest } : {}),
+      ...(budget !== undefined && budget !== null && budget !== '' ? { budget: Number(budget) } : {}),
+    });
   },
 
   /**
