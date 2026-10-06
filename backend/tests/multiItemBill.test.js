@@ -278,3 +278,40 @@ describe('Migration', () => {
     await record(bill()).expect(201);
   });
 });
+
+describe('HSN / SAC codes', () => {
+  it('prints only the code the store entered, remembers it for the product, and can be edited', async () => {
+    const res = await record(
+      bill({ items: [{ ...PHONE, product: { ...PHONE.product, hsn: '8517 13' } }, CASE] })
+    ).expect(201);
+    const [phone, accessory] = res.body.data.purchases;
+    expect(phone.product.hsn).toBe('851713');
+    expect(accessory.product.hsn).toBeNull(); // nothing entered → nothing made up
+
+    // The customer's invoice gets the same codes
+    const { auth } = await loginAsCustomer(app, '9876543210');
+    const mine = await api().get(`/api/v1/customer/purchases/${phone.id}`).set('Authorization', auth).expect(200);
+    expect(mine.body.data.purchase.billItems.map((l) => l.product.hsn)).toEqual(['851713', null]);
+
+    // Remembered on the catalog product, suggested for the next sale
+    expect((await Product.findOne({ name: PHONE.product.name }).lean()).hsn).toBe('851713');
+
+    // Fixed or cleared from the sale page
+    await api().patch(`/api/v1/admin/purchases/${accessory.id}`).set('Authorization', adminAuth)
+      .send({ product: { hsn: '8518' } }).expect(200);
+    expect((await Purchase.findById(accessory.id).lean()).product.hsn).toBe('8518');
+    await api().patch(`/api/v1/admin/purchases/${phone.id}`).set('Authorization', adminAuth)
+      .send({ product: { hsn: '' } }).expect(200);
+    expect((await Purchase.findById(phone.id).lean()).product.hsn).toBeNull();
+  });
+
+  it('refuses a code that is not 4, 6 or 8 digits', async () => {
+    const res = await record(bill({ items: [{ ...CASE, product: { ...CASE.product, hsn: '85A' } }] })).expect(422);
+    expect(JSON.stringify(res.body)).toContain('HSN code must be 4, 6 or 8 digits');
+    await api().post('/api/v1/admin/products').set('Authorization', adminAuth)
+      .send({ name: 'Boat Stone Vibe', category: 'accessories', hsn: '12345' }).expect(422);
+    const created = await api().post('/api/v1/admin/products').set('Authorization', adminAuth)
+      .send({ name: 'Boat Stone Vibe', category: 'accessories', hsn: '8518' }).expect(201);
+    expect(created.body.data.product.hsn).toBe('8518');
+  });
+});

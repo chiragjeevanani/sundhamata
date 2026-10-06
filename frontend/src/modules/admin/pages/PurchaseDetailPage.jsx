@@ -63,7 +63,7 @@ export const PurchaseDetailPage = () => {
   const [editFinance, setEditFinance] = useState(emptyFinance);
   const setEditFinanceField = (field) => (e) => setEditFinance((prev) => ({ ...prev, [field]: e.target.value }));
   const [editNotes, setEditNotes] = useState('');
-  const [editProduct, setEditProduct] = useState({ brand: '', model: '', variant: '', color: '' });
+  const [editProduct, setEditProduct] = useState({ brand: '', model: '', variant: '', color: '', hsn: '' });
   const imageInputRef = useRef(null);
   const [imageBusy, setImageBusy] = useState('');
   const [editInvoiceNumber, setEditInvoiceNumber] = useState('');
@@ -106,6 +106,7 @@ export const PurchaseDetailPage = () => {
         model: data.product?.model || '',
         variant: data.product?.variant || '',
         color: data.product?.color || '',
+        hsn: data.product?.hsn || '',
       });
       setEditInvoiceNumber(data.invoiceNumber || '');
       setEditPurchaseDate(toDateInputValue(data.purchaseDate));
@@ -460,6 +461,19 @@ export const PurchaseDetailPage = () => {
             </div>
 
             <div>
+              <label className="block font-medium text-stone-700 mb-1">{purchase.category === 'service' ? 'SAC Code' : 'HSN Code'}</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={editProduct.hsn}
+                maxLength={8}
+                placeholder="Not printed if empty"
+                onChange={(e) => setEditProduct((prev) => ({ ...prev, hsn: e.target.value.replace(/\D/g, '') }))}
+                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-mono text-stone-900 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
               <label className="block font-medium text-stone-700 mb-1">Payment Status</label>
               <select
                 value={editPaymentStatus}
@@ -630,6 +644,13 @@ export const PurchaseDetailPage = () => {
                 <span className="text-stone-400 font-normal">Colour</span>
                 <p className="font-medium text-stone-900 mt-0.5 break-words">
                   {purchase.product?.color || '—'}
+                </p>
+              </div>
+
+              <div>
+                <span className="text-stone-400 font-normal">{purchase.category === 'service' ? 'SAC Code' : 'HSN Code'}</span>
+                <p className="font-mono text-xs font-normal text-stone-800 mt-0.5">
+                  {purchase.product?.hsn || 'Not entered'}
                 </p>
               </div>
 

@@ -574,6 +574,8 @@ A purchase can have one product photo, shown in the customer app. Purchases incl
 
 The product object also carries `brand`, `model`, `variant`, `color`, and `imei` or `serialNumber`, all editable later via `PATCH /admin/purchases/:id` (`product: { ... }`).
 
+`product.hsn` is the optional HSN / SAC code (4, 6 or 8 digits; spaces are removed) printed on the tax invoice. It is `null` unless the store entered one; the invoice shows the HSN column only when at least one product on the bill has a code. The code is remembered on the catalog product (`hsn` on `/admin/products`) and suggested for the next sale.
+
 ### Loyalty
 
 | Method | Path | Notes |

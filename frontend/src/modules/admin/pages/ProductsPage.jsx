@@ -5,7 +5,7 @@ import { formatDate, formatINR } from '../../../utils/formatters';
 import { useToast } from '../context/ToastContext';
 
 const CATEGORY_LABELS = { phones: 'Smartphones', accessories: 'Accessories', service: 'Service & Repairs' };
-const EMPTY_FORM = { name: '', category: 'phones', brand: '', model: '', lastPrice: '', warrantyMonths: '' };
+const EMPTY_FORM = { name: '', category: 'phones', brand: '', model: '', hsn: '', lastPrice: '', warrantyMonths: '' };
 
 const inputClass =
   'w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs';
@@ -20,6 +20,7 @@ const ProductForm = ({ initial, onClose, onSaved }) => {
           category: initial.category,
           brand: initial.brand ?? '',
           model: initial.model ?? '',
+          hsn: initial.hsn ?? '',
           lastPrice: initial.lastPrice ?? '',
           warrantyMonths: initial.warrantyMonths ?? '',
         }
@@ -37,6 +38,7 @@ const ProductForm = ({ initial, onClose, onSaved }) => {
         category: form.category,
         brand: form.brand.trim(),
         model: form.model.trim(),
+        hsn: form.hsn.trim(),
         lastPrice: form.lastPrice === '' ? null : Number(form.lastPrice),
         warrantyMonths: form.warrantyMonths === '' ? null : Number(form.warrantyMonths),
       };
@@ -84,6 +86,18 @@ const ProductForm = ({ initial, onClose, onSaved }) => {
           <div className="space-y-1">
             <label className="font-medium text-stone-700 block" htmlFor="product-model">Model</label>
             <input id="product-model" value={form.model} onChange={set('model')} maxLength={80} className={inputClass} />
+          </div>
+          <div className="space-y-1">
+            <label className="font-medium text-stone-700 block" htmlFor="product-hsn">{form.category === 'service' ? 'SAC Code' : 'HSN Code'}</label>
+            <input
+              id="product-hsn"
+              inputMode="numeric"
+              maxLength={8}
+              value={form.hsn}
+              onChange={(e) => setForm((prev) => ({ ...prev, hsn: e.target.value.replace(/\D/g, '') }))}
+              placeholder="4, 6 or 8 digits"
+              className={`${inputClass} font-mono`}
+            />
           </div>
           <div className="space-y-1">
             <label className="font-medium text-stone-700 block" htmlFor="product-price">Price (₹)</label>

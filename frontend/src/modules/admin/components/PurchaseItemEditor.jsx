@@ -350,6 +350,27 @@ export const PurchaseItemEditor = ({ item, index, count, errors = {}, purchaseDa
           )}
         </div>
 
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-stone-700 block" htmlFor={`item-hsn-${item.key}`}>
+            {item.category === 'service' ? 'SAC Code' : 'HSN Code'}
+          </label>
+          <input
+            id={`item-hsn-${item.key}`}
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            value={item.hsn}
+            onChange={(e) => onChange({ hsn: e.target.value.replace(/\D/g, '') })}
+            placeholder={item.category === 'service' ? 'e.g. 9987' : item.category === 'accessories' ? 'e.g. 8518' : 'e.g. 8517'}
+            className={`${inputClass(errors.hsn)} font-mono text-xs`}
+          />
+          {errors.hsn ? (
+            <p className="text-[11px] text-rose-600">{errors.hsn}</p>
+          ) : (
+            <p className="text-[11px] text-stone-500">Optional. Printed on the tax invoice</p>
+          )}
+        </div>
+
         <div className="sm:col-span-2 space-y-1">
           <label className="text-xs font-medium text-stone-700 block">Product Photo</label>
           <div className="flex items-center gap-3">

@@ -45,6 +45,7 @@ export const learnFromPurchaseLines = async (lines) => {
           warrantyMonths: line.warranty?.months ?? 0,
           ...(line.product.brand ? { brand: line.product.brand } : {}),
           ...(line.product.model ? { model: line.product.model } : {}),
+          ...(line.product.hsn ? { hsn: line.product.hsn } : {}),
         });
       }
       await Product.updateOne({ nameKey }, update, { upsert: true });

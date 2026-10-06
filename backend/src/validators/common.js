@@ -58,6 +58,12 @@ export const optionalTextSchema = (max) =>
     z.string().max(max, `Must be at most ${max} characters`).nullable()
   );
 
+// HSN (goods) / SAC (services) code printed on the tax invoice: 4, 6 or 8 digits
+export const optionalHsnSchema = z.preprocess(
+  (v) => (typeof v === 'string' ? emptyToNull(v.replace(/\s/g, '')) : emptyToNull(v)),
+  z.string().regex(/^(\d{4}|\d{6}|\d{8})$/, 'HSN code must be 4, 6 or 8 digits').nullable()
+);
+
 export const optionalPincodeSchema = z.preprocess(
   (v) => (typeof v === 'string' ? emptyToNull(v.trim()) : emptyToNull(v)),
   z.string().regex(/^[1-9]\d{5}$/, 'Pincode must be a valid 6-digit code').nullable()

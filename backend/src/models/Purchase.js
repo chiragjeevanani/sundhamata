@@ -52,6 +52,8 @@ const purchaseSchema = new mongoose.Schema(
       model: { type: String, trim: true, maxlength: 80, default: null },
       variant: { type: String, trim: true, maxlength: 80, default: null },
       color: { type: String, trim: true, maxlength: 40, default: null },
+      // HSN / SAC code for the tax invoice, entered by the store (none = not printed)
+      hsn: { type: String, match: /^(\d{4}|\d{6}|\d{8})$/, default: null },
       imei: { type: String, match: /^\d{15}$/, default: null },
       serialNumber: { type: String, trim: true, uppercase: true, maxlength: 30, default: null },
       quantity: { type: Number, min: 1, default: 1 },

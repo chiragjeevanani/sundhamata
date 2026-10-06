@@ -13,6 +13,8 @@ const productSchema = new mongoose.Schema(
     category: { type: String, enum: PURCHASE_CATEGORIES, default: 'phones' },
     brand: { type: String, trim: true, maxlength: 40, default: null },
     model: { type: String, trim: true, maxlength: 80, default: null },
+    // HSN / SAC code, filled in on the next sale of this product
+    hsn: { type: String, match: /^(\d{4}|\d{6}|\d{8})$/, default: null },
     // Variants / colours this product has been sold in (most recent first), offered as choices
     variants: { type: [String], default: [] },
     colors: { type: [String], default: [] },

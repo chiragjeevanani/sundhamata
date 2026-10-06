@@ -291,6 +291,7 @@ export const RecordPurchasePage = () => {
       if (!(Number(item.price) > 0)) errors[`items.${item.key}.price`] = 'Enter a valid price.';
       const imeiProblem = itemImeiError(item);
       if (imeiProblem) errors[`items.${item.key}.imei`] = imeiProblem;
+      if (item.hsn && !/^(\d{4}|\d{6}|\d{8})$/.test(item.hsn.trim())) errors[`items.${item.key}.hsn`] = 'HSN code must be 4, 6 or 8 digits.';
       if (!itemWarrantyValid(item)) {
         errors[`items.${item.key}.warranty`] = `Whole ${item.warrantyUnit}, up to ${item.warrantyUnit === 'years' ? MAX_WARRANTY_MONTHS / 12 : MAX_WARRANTY_MONTHS}.`;
       }
@@ -346,6 +347,7 @@ export const RecordPurchasePage = () => {
             model: item.model,
             variant: item.variant,
             color: item.color,
+            hsn: item.hsn.trim(),
             imei: item.imei.trim(),
           },
           category: item.category,
@@ -789,6 +791,7 @@ export const RecordPurchasePage = () => {
                     name: formErrors[`items.${item.key}.name`],
                     price: formErrors[`items.${item.key}.price`],
                     warranty: formErrors[`items.${item.key}.warranty`],
+                    hsn: formErrors[`items.${item.key}.hsn`],
                   }}
                   onChange={(patch) => updateItem(item.key, patch)}
                   onRemove={() => removeItem(item.key)}

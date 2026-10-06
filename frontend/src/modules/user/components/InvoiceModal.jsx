@@ -13,6 +13,8 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
   // but not counted in the totals.
   const lines = purchase.billItems?.length ? purchase.billItems : [purchase];
   const active = lines.filter((line) => line.status !== 'Cancelled');
+  // HSN / SAC codes are entered by the store; the column only shows when at least one product has one
+  const showHsn = lines.some((line) => line.product.hsn);
   const isCancelled = active.length === 0;
   const total = (pick) => Math.round(active.reduce((sum, line) => sum + (pick(line) || 0), 0) * 100) / 100;
   const totals = {
@@ -150,7 +152,7 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
                 <thead>
                   <tr className="bg-stone-100 text-stone-700 font-bold border-b border-stone-200 text-[11px]">
                     <th className="p-2">Description</th>
-                    <th className="p-2 text-center">HSN</th>
+                    {showHsn && <th className="p-2 text-center">HSN</th>}
                     <th className="p-2 text-center">Qty</th>
                     <th className="p-2 text-right">Price (₹)</th>
                   </tr>
@@ -173,9 +175,9 @@ export const InvoiceModal = ({ isOpen, onClose, purchase, customer }) => {
                           )}
                           {returned && <p className="text-[10px] font-bold text-rose-600 uppercase">Cancelled / returned</p>}
                         </td>
-                        <td className="p-2 text-center font-mono text-[10.5px] text-stone-600">
-                          {line.category === 'accessories' ? '8518' : line.category === 'service' ? '9987' : '8517'}
-                        </td>
+                        {showHsn && (
+                          <td className="p-2 text-center font-mono text-[10.5px] text-stone-600">{line.product.hsn || '—'}</td>
+                        )}
                         <td className="p-2 text-center font-medium">{line.product.quantity || 1}</td>
                         <td className={`p-2 text-right font-mono font-bold tabular-nums ${returned ? 'line-through' : 'text-stone-900'}`}>
                           {formatINR(line.pricing?.purchaseAmount ?? line.amount)}
