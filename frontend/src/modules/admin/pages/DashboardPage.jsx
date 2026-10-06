@@ -75,7 +75,7 @@ export const DashboardPage = () => {
             className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
           >
             <PlusCircle className="w-3.5 h-3.5" />
-            <span>Record Purchase</span>
+            <span>Add Sale</span>
           </button>
         </div>
       </div>

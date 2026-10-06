@@ -181,7 +181,7 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-600 px-1">
                     <ShoppingBag className="w-3.5 h-3.5 text-brand-600" />
-                    <span>Invoices & Purchases ({purchases.length})</span>
+                    <span>Invoices & Sales ({purchases.length})</span>
                   </div>
                   <div className="space-y-1">
                     {purchases.map((p) => (
@@ -226,7 +226,7 @@ export const GlobalSearchModal = ({ isOpen, onClose }) => {
 
         {/* Footer shortcuts */}
         <div className="px-4 py-2.5 bg-stone-50/80 border-t border-stone-200/80 flex items-center justify-between text-xs text-stone-400">
-          <span>Search customers & purchases</span>
+          <span>Search customers & sales</span>
           <button
             onClick={onClose}
             className="text-stone-500 hover:text-stone-700 font-medium cursor-pointer"

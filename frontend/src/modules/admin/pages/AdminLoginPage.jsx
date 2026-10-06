@@ -92,7 +92,7 @@ export const AdminLoginPage = () => {
               Admin Portal
             </h1>
             <p className="text-xs text-stone-500 font-normal">
-              Sign in with your store staff credentials to record purchases and manage customers.
+              Sign in with your store staff credentials to add sales and manage customers.
             </p>
           </div>
 

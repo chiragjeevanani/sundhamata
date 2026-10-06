@@ -42,7 +42,7 @@ export const CustomersListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Customers</h1>
-          <p className="text-xs text-stone-500 mt-0.5">Directory of registered store customers, purchase history, and loyalty balances.</p>
+          <p className="text-xs text-stone-500 mt-0.5">Directory of registered store customers, sales history, and loyalty balances.</p>
         </div>
 
         <button
@@ -108,7 +108,7 @@ export const CustomersListPage = () => {
                   <th className="py-2.5 px-5">Customer</th>
                   <th className="py-2.5 px-4">Mobile</th>
                   <th className="py-2.5 px-4">Interest</th>
-                  <th className="py-2.5 px-4 text-center">Purchases</th>
+                  <th className="py-2.5 px-4 text-center">Sales</th>
                   <th className="py-2.5 px-4 text-right">Loyalty Points</th>
                   <th className="py-2.5 px-4">Status</th>
                   <th className="py-2.5 px-5 text-right">Action</th>

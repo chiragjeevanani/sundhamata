@@ -98,13 +98,13 @@ export const AdminHeader = ({
 
       {/* Right Section: Actions & Admin Profile */}
       <div className="flex items-center gap-1.5 sm:gap-3">
-        {/* Quick Record Purchase Button */}
+        {/* Quick Add Sale Button */}
         <button
           onClick={() => navigate('/admin/purchases/new')}
           className="hidden sm:inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs shadow-2xs active:scale-[0.98] transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>Record Purchase</span>
+          <span>Add Sale</span>
         </button>
 
         {/* Notifications Icon Button */}

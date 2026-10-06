@@ -41,7 +41,7 @@ export const PurchasesListPage = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Invoices & Purchases</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Invoices & Sales</h1>
           <p className="text-xs text-stone-500 mt-0.5">Billing ledger, sales invoices, payment methods, and loyalty distribution.</p>
         </div>
 
@@ -50,7 +50,7 @@ export const PurchasesListPage = () => {
           className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98] cursor-pointer self-start sm:self-auto"
         >
           <PlusCircle className="w-3.5 h-3.5" />
-          <span>Record Purchase</span>
+          <span>Add Sale</span>
         </button>
       </div>
 

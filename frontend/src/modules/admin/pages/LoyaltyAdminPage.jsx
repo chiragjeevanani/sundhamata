@@ -201,7 +201,7 @@ export const LoyaltyAdminPage = () => {
           <AreaLineChart
             data={overview.issuedTrend?.[activeTimeframe] ?? []}
             title="Points Issuance Velocity"
-            subtitle="Rewards earned on customer counter purchases"
+            subtitle="Rewards earned on customer counter sales"
             isCurrency={false}
             height={220}
             accentColor="#F59E0B"

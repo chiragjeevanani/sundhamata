@@ -310,9 +310,9 @@ export const RecordPurchasePage = () => {
       errors.invoiceNumber = 'Enter the invoice / bill number.';
     }
     if (!purchaseDate) {
-      errors.purchaseDate = 'Select the purchase date.';
+      errors.purchaseDate = 'Select the sale date.';
     } else if (purchaseDate > today) {
-      errors.purchaseDate = 'Purchase date cannot be in the future.';
+      errors.purchaseDate = 'Sale date cannot be in the future.';
     }
     if (redemptionError) {
       errors.redeemPoints = redemptionError;
@@ -374,7 +374,7 @@ export const RecordPurchasePage = () => {
           imageStatus = imageStatus ?? { ok: true };
         } catch (uploadErr) {
           imageStatus = { ok: false };
-          showError('Photo not uploaded', `The purchase was recorded, but the photo of ${line.product.name} could not be uploaded: ${uploadErr.message} You can add it from the invoice page.`);
+          showError('Photo not uploaded', `The sale was added, but the photo of ${line.product.name} could not be uploaded: ${uploadErr.message} You can add it from the invoice page.`);
         }
       }
 
@@ -389,15 +389,15 @@ export const RecordPurchasePage = () => {
           billStatus = { ok: false, message: uploadErr.message };
           showError(
             'Bill not uploaded',
-            `The purchase was recorded, but the bill could not be uploaded: ${uploadErr.message} You can attach it from the invoice page.`
+            `The sale was added, but the bill could not be uploaded: ${uploadErr.message} You can attach it from the invoice page.`
           );
         }
       }
 
       setSuccessRecord({ ...recorded, billStatus, imageStatus });
-      showSuccess('Purchase Recorded', `Invoice ${recorded.invoiceNumber} created.`);
+      showSuccess('Sale Added', `Invoice ${recorded.invoiceNumber} created.`);
     } catch (err) {
-      showError('Error', err.message || 'Unable to record purchase.');
+      showError('Error', err.message || 'Unable to add sale.');
     } finally {
       setSubmitting(false);
     }
@@ -435,7 +435,7 @@ export const RecordPurchasePage = () => {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold text-stone-900">Purchase Recorded</h2>
+          <h2 className="text-xl font-semibold text-stone-900">Sale Added</h2>
           <p className="text-xs text-stone-500 mt-1">
             Invoice <span className="font-mono font-medium text-stone-800">{successRecord.invoiceNumber}</span>
             {successRecord.purchases.length > 1 ? ` with ${successRecord.purchases.length} products` : ''} created for{' '}
@@ -543,7 +543,7 @@ export const RecordPurchasePage = () => {
             onClick={handleReset}
             className="py-2 px-4 rounded-lg border border-stone-300 text-stone-700 text-xs font-medium hover:bg-stone-50 cursor-pointer transition-colors"
           >
-            Record Another
+            Add Another Sale
           </button>
         </div>
       </div>
@@ -555,7 +555,7 @@ export const RecordPurchasePage = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200/80">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Record Purchase</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Add Sale</h1>
           <p className="text-xs text-stone-500 mt-0.5">Bill a retail counter sale, register device identifiers, and credit loyalty points.</p>
         </div>
 
@@ -564,7 +564,7 @@ export const RecordPurchasePage = () => {
           className="text-xs font-medium text-stone-500 hover:text-stone-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>All Purchases</span>
+          <span>All Sales</span>
         </button>
       </div>
 
@@ -833,7 +833,7 @@ export const RecordPurchasePage = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-stone-700 block">Purchase Date *</label>
+                <label className="text-xs font-medium text-stone-700 block">Sale Date *</label>
                 <input
                   type="date"
                   value={purchaseDate}
@@ -1317,7 +1317,7 @@ export const RecordPurchasePage = () => {
               </span>
             </div>
             <div className="flex justify-between text-stone-500">
-              <span>Purchase Date</span>
+              <span>Sale Date</span>
               <span className="font-medium text-stone-800">{purchaseDate ? formatDate(`${purchaseDate}T12:00:00`) : '—'}</span>
             </div>
 
@@ -1370,7 +1370,7 @@ export const RecordPurchasePage = () => {
             disabled={submitting}
             className="w-full py-2.5 px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs transition-all shadow-2xs active:scale-[0.99] cursor-pointer disabled:opacity-50"
           >
-            {submitting ? (billFile ? 'Saving & uploading bill...' : 'Generating Invoice...') : 'Record Purchase'}
+            {submitting ? (billFile ? 'Saving & uploading bill...' : 'Generating Invoice...') : 'Add Sale'}
           </button>
         </div>
       </form>

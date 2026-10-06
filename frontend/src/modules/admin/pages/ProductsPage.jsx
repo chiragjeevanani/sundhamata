@@ -122,7 +122,7 @@ const ProductForm = ({ initial, onClose, onSaved }) => {
 
 /**
  * Product catalog: every product sold is added automatically, so the counter can pick it
- * on Record Purchase instead of typing the full name. Fix names, prices and details here.
+ * on Add Sale instead of typing the full name. Fix names, prices and details here.
  */
 export const ProductsPage = () => {
   const { showSuccess, showError } = useToast();
@@ -164,7 +164,7 @@ export const ProductsPage = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Products</h1>
           <p className="text-xs text-stone-500 mt-0.5">
-            Every product you sell is saved here automatically and suggested on Record Purchase.
+            Every product you sell is saved here automatically and suggested on Add Sale.
           </p>
         </div>
         <button
@@ -225,7 +225,7 @@ export const ProductsPage = () => {
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-stone-400">
                     <Package className="w-7 h-7 mx-auto mb-2 opacity-60" />
-                    {search ? 'No products match your search.' : 'No products yet. They appear here as you record purchases.'}
+                    {search ? 'No products match your search.' : 'No products yet. They appear here as you add sales.'}
                   </td>
                 </tr>
               )}
@@ -290,7 +290,7 @@ export const ProductsPage = () => {
           <div className="w-full max-w-sm bg-white rounded-xl border border-stone-200 shadow-xl p-5 space-y-3 text-xs" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-sm font-semibold text-stone-900">Remove {deleting.name}?</h3>
             <p className="text-stone-500">
-              It will no longer be suggested on Record Purchase. Past purchases are not affected, and it is added again
+              It will no longer be suggested on Add Sale. Past purchases are not affected, and it is added again
               automatically if you sell it later.
             </p>
             <div className="flex justify-end gap-2">

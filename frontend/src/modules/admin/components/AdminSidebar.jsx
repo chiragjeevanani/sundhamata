@@ -32,7 +32,7 @@ export const AdminSidebar = ({
   const navLinks = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/customers', label: 'Customers', icon: Users },
-    { to: '/admin/purchases', label: 'Purchases', icon: ShoppingBag },
+    { to: '/admin/purchases', label: 'Sales', icon: ShoppingBag },
     { to: '/admin/products', label: 'Products', icon: Package },
     { to: '/admin/coupons', label: 'Coupons', icon: TicketPercent },
     { to: '/admin/loyalty', label: 'Loyalty Program', icon: Sparkles },
@@ -111,7 +111,7 @@ export const AdminSidebar = ({
             className="w-full py-2 px-3 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
           >
             <Plus className="w-4 h-4 text-white" />
-            <span>Record Purchase</span>
+            <span>Add Sale</span>
           </button>
         ) : (
           <button
@@ -120,8 +120,8 @@ export const AdminSidebar = ({
               handleLinkClick();
             }}
             className="w-10 h-10 rounded-lg bg-brand-600 hover:bg-brand-500 text-white flex items-center justify-center shadow-xs transition-all active:scale-[0.96] cursor-pointer group relative"
-            title="Record Purchase"
-            aria-label="Record Purchase"
+            title="Add Sale"
+            aria-label="Add Sale"
           >
             <Plus className="w-5 h-5 text-white" />
           </button>

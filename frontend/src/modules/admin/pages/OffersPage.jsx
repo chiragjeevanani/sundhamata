@@ -346,7 +346,7 @@ const OfferForm = ({ initial, onClose, onSaved }) => {
             </div>
             <p className="text-[11px] text-stone-400 leading-relaxed">
               {form.showInApp ? 'Customers scratch it in the app to get their own QR.' : 'Not shown in the app.'} Staff can also type{' '}
-              <span className="font-mono font-semibold text-stone-600">{form.code || 'the code'}</span> on Record Purchase.
+              <span className="font-mono font-semibold text-stone-600">{form.code || 'the code'}</span> on Add Sale.
             </p>
             {initial && (
               <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 leading-relaxed">
@@ -377,7 +377,7 @@ const validityText = (o) => {
 
 /**
  * Coupons the staff create themselves (Diwali offers, ₹ off on accessories, first-purchase
- * deals…). Customers claim them in the app; staff type the code on Record Purchase.
+ * deals…). Customers claim them in the app; staff type the code on Add Sale.
  */
 export const OffersPage = () => {
   const { showSuccess, showError } = useToast();
@@ -434,7 +434,7 @@ export const OffersPage = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Coupons</h1>
           <p className="text-xs text-stone-500 mt-0.5">
-            Create your own coupon codes. Customers claim them in the app; use the code on Record Purchase.
+            Create your own coupon codes. Customers claim them in the app; use the code on Add Sale.
           </p>
         </div>
         <button

@@ -175,7 +175,7 @@ export const CustomerDetailPage = () => {
             className="py-2 px-3.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
           >
             <PlusCircle className="w-3.5 h-3.5" />
-            <span>Record Purchase</span>
+            <span>Add Sale</span>
           </button>
         </div>
       </div>
@@ -233,7 +233,7 @@ export const CustomerDetailPage = () => {
         <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
           <div className="px-5 py-4 border-b border-stone-100">
             <h3 className="text-sm font-semibold text-stone-900">Coupons</h3>
-            <p className="text-xs text-stone-500 mt-0.5">Redeem on Record Purchase by scanning the QR or typing the code</p>
+            <p className="text-xs text-stone-500 mt-0.5">Redeem on Add Sale by scanning the QR or typing the code</p>
           </div>
           <div className="divide-y divide-stone-100 text-xs">
             {coupons.map((c) => (
@@ -277,7 +277,7 @@ export const CustomerDetailPage = () => {
       <div className="bg-white rounded-xl p-5 border border-stone-200/80 shadow-2xs">
         <AreaLineChart
           data={customerSpendTimeline}
-          title="Customer Purchase Progression"
+          title="Customer Sales Progression"
           subtitle="Spend trajectory over recent retail visits"
           height={200}
           accentColor="var(--color-brand-500)"
@@ -289,7 +289,7 @@ export const CustomerDetailPage = () => {
       <div className="bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
         <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-stone-900">Purchases & Invoices</h3>
+            <h3 className="text-sm font-semibold text-stone-900">Sales & Invoices</h3>
             <p className="text-xs text-stone-500 mt-0.5">Historical store transactions for this customer</p>
           </div>
         </div>

@@ -246,7 +246,7 @@ export const SettingsPage = () => {
         <div className="p-5 sm:p-6 space-y-4 text-xs">
           <div>
             <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">Loyalty Engine Configuration</h3>
-            <p className="text-xs text-stone-400 font-normal">Conversion rules applied on purchase recordings and redemptions</p>
+            <p className="text-xs text-stone-400 font-normal">Conversion rules applied on sales and redemptions</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -300,7 +300,7 @@ export const SettingsPage = () => {
                 <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">App Welcome Vouchers</h3>
                 <p className="text-xs text-stone-400 font-normal">
                   New app users get them as scratch cards: one right after registering, one when their profile is 100% complete
-                  (anniversary and photo are optional). One of each per customer; redeem on Record Purchase by typing the code
+                  (anniversary and photo are optional). One of each per customer; redeem on Add Sale by typing the code
                   (for the selected customer) or scanning the QR.
                 </p>
               </div>

@@ -113,7 +113,7 @@ export const PurchaseDetailPage = () => {
       setEditWarrantyDuration(w.duration);
       setEditWarrantyUnit(w.unit);
     } catch (err) {
-      showError('Error', err.message || 'Could not find purchase.');
+      showError('Error', err.message || 'Could not find sale.');
     } finally {
       setLoading(false);
     }
@@ -131,7 +131,7 @@ export const PurchaseDetailPage = () => {
       return;
     }
     if (!editPurchaseDate || editPurchaseDate > toDateInputValue()) {
-      showError('Validation', 'Choose a purchase date that is not in the future.');
+      showError('Validation', 'Choose a sale date that is not in the future.');
       return;
     }
     if (months === null || months > MAX_WARRANTY_MONTHS) {
@@ -155,7 +155,7 @@ export const PurchaseDetailPage = () => {
       setIsEditing(false);
       showSuccess('Saved', `Invoice ${updated.invoiceNumber} details updated.`);
     } catch (err) {
-      showError('Error', err.message || 'Unable to update purchase.');
+      showError('Error', err.message || 'Unable to update sale.');
     } finally {
       setSavingEdit(false);
     }
@@ -229,7 +229,7 @@ export const PurchaseDetailPage = () => {
     try {
       setPurchase(await adminPurchaseService.removeBill(purchase.id));
       setRemoveBillOpen(false);
-      showSuccess('Bill removed', 'The bill file was removed from this purchase.');
+      showSuccess('Bill removed', 'The bill file was removed from this sale.');
     } catch (err) {
       showError('Error', err.message || 'Unable to remove the bill.');
     } finally {
@@ -246,9 +246,9 @@ export const PurchaseDetailPage = () => {
       );
       setPurchase(cancelled);
       setCancelModalOpen(false);
-      showSuccess('Purchase Cancelled', `Invoice ${cancelled.invoiceNumber} was marked cancelled.`);
+      showSuccess('Sale Cancelled', `Invoice ${cancelled.invoiceNumber} was marked cancelled.`);
     } catch (err) {
-      showError('Error', err.message || 'Unable to cancel purchase.');
+      showError('Error', err.message || 'Unable to cancel sale.');
     } finally {
       setCancelling(false);
     }
@@ -261,12 +261,12 @@ export const PurchaseDetailPage = () => {
   if (!purchase) {
     return (
       <div className="py-16 text-center space-y-3">
-        <h2 className="text-base font-bold text-stone-900">Purchase Not Found</h2>
+        <h2 className="text-base font-bold text-stone-900">Sale Not Found</h2>
         <button
           onClick={() => navigate('/admin/purchases')}
           className="py-2 px-4 rounded-xl bg-ink-900 text-white text-xs font-bold"
         >
-          Back to Purchases
+          Back to Sales
         </button>
       </div>
     );
@@ -286,7 +286,7 @@ export const PurchaseDetailPage = () => {
             className="inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-800 mb-1.5 cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>All Purchases</span>
+            <span>All Sales</span>
           </button>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight font-mono">
@@ -313,7 +313,7 @@ export const PurchaseDetailPage = () => {
                 className="py-2 px-3.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 font-medium text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5 text-brand-700" />
-                <span>Edit Purchase</span>
+                <span>Edit Sale</span>
               </button>
 
               <button
@@ -342,7 +342,7 @@ export const PurchaseDetailPage = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-amber-900 flex items-center gap-1.5">
               <Edit2 className="w-3.5 h-3.5 text-amber-700" />
-              <span>Editing Purchase Record</span>
+              <span>Editing Sale Record</span>
             </h3>
             <button
               onClick={() => setIsEditing(false)}
@@ -371,7 +371,7 @@ export const PurchaseDetailPage = () => {
             </div>
 
             <div>
-              <label className="block font-medium text-stone-700 mb-1">Purchase Date</label>
+              <label className="block font-medium text-stone-700 mb-1">Sale Date</label>
               <input
                 type="date"
                 value={editPurchaseDate}
@@ -911,7 +911,7 @@ export const PurchaseDetailPage = () => {
               <div className="space-y-2.5 text-xs">
                 <p className="text-stone-500 font-normal">
                   {isCancelled
-                    ? 'No bill was attached to this purchase.'
+                    ? 'No bill was attached to this sale.'
                     : 'No bill attached yet. Once uploaded, the customer can download it from their purchase.'}
                 </p>
                 {!isCancelled && (
@@ -968,7 +968,7 @@ export const PurchaseDetailPage = () => {
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
         onConfirm={handleConfirmCancel}
-        title="Cancel This Purchase?"
+        title="Cancel This Sale?"
         message={`Invoice ${purchase.invoiceNumber} will be marked as Cancelled. The ${loyaltyPoints} points earned will be reversed${purchase.loyalty?.pointsRedeemed > 0 ? ` and the ${purchase.loyalty.pointsRedeemed} points redeemed will be returned to the customer` : ''}.`}
         confirmText="Confirm Cancellation"
         type="danger"

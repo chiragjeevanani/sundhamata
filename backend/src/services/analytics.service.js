@@ -181,7 +181,7 @@ export const getRecentActivity = async (limit = 10) => {
     ...purchases.map((p) => ({
       id: `purchase:${p._id}`,
       type: 'purchase',
-      title: 'Purchase Recorded',
+      title: 'Sale Added',
       message: `${p.customerId?.name ?? 'Customer'} purchased ${p.product.name} (₹${p.pricing.finalAmount.toLocaleString('en-IN')}, +${p.loyalty?.pointsEarned ?? 0} pts)`,
       occurredAt: p.createdAt,
       link: `/admin/purchases/${p._id}`,
@@ -189,7 +189,7 @@ export const getRecentActivity = async (limit = 10) => {
     ...cancellations.map((p) => ({
       id: `cancellation:${p._id}`,
       type: 'warning',
-      title: 'Purchase Cancelled',
+      title: 'Sale Cancelled',
       message: `Invoice ${p.invoiceNumber} (${p.product.name}) was cancelled.`,
       occurredAt: p.cancelledAt,
       link: `/admin/purchases/${p._id}`,

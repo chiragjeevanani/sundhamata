@@ -212,7 +212,7 @@ const AdminPreview = ({ colors }) => (
     <div className="flex-1 bg-cream-50 p-2 space-y-1.5 min-w-0">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-semibold text-stone-900">Dashboard</span>
-        <span className="rounded bg-brand-600 text-white text-[7px] font-bold px-1.5 py-0.5">Record Purchase</span>
+        <span className="rounded bg-brand-600 text-white text-[7px] font-bold px-1.5 py-0.5">Add Sale</span>
       </div>
       <div className="grid grid-cols-2 gap-1.5">
         {[
