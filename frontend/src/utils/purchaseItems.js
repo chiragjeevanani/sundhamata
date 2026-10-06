@@ -85,7 +85,7 @@ export const ITEM_TYPES = [
     id: 'service',
     label: 'Services',
     icon: Wrench,
-    name: 'Service',
+    name: 'Service Name',
     namePlaceholder: 'e.g. Screen replacement, battery change',
     brand: 'Device Brand',
     model: 'Device Model',
