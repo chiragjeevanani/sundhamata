@@ -24,9 +24,8 @@ import { couponDiscountFor, describeDiscount, describeMinimum, eligibleAmountFor
 import { QrScannerModal } from '../components/QrScannerModal';
 import { PurchaseItemEditor } from '../components/PurchaseItemEditor';
 import { CustomerAvatar, VerifiedTick } from '../../../components/CustomerAvatar';
-import { fillFromCatalog, itemImeiError, itemWarrantyMonths, itemWarrantyValid, newPurchaseItem } from '../../../utils/purchaseItems';
+import { itemImeiError, itemWarrantyMonths, itemWarrantyValid, newPurchaseItem } from '../../../utils/purchaseItems';
 import { FINANCE_COMPANIES, PURCHASE_BY, addMonthsToDate as addMonths, describeEmi } from '../../../utils/finance';
-import { adminProductService } from '../../../services/adminProductService';
 import { adminPurchaseService } from '../../../services/adminPurchaseService';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { useToast } from '../context/ToastContext';
@@ -83,20 +82,6 @@ export const RecordPurchasePage = () => {
       if (gone?.imagePreview) URL.revokeObjectURL(gone.imagePreview);
       return prev.filter((item) => item.key !== key);
     });
-
-  // Most-sold products from the catalog, one tap to add
-  const [popularProducts, setPopularProducts] = useState([]);
-  useEffect(() => {
-    adminProductService
-      .list({ limit: 6 })
-      .then((data) => setPopularProducts(data.items))
-      .catch(() => {});
-  }, []);
-  const addPopular = (product) => {
-    const last = items[items.length - 1];
-    if (last && !last.name.trim() && !last.price) updateItem(last.key, fillFromCatalog(last, product));
-    else addItem(fillFromCatalog(newPurchaseItem(), product));
-  };
 
   // Purchase & Payment Info
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -789,24 +774,6 @@ export const RecordPurchasePage = () => {
                 </h3>
                 <p className="text-xs text-stone-400 font-normal">Type a name to pick a saved product, or add a new one</p>
               </div>
-
-              {/* Most sold products (from the catalog) */}
-              {popularProducts.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="text-stone-400 text-[11px]">Popular:</span>
-                  {popularProducts.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => addPopular(p)}
-                      title={`Add ${p.name}`}
-                      className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-[11px] cursor-pointer whitespace-nowrap transition-colors max-w-[200px] truncate"
-                    >
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="space-y-3">
