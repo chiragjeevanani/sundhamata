@@ -2,8 +2,6 @@
 node_modules/
 
 # Environment files (secrets) — only the examples are committed
-.env
-.env.*
 !.env.example
 
 # Build output
@@ -19,3 +17,4 @@ coverage/
 .DS_Store
 Thumbs.db
 .idea/
+config.bat

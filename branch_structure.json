@@ -1,0 +1,18 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "claude/admin-user-flow-analysis-sgm3vb",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "claude/admin-user-flow-analysis-sgm3vb": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "claude/admin-user-flow-analysis-sgm3vb",
+    "origin"
+  ]
+}
