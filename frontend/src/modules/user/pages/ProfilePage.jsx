@@ -18,7 +18,6 @@ import {
   Home,
   TicketPercent,
   Gift,
-  IndianRupee,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
@@ -58,7 +57,6 @@ export const ProfilePage = () => {
   const name = user?.name || '';
   const phone = user?.phone || '';
   const email = user?.email || '';
-  const interest = user?.interest || '';
   const points = user?.loyaltyPoints ?? 0;
 
   const fullAddress = [user?.address, user?.city, user?.pincode].filter(Boolean).join(', ');
@@ -68,12 +66,6 @@ export const ProfilePage = () => {
     { icon: User, label: 'Gender', value: GENDER_LABELS[user?.gender] },
     { icon: Heart, label: 'Anniversary', value: formatCalendarDate(user?.anniversaryDate) },
     { icon: Home, label: 'Address', value: fullAddress },
-    { icon: Sparkles, label: 'Interested In', value: interest },
-    {
-      icon: IndianRupee,
-      label: 'Shopping Budget',
-      value: user?.budget != null && user?.budget !== '' ? `₹${Number(user.budget).toLocaleString('en-IN')}` : null,
-    },
   ];
 
   const [photoError, setPhotoError] = useState('');
@@ -129,12 +121,8 @@ export const ProfilePage = () => {
             </div>
             <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-stone-500 font-medium">
               <span className="font-mono tabular-nums">{phone}</span>
-              {(email || interest) && <span>•</span>}
-              {email ? (
-                <span className="text-stone-400 truncate">{email}</span>
-              ) : interest ? (
-                <span className="text-brand-700 font-medium">{interest}</span>
-              ) : null}
+              {email && <span>•</span>}
+              {email && <span className="text-stone-400 truncate">{email}</span>}
             </div>
             {user?.isVerified ? (
               <p className="text-[10.5px] font-semibold text-[#1A8CD8] mt-0.5">Verified customer</p>
