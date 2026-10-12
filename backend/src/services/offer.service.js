@@ -7,10 +7,11 @@ import { serializeCoupon } from '../utils/serializers.js';
 import {
   offerAudienceCheck,
   offerClosedReason,
-  offerCouponFor,
+  issueOfferCoupon,
   offerDescription,
   offerTitle,
   profileCompletion,
+  welcomeOfferIds,
 } from './coupon.service.js';
 import { getSettings } from './settings.service.js';
 
@@ -168,6 +169,9 @@ export const deleteOffer = async (id, admin) => {
   if (await Coupon.exists({ offerId: offer._id })) {
     throw ApiError.conflict('Customers have already claimed or used this offer. Pause it instead, so their history stays.');
   }
+  if (welcomeOfferIds(await getSettings()).includes(offer._id.toString())) {
+    throw ApiError.conflict('This offer is an app welcome voucher. Choose another one in Settings first.');
+  }
   await Offer.deleteOne({ _id: offer._id });
   logger.info({ adminId: admin._id.toString(), offerId: id, code: offer.code }, 'Offer deleted');
 };
@@ -199,12 +203,15 @@ const publicOffer = (offer) => ({
 /**
  * Offers shown in the app for this customer, newest first: "ready" (scratch to claim),
  * "locked" (complete the profile first) or "claimed" (with the customer's coupon).
- * Offers they cannot have, or have used up, are left out.
+ * Offers they cannot have, or have used up, are left out, and so are the ones a new app user
+ * gets as welcome vouchers (shown with those instead).
  */
 export const listOffersForCustomer = async (customer) => {
   const now = new Date();
   const profile = profileCompletion(customer);
+  const welcomeIds = customer.welcomeOffer?.eligible ? welcomeOfferIds(await getSettings()) : [];
   const offers = await Offer.find({
+    _id: { $nin: welcomeIds },
     isActive: true,
     showInApp: true,
     startsAt: { $lte: now },
@@ -236,21 +243,5 @@ export const listOffersForCustomer = async (customer) => {
 export const claimOffer = async (customer, offerId) => {
   const offer = await Offer.findById(offerId).lean();
   if (!offer || !offer.showInApp) throw ApiError.notFound('This offer is not available');
-  const coupon = await offerCouponFor(offer, customer._id, { byCustomer: true });
-  if (!coupon.pendingIssue) return { coupon: serializeCoupon(coupon), created: false };
-
-  const { pendingIssue: _pending, ...fields } = coupon;
-  try {
-    const created = await Coupon.create(fields);
-    logger.info({ customerId: customer._id.toString(), couponId: created.id, offerId }, 'Offer claimed');
-    return { coupon: serializeCoupon(created.toObject()), created: true };
-  } catch (err) {
-    if (err?.code !== 11000) throw err;
-    // Claimed at the same moment from another device → return that coupon
-    const raced = await Coupon.findOne({ offerId: offer._id, customerId: customer._id, status: COUPON_STATUSES.ACTIVE })
-      .sort({ createdAt: -1 })
-      .lean();
-    if (raced) return { coupon: serializeCoupon(raced), created: false };
-    throw new ApiError(500, 'Could not claim the offer, please try again');
-  }
+  return issueOfferCoupon(offer, customer);
 };

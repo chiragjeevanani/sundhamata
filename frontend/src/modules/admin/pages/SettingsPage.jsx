@@ -1,8 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Gift, Headphones, Save, Smartphone } from 'lucide-react';
+import { adminOfferService } from '../../../services/adminOfferService';
 import { adminSettingsService } from '../../../services/adminSettingsService';
 import { AppStylesSettings } from '../components/AppStylesSettings';
 import { useToast } from '../context/ToastContext';
+
+// The two welcome steps; each gives one voucher, and not the same one as the other step
+const WELCOME_STEPS = [
+  { field: 'onRegister', other: 'onProfile', label: 'Right After Registering' },
+  { field: 'onProfile', other: 'onRegister', label: 'After Completing Profile (100%)' },
+];
+const BUILT_IN_CHOICES = [
+  { value: 'glass', label: (v) => `${v.glass.code || 'Voucher 1'} · Free ${v.glass.itemName || 'item'}` },
+  { value: 'accessories', label: (v) => `${v.accessories.code || 'Voucher 2'} · ₹${Number(v.accessories.amount || 0).toLocaleString('en-IN')} off accessories` },
+];
+const OFFER_STATUS_LABELS = { active: 'Active', scheduled: 'Scheduled', ended: 'Ended', paused: 'Paused', used_up: 'Used up' };
+
+/** Which step gives this built-in voucher ("Not given" when neither does) */
+const StepBadge = ({ vouchers, choice }) => {
+  const step = WELCOME_STEPS.find((s) => vouchers[s.field] === choice);
+  return (
+    <span
+      className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full border ${
+        step ? 'bg-brand-50 border-brand-200 text-brand-700' : 'bg-stone-50 border-stone-200 text-stone-500'
+      }`}
+    >
+      {step ? (step.field === 'onRegister' ? 'Given after registering' : 'Given after completing profile') : 'Not given'}
+    </span>
+  );
+};
 
 export const SettingsPage = () => {
   const { showSuccess, showError } = useToast();
@@ -27,13 +53,17 @@ export const SettingsPage = () => {
   const [minRedeemPoints, setMinRedeemPoints] = useState(0);
   const [theme, setTheme] = useState(null);
 
-  // Welcome vouchers new app users unlock on registering (values as typed in the form)
+  // Welcome vouchers for new app users (values as typed in the form). onRegister / onProfile:
+  // "none", "glass", "accessories" or "offer:<id>" (an offer from the Coupons page)
   const [vouchers, setVouchers] = useState({
     enabled: true,
+    onRegister: 'glass',
+    onProfile: 'accessories',
     validityDays: '30',
-    glass: { enabled: true, unlock: 'register', code: 'WELCOME6D', itemName: '6D Toughened Glass', value: '299' },
-    accessories: { enabled: true, unlock: 'profile', code: 'SAVE200', amount: '200', minBill: '2000' },
+    glass: { code: 'WELCOME6D', itemName: '6D Toughened Glass', value: '299' },
+    accessories: { code: 'SAVE200', amount: '200', minBill: '2000' },
   });
+  const [offers, setOffers] = useState([]);
   const setVoucherField = (group, field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setVouchers((prev) => (group ? { ...prev, [group]: { ...prev[group], [field]: value } } : { ...prev, [field]: value }));
@@ -43,7 +73,11 @@ export const SettingsPage = () => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const s = await adminSettingsService.getSettings();
+        const [s, offerList] = await Promise.all([
+          adminSettingsService.getSettings(),
+          adminOfferService.list().catch(() => []),
+        ]);
+        setOffers(offerList);
         setStoreName(s.storeName || 'Sundhamata Mobile');
         setTagline(s.tagline || 'Smart Phones Smart People');
         setGstin(s.gstin || '08AABCS1429P1Z5');
@@ -62,6 +96,8 @@ export const SettingsPage = () => {
         if (v) {
           setVouchers({
             enabled: v.enabled,
+            onRegister: v.onRegister,
+            onProfile: v.onProfile,
             validityDays: String(v.validityDays),
             glass: { ...v.glass, value: String(v.glass.value) },
             accessories: { ...v.accessories, amount: String(v.accessories.amount), minBill: String(v.accessories.minBill) },
@@ -96,17 +132,15 @@ export const SettingsPage = () => {
         offers: {
           welcomeVouchers: {
             enabled: vouchers.enabled,
+            onRegister: vouchers.onRegister,
+            onProfile: vouchers.onProfile,
             validityDays: Number(vouchers.validityDays) || 30,
             glass: {
-              enabled: vouchers.glass.enabled,
-              unlock: vouchers.glass.unlock,
               code: vouchers.glass.code.trim(),
               itemName: vouchers.glass.itemName.trim(),
               value: Number(vouchers.glass.value) || 0,
             },
             accessories: {
-              enabled: vouchers.accessories.enabled,
-              unlock: vouchers.accessories.unlock,
               code: vouchers.accessories.code.trim(),
               amount: Number(vouchers.accessories.amount) || 0,
               minBill: Number(vouchers.accessories.minBill) || 0,
@@ -299,9 +333,10 @@ export const SettingsPage = () => {
               <div>
                 <h3 className="text-xs font-semibold text-stone-800 uppercase tracking-wide">App Welcome Vouchers</h3>
                 <p className="text-xs text-stone-400 font-normal">
-                  New app users get them as scratch cards: one right after registering, one when their profile is 100% complete
-                  (anniversary and photo are optional). One of each per customer; redeem on Add Sale by typing the code
-                  (for the selected customer) or scanning the QR.
+                  New app users get them as scratch cards: choose what they get right after registering, and what they get once
+                  their profile is 100% complete (anniversary and photo are optional). Pick a voucher below or any coupon from the
+                  Coupons page. One of each per customer; redeem on Add Sale by typing the code (for the selected customer) or
+                  scanning the QR.
                 </p>
               </div>
             </div>
@@ -313,8 +348,47 @@ export const SettingsPage = () => {
 
           <div className={`space-y-3.5 ${vouchers.enabled ? '' : 'opacity-50 pointer-events-none'}`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {WELCOME_STEPS.map((step) => {
+                const other = vouchers[step.other];
+                const picked = offers.find((o) => `offer:${o.id}` === vouchers[step.field]);
+                return (
+                  <div key={step.field} className="space-y-1">
+                    <label className="font-medium text-stone-700 block" htmlFor={`voucher-${step.field}`}>{step.label}</label>
+                    <select
+                      id={`voucher-${step.field}`}
+                      value={vouchers[step.field]}
+                      onChange={setVoucherField(null, step.field)}
+                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer"
+                    >
+                      <option value="none">Nothing</option>
+                      <optgroup label="Welcome vouchers">
+                        {BUILT_IN_CHOICES.map((c) => (
+                          <option key={c.value} value={c.value} disabled={other === c.value}>
+                            {c.label(vouchers)}
+                          </option>
+                        ))}
+                      </optgroup>
+                      {offers.length > 0 && (
+                        <optgroup label="Coupons page">
+                          {offers.map((o) => (
+                            <option key={o.id} value={`offer:${o.id}`} disabled={other === `offer:${o.id}`}>
+                              {o.code} · {o.displayTitle}
+                              {o.status !== 'active' ? ` (${OFFER_STATUS_LABELS[o.status] ?? o.status})` : ''}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </select>
+                    {picked && picked.status !== 'active' && (
+                      <p className="text-[11px] text-amber-700">
+                        {picked.code} is {OFFER_STATUS_LABELS[picked.status]?.toLowerCase() ?? picked.status}: customers won't see it until it is active.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
               <div className="space-y-1">
-                <label className="font-medium text-stone-700 block" htmlFor="voucher-validity">Valid For (days after claiming)</label>
+                <label className="font-medium text-stone-700 block" htmlFor="voucher-validity">Welcome Vouchers Valid For (days after claiming)</label>
                 <input id="voucher-validity" type="number" min="1" max="365" value={vouchers.validityDays} onChange={setVoucherField(null, 'validityDays')} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs tabular-nums`} />
               </div>
             </div>
@@ -327,19 +401,9 @@ export const SettingsPage = () => {
                     <Smartphone className="w-3.5 h-3.5 text-brand-600" />
                     Voucher 1 · Free item
                   </span>
-                  <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" checked={vouchers.glass.enabled} onChange={setVoucherField('glass', 'enabled')} className="w-3.5 h-3.5 accent-brand-600" />
-                    <span className="text-stone-600">On</span>
-                  </label>
+                  <StepBadge vouchers={vouchers} choice="glass" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2 space-y-1">
-                    <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-unlock">Unlocks</label>
-                    <select id="voucher-glass-unlock" value={vouchers.glass.unlock} onChange={setVoucherField('glass', 'unlock')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer">
-                      <option value="register">Right after registering</option>
-                      <option value="profile">When the profile is 100% complete</option>
-                    </select>
-                  </div>
                   <div className="space-y-1">
                     <label className="font-medium text-stone-700 block" htmlFor="voucher-glass-code">Voucher Code</label>
                     <input id="voucher-glass-code" value={vouchers.glass.code} onChange={setVoucherField('glass', 'code')} maxLength={20} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs font-mono uppercase`} />
@@ -366,19 +430,9 @@ export const SettingsPage = () => {
                     <Headphones className="w-3.5 h-3.5 text-brand-600" />
                     Voucher 2 · Accessories discount
                   </span>
-                  <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                    <input type="checkbox" checked={vouchers.accessories.enabled} onChange={setVoucherField('accessories', 'enabled')} className="w-3.5 h-3.5 accent-brand-600" />
-                    <span className="text-stone-600">On</span>
-                  </label>
+                  <StepBadge vouchers={vouchers} choice="accessories" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2 space-y-1">
-                    <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-unlock">Unlocks</label>
-                    <select id="voucher-acc-unlock" value={vouchers.accessories.unlock} onChange={setVoucherField('accessories', 'unlock')} className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer">
-                      <option value="register">Right after registering</option>
-                      <option value="profile">When the profile is 100% complete</option>
-                    </select>
-                  </div>
                   <div className="col-span-2 space-y-1">
                     <label className="font-medium text-stone-700 block" htmlFor="voucher-acc-code">Voucher Code</label>
                     <input id="voucher-acc-code" value={vouchers.accessories.code} onChange={setVoucherField('accessories', 'code')} maxLength={20} className={`w-full px-3 py-2 bg-white border border-stone-300 rounded-lg font-medium text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs font-mono uppercase`} />

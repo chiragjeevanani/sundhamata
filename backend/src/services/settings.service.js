@@ -1,7 +1,7 @@
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { Offer } from '../models/Offer.js';
-import { SETTINGS_KEY, StoreSettings, welcomeVouchersOf } from '../models/StoreSettings.js';
+import { offerIdOfChoice, SETTINGS_KEY, StoreSettings, welcomeVouchersOf } from '../models/StoreSettings.js';
 import { ApiError } from '../utils/ApiError.js';
 
 const INITIAL_SETTINGS = {
@@ -59,6 +59,27 @@ export const updateSettings = async (patch, admin) => {
       if (code && (await Offer.exists({ code }))) {
         throw ApiError.conflict(`The code ${code} is already used by an offer on the Coupons page`, [
           { field: `offers.welcomeVouchers.${key}.code`, message: 'Used by an offer on the Coupons page' },
+        ]);
+      }
+    }
+  }
+  // The voucher for each welcome step: an existing offer, and not the same one for both steps
+  if (vouchers?.onRegister || vouchers?.onProfile) {
+    const now = welcomeVouchersOf(current);
+    const steps = [
+      ['onRegister', vouchers.onRegister ?? now.onRegister],
+      ['onProfile', vouchers.onProfile ?? now.onProfile],
+    ];
+    if (steps[0][1] !== 'none' && steps[0][1] === steps[1][1]) {
+      throw ApiError.unprocessable('Choose a different voucher for each step', [
+        { field: 'offers.welcomeVouchers.onProfile', message: 'Already given after registering' },
+      ]);
+    }
+    for (const [field, choice] of steps) {
+      const offerId = offerIdOfChoice(choice);
+      if (offerId && vouchers[field] && !(await Offer.exists({ _id: offerId }))) {
+        throw ApiError.unprocessable('That coupon no longer exists', [
+          { field: `offers.welcomeVouchers.${field}`, message: 'Coupon not found' },
         ]);
       }
     }

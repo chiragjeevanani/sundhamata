@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { optionalEmailSchema, optionalTextSchema } from './common.js';
-import { THEME_COLOR_KEYS, VOUCHER_UNLOCKS } from '../models/StoreSettings.js';
+import { THEME_COLOR_KEYS, WELCOME_CHOICE_PATTERN } from '../models/StoreSettings.js';
 
 // "#rrggbb" → "#RRGGBB"; "" or null resets the colour to the built-in default.
 // Voucher code from the poster, e.g. "WELCOME6D": letters and digits (stored in capitals)
@@ -10,6 +10,9 @@ export const voucherCodeSchema = z
   .toUpperCase()
   .regex(/^[A-Z0-9]{4,20}$/, 'Use 4–20 letters or digits, e.g. WELCOME6D')
   .refine((v) => !/^SM[A-Z0-9]{8}$/.test(v), 'This looks like a personal coupon code; choose another');
+
+// A welcome step's voucher: "none", "glass", "accessories" or "offer:<id>"
+const welcomeChoiceSchema = z.string().trim().regex(WELCOME_CHOICE_PATTERN, 'Choose a voucher from the list');
 
 const themeColor = z.preprocess(
   (v) => (typeof v === 'string' ? v.trim().toUpperCase() || null : v ?? null),
@@ -76,11 +79,12 @@ export const updateSettingsSchema = z
         welcomeVouchers: z
           .strictObject({
             enabled: z.boolean().optional(),
+            // What the app gives right after registering / once the profile is 100% complete
+            onRegister: welcomeChoiceSchema.optional(),
+            onProfile: welcomeChoiceSchema.optional(),
             validityDays: z.coerce.number().int().min(1, 'Validity must be at least 1 day').max(365).optional(),
             glass: z
               .strictObject({
-                enabled: z.boolean().optional(),
-                unlock: z.enum(VOUCHER_UNLOCKS).optional(),
                 code: voucherCodeSchema.optional(),
                 itemName: z.string().trim().min(2, 'Item name is required').max(60).optional(),
                 value: z.coerce.number().min(0, 'Value cannot be negative').max(100_000).optional(),
@@ -88,8 +92,6 @@ export const updateSettingsSchema = z
               .optional(),
             accessories: z
               .strictObject({
-                enabled: z.boolean().optional(),
-                unlock: z.enum(VOUCHER_UNLOCKS).optional(),
                 code: voucherCodeSchema.optional(),
                 amount: z.coerce.number().min(0, 'Discount cannot be negative').max(100_000).optional(),
                 minBill: z.coerce.number().min(0, 'Minimum cannot be negative').max(10_000_000).optional(),

@@ -4,7 +4,7 @@ import { logger } from '../config/logger.js';
 import { Coupon, Customer, Offer, Purchase } from '../models/index.js';
 import { COUPON_KINDS, COUPON_STATUSES } from '../models/Coupon.js';
 import { PURCHASE_STATUSES } from '../models/Purchase.js';
-import { welcomeVouchersOf } from '../models/StoreSettings.js';
+import { offerIdOfChoice, welcomeVouchersOf } from '../models/StoreSettings.js';
 import { ApiError } from '../utils/ApiError.js';
 import { serializeCoupon } from '../utils/serializers.js';
 import { getSettings } from './settings.service.js';
@@ -42,19 +42,15 @@ export const profileCompletion = (customer) => {
 };
 
 /**
- * The welcome vouchers on offer (from settings), in display order. The terms are copied onto
- * each coupon when it is claimed, so later changes only affect vouchers claimed afterwards.
+ * A built-in welcome voucher's terms (from settings), or null when its value is zero. The terms
+ * are copied onto each coupon when it is claimed, so later changes only affect later claims.
  */
-export const welcomeVoucherDefinitions = (settings) => {
-  const v = welcomeVouchersOf(settings);
-  if (!v.enabled) return [];
+const builtInVoucher = (v, key) => {
   const accessoriesOnly = ['accessories'];
-  return [
-    {
+  const definition = {
+    glass: v.glass.value > 0 && {
       key: 'glass',
       kind: COUPON_KINDS.WELCOME_GLASS,
-      enabled: v.glass.enabled && v.glass.value > 0,
-      unlock: v.glass.unlock,
       campaignCode: v.glass.code,
       title: `Free ${v.glass.itemName}`,
       description: `Join the Sundhamata Mobile app and get 1 ${v.glass.itemName} free`,
@@ -62,11 +58,9 @@ export const welcomeVoucherDefinitions = (settings) => {
       minBillAmount: 0,
       appliesTo: accessoriesOnly,
     },
-    {
+    accessories: v.accessories.amount > 0 && {
       key: 'accessories',
       kind: COUPON_KINDS.WELCOME_ACCESSORIES,
-      enabled: v.accessories.enabled && v.accessories.amount > 0,
-      unlock: v.accessories.unlock,
       campaignCode: v.accessories.code,
       title: `₹${v.accessories.amount.toLocaleString('en-IN')} off Mobile Accessories`,
       description: `Buy ₹${v.accessories.minBill.toLocaleString('en-IN')} of mobile accessories and get ₹${v.accessories.amount.toLocaleString('en-IN')} off`,
@@ -74,13 +68,33 @@ export const welcomeVoucherDefinitions = (settings) => {
       minBillAmount: v.accessories.minBill,
       appliesTo: accessoriesOnly,
     },
-  ]
-    .filter((d) => d.enabled)
-    .map(({ enabled: _enabled, ...d }) => ({ ...d, validityDays: v.validityDays }));
+  }[key];
+  return definition ? { ...definition, validityDays: v.validityDays } : null;
 };
 
-const publicVoucher = (definition) => ({
+/**
+ * The welcome steps set up in Settings → App Welcome Vouchers, in order:
+ * [{ unlock: "register" | "profile", choice: "glass" | "accessories" | "offer:<id>" }]
+ */
+const welcomeSteps = (settings) => {
+  const v = welcomeVouchersOf(settings);
+  if (!v.enabled) return [];
+  return [
+    { unlock: 'register', choice: v.onRegister },
+    { unlock: 'profile', choice: v.onProfile },
+  ].filter((step) => step.choice && step.choice !== 'none');
+};
+
+/** Ids of the offers given as welcome vouchers */
+export const welcomeOfferIds = (settings) =>
+  welcomeSteps(settings)
+    .map((step) => offerIdOfChoice(step.choice))
+    .filter(Boolean);
+
+// unlock: "register" = unlocked on joining; "profile" = once the profile is 100% complete
+const publicVoucher = (definition, unlock) => ({
   key: definition.key,
+  customTitle: null,
   title: definition.title,
   description: definition.description,
   campaignCode: definition.campaignCode,
@@ -88,34 +102,88 @@ const publicVoucher = (definition) => ({
   minBillAmount: definition.minBillAmount,
   appliesTo: definition.appliesTo,
   validityDays: definition.validityDays,
-  // "register": unlocked on joining; "profile": unlocked once the profile is 100% complete
-  unlock: definition.unlock,
+  endsAt: null,
+  unlock,
 });
 
+// An offer from Admin → Coupons given as a welcome voucher (claimed with its id as the key)
+const publicOfferVoucher = (offer, unlock) => ({
+  key: offer._id.toString(),
+  customTitle: offer.title ?? null,
+  title: offerTitle(offer),
+  description: offerDescription(offer),
+  campaignCode: offer.code,
+  discount: {
+    type: offer.discount.type,
+    value: offer.discount.value,
+    maxAmount: offer.discount.maxAmount ?? null,
+    itemName: offer.discount.itemName ?? null,
+  },
+  minBillAmount: offer.minBillAmount ?? 0,
+  appliesTo: offer.appliesTo ?? [],
+  validityDays: offer.validityDays ?? null,
+  endsAt: offer.endsAt ?? null,
+  unlock,
+});
+
+/** The customer's coupon from this offer: an unused one if they have it, otherwise the latest. */
+const latestOfferCoupon = (coupons, offerId, now = new Date()) => {
+  const mine = coupons.filter((c) => c.offerId?.equals(offerId));
+  return mine.find((c) => c.status === COUPON_STATUSES.ACTIVE && c.expiresAt > now) ?? mine[0] ?? null;
+};
+
 /**
- * The customer's welcome vouchers. Each voucher: "ready" (unlocked, scratch to claim), "locked"
- * (unlocks once the profile is 100% complete) or "claimed" (with its coupon: Active / Used / Expired).
+ * The customer's welcome vouchers, one per step. Each voucher: "ready" (unlocked, scratch to
+ * claim), "locked" (unlocks once the profile is 100% complete) or "claimed" (with its coupon:
+ * Active / Used / Expired). A step gives a built-in voucher or an offer from Admin → Coupons;
+ * an offer is left out while it is paused, ended or not for this customer.
  * Overall status: "unavailable" (switched off, or not a new app user), "ready" (something to
  * claim), "locked" (only locked ones left) or "claimed" (all claimed).
  */
 export const getWelcomeOfferStatus = async (customer) => {
-  const [settings, coupons] = await Promise.all([
-    getSettings(),
-    Coupon.find({ customerId: customer._id, kind: { $in: [COUPON_KINDS.WELCOME_GLASS, COUPON_KINDS.WELCOME_ACCESSORIES] } }).lean(),
+  const settings = await getSettings();
+  const v = welcomeVouchersOf(settings);
+  const steps = welcomeSteps(settings);
+  const offerIds = welcomeOfferIds(settings);
+  const [offers, coupons] = await Promise.all([
+    offerIds.length ? Offer.find({ _id: { $in: offerIds } }).lean() : [],
+    Coupon.find({
+      customerId: customer._id,
+      $or: [{ kind: { $in: [COUPON_KINDS.WELCOME_GLASS, COUPON_KINDS.WELCOME_ACCESSORIES] } }, { offerId: { $in: offerIds } }],
+    })
+      .sort({ createdAt: -1 })
+      .lean(),
   ]);
-  const byKind = new Map(coupons.map((c) => [c.kind, c]));
   const eligible = Boolean(customer.welcomeOffer?.eligible);
   const profile = profileCompletion(customer);
-  const vouchers = welcomeVoucherDefinitions(settings)
-    .map((definition) => {
-      const coupon = byKind.get(definition.kind);
-      if (coupon) return { ...publicVoucher(definition), status: 'claimed', coupon: serializeCoupon(coupon) };
-      if (!eligible) return null;
-      const locked = definition.unlock === 'profile' && profile.percent < 100;
-      return { ...publicVoucher(definition), status: locked ? 'locked' : 'ready', coupon: null };
-    })
-    .filter(Boolean);
-  const has = (s) => vouchers.some((v) => v.status === s);
+  const now = new Date();
+
+  const vouchers = [];
+  for (const { unlock, choice } of steps) {
+    const profileLocked = unlock === 'profile' && profile.percent < 100;
+    const offerId = offerIdOfChoice(choice);
+    if (!offerId) {
+      const definition = builtInVoucher(v, choice);
+      if (!definition) continue;
+      const coupon = coupons.find((c) => c.kind === definition.kind);
+      if (coupon) vouchers.push({ ...publicVoucher(definition, unlock), status: 'claimed', coupon: serializeCoupon(coupon) });
+      else if (eligible) vouchers.push({ ...publicVoucher(definition, unlock), status: profileLocked ? 'locked' : 'ready', coupon: null });
+      continue;
+    }
+
+    const offer = offers.find((o) => o._id.equals(offerId));
+    if (!offer) continue;
+    const coupon = latestOfferCoupon(coupons, offer._id, now);
+    if (coupon) {
+      vouchers.push({ ...publicOfferVoucher(offer, unlock), status: 'claimed', coupon: serializeCoupon(coupon) });
+      continue;
+    }
+    if (!eligible || offerClosedReason(offer, now)) continue;
+    const audience = await offerAudienceCheck(offer, customer);
+    if (audience && !audience.locked) continue;
+    vouchers.push({ ...publicOfferVoucher(offer, unlock), status: profileLocked || audience ? 'locked' : 'ready', coupon: null });
+  }
+  const has = (s) => vouchers.some((voucher) => voucher.status === s);
   const status = !vouchers.length ? 'unavailable' : has('ready') ? 'ready' : has('locked') ? 'locked' : 'claimed';
   return { status, vouchers, profile };
 };
@@ -134,22 +202,43 @@ export const normalizeCouponCode = (input) => {
 
 export const addDays = (date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 
-/** Claims one welcome voucher (once per customer; claiming again returns the same voucher). */
+const assertProfileComplete = (customer) => {
+  const { percent, missingFields } = profileCompletion(customer);
+  if (percent < 100) {
+    throw ApiError.unprocessable(
+      'Complete your profile to unlock this voucher',
+      missingFields.map(({ field, label }) => ({ field, message: `${label} is required` }))
+    );
+  }
+};
+
+/**
+ * Claims one welcome voucher (once per customer; claiming again returns the same voucher).
+ * `key`: "glass" / "accessories", or the id of the offer given at that step.
+ */
 export const claimWelcomeVoucher = async (customer, key) => {
-  const definition = welcomeVoucherDefinitions(await getSettings()).find((d) => d.key === key);
+  const settings = await getSettings();
+  const step = welcomeSteps(settings).find((s) => s.choice === key || offerIdOfChoice(s.choice) === key);
+  if (!step) throw ApiError.notFound('This voucher is not available');
+
+  const offerId = offerIdOfChoice(step.choice);
+  if (offerId) {
+    const offer = await Offer.findById(offerId).lean();
+    if (!offer) throw ApiError.notFound('This voucher is not available');
+    const mine = await Coupon.find({ customerId: customer._id, offerId: offer._id }).sort({ createdAt: -1 }).lean();
+    const existing = latestOfferCoupon(mine, offer._id);
+    if (existing) return { coupon: serializeCoupon(existing), created: false };
+    if (!customer.welcomeOffer?.eligible) throw ApiError.forbidden('Welcome vouchers are for new app users.');
+    if (step.unlock === 'profile') assertProfileComplete(customer);
+    return issueOfferCoupon(offer, customer);
+  }
+
+  const definition = builtInVoucher(welcomeVouchersOf(settings), step.choice);
   if (!definition) throw ApiError.notFound('This voucher is not available');
   const existing = await Coupon.findOne({ customerId: customer._id, kind: definition.kind }).lean();
   if (existing) return { coupon: serializeCoupon(existing), created: false };
   if (!customer.welcomeOffer?.eligible) throw ApiError.forbidden('Welcome vouchers are for new app users.');
-  if (definition.unlock === 'profile') {
-    const { percent, missingFields } = profileCompletion(customer);
-    if (percent < 100) {
-      throw ApiError.unprocessable(
-        'Complete your profile to unlock this voucher',
-        missingFields.map(({ field, label }) => ({ field, message: `${label} is required` }))
-      );
-    }
-  }
+  if (step.unlock === 'profile') assertProfileComplete(customer);
 
   const now = new Date();
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -338,6 +427,27 @@ export const offerCouponFor = async (offer, customerId, { session = null, byCust
   const audience = await offerAudienceCheck(offer, customer, session);
   if (audience) throw couponProblem(audience.reason);
   return { ...newOfferCoupon(offer, customer._id, coupons.length + 1, now), pendingIssue: true };
+};
+
+/** Gives the customer their coupon for this offer in the app (QR + code); claiming again returns it. */
+export const issueOfferCoupon = async (offer, customer) => {
+  const coupon = await offerCouponFor(offer, customer._id, { byCustomer: true });
+  if (!coupon.pendingIssue) return { coupon: serializeCoupon(coupon), created: false };
+
+  const { pendingIssue: _pending, ...fields } = coupon;
+  try {
+    const created = await Coupon.create(fields);
+    logger.info({ customerId: customer._id.toString(), couponId: created.id, offerId: offer._id.toString() }, 'Offer claimed');
+    return { coupon: serializeCoupon(created.toObject()), created: true };
+  } catch (err) {
+    if (err?.code !== 11000) throw err;
+    // Claimed at the same moment from another device → return that coupon
+    const raced = await Coupon.findOne({ offerId: offer._id, customerId: customer._id, status: COUPON_STATUSES.ACTIVE })
+      .sort({ createdAt: -1 })
+      .lean();
+    if (raced) return { coupon: serializeCoupon(raced), created: false };
+    throw new ApiError(500, 'Could not claim the offer, please try again');
+  }
 };
 
 /** Counts one more use of the offer (or one less, for a cancelled bill), within its total limit. */

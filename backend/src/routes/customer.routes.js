@@ -35,7 +35,8 @@ export const createCustomerRouter = () => {
   router.get('/offers/welcome', customer.getMyWelcomeOffer);
   router.post(
     '/offers/welcome/:key/claim',
-    validate({ params: z.object({ key: z.enum(['glass', 'accessories']) }) }),
+    // A built-in voucher, or the id of an offer given as a welcome voucher
+    validate({ params: z.object({ key: z.string().regex(/^(glass|accessories|[a-f0-9]{24})$/, 'Unknown voucher') }) }),
     customer.claimMyWelcomeVoucher
   );
   // Offers created by the store: scratch to claim (the customer's own QR + code)

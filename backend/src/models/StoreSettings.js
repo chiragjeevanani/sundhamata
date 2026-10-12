@@ -6,16 +6,40 @@ export const SETTINGS_KEY = 'store';
 // .lean(), so documents created before these existed have no values: always merge with these.
 export const VOUCHER_UNLOCKS = Object.freeze(['register', 'profile']);
 
+// The built-in welcome vouchers (terms set below)
+export const BUILT_IN_VOUCHERS = Object.freeze(['glass', 'accessories']);
+
+/**
+ * What the app gives at each welcome step: "none", a built-in voucher ("glass", "accessories")
+ * or an offer from Admin → Coupons ("offer:<id>").
+ */
+export const WELCOME_CHOICE_PATTERN = /^(none|glass|accessories|offer:[a-f0-9]{24})$/;
+
+/** The offer id in an "offer:<id>" choice, or null */
+export const offerIdOfChoice = (choice) => (choice?.startsWith('offer:') ? choice.slice('offer:'.length) : null);
+
 export const WELCOME_VOUCHER_DEFAULTS = Object.freeze({
   enabled: true,
   // Days a voucher stays valid after the customer claims it
   validityDays: 30,
   // Voucher 1: a free item (staff add it to the bill and the voucher takes its price off)
   // unlock: "register" = right after registering, "profile" = once the profile is 100% complete
-  glass: Object.freeze({ enabled: true, unlock: 'register', code: 'WELCOME6D', itemName: '6D Toughened Glass', value: 299 }),
+  glass: Object.freeze({ code: 'WELCOME6D', itemName: '6D Toughened Glass', value: 299 }),
   // Voucher 2: flat discount when the accessories on the bill reach a minimum
-  accessories: Object.freeze({ enabled: true, unlock: 'profile', code: 'SAVE200', amount: 200, minBill: 2000 }),
+  accessories: Object.freeze({ code: 'SAVE200', amount: 200, minBill: 2000 }),
 });
+
+/**
+ * Before the admin picked a voucher for each step, each built-in voucher had its own on/off
+ * switch and "unlocks" setting (defaults: glass on registering, accessories on a complete profile).
+ */
+const legacyChoice = (stored, unlock) => {
+  const fallback = { glass: 'register', accessories: 'profile' };
+  const key = BUILT_IN_VOUCHERS.find(
+    (k) => (stored?.[k]?.enabled ?? true) && (stored?.[k]?.unlock ?? fallback[k]) === unlock
+  );
+  return key ?? 'none';
+};
 
 const mergeDefaults = (defaults, stored = {}) =>
   Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => [key, stored?.[key] ?? fallback]));
@@ -25,6 +49,9 @@ export const welcomeVouchersOf = (settings) => {
   const stored = settings?.offers?.welcomeVouchers ?? {};
   return {
     enabled: stored.enabled ?? WELCOME_VOUCHER_DEFAULTS.enabled,
+    // Given right after registering / once the profile is 100% complete
+    onRegister: stored.onRegister ?? legacyChoice(stored, 'register'),
+    onProfile: stored.onProfile ?? legacyChoice(stored, 'profile'),
     validityDays: stored.validityDays ?? WELCOME_VOUCHER_DEFAULTS.validityDays,
     glass: mergeDefaults(WELCOME_VOUCHER_DEFAULTS.glass, stored.glass),
     accessories: mergeDefaults(WELCOME_VOUCHER_DEFAULTS.accessories, stored.accessories),
@@ -74,17 +101,22 @@ const storeSettingsSchema = new mongoose.Schema(
       // Welcome vouchers new app users unlock on registering (see services/coupon.service.js)
       welcomeVouchers: {
         enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.enabled },
+        // See WELCOME_CHOICE_PATTERN; unset = worked out from the older per-voucher settings
+        onRegister: { type: String, match: WELCOME_CHOICE_PATTERN },
+        onProfile: { type: String, match: WELCOME_CHOICE_PATTERN },
+        // Days a built-in voucher stays valid after claiming (offers use their own validity)
         validityDays: { type: Number, min: 1, max: 365, default: WELCOME_VOUCHER_DEFAULTS.validityDays },
         glass: {
-          enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.glass.enabled },
-          unlock: { type: String, enum: VOUCHER_UNLOCKS, default: WELCOME_VOUCHER_DEFAULTS.glass.unlock },
+          // Older settings, read only until onRegister / onProfile are saved
+          enabled: Boolean,
+          unlock: { type: String, enum: VOUCHER_UNLOCKS },
           code: { type: String, trim: true, uppercase: true, maxlength: 20, default: WELCOME_VOUCHER_DEFAULTS.glass.code },
           itemName: { type: String, trim: true, maxlength: 60, default: WELCOME_VOUCHER_DEFAULTS.glass.itemName },
           value: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.glass.value },
         },
         accessories: {
-          enabled: { type: Boolean, default: WELCOME_VOUCHER_DEFAULTS.accessories.enabled },
-          unlock: { type: String, enum: VOUCHER_UNLOCKS, default: WELCOME_VOUCHER_DEFAULTS.accessories.unlock },
+          enabled: Boolean,
+          unlock: { type: String, enum: VOUCHER_UNLOCKS },
           code: { type: String, trim: true, uppercase: true, maxlength: 20, default: WELCOME_VOUCHER_DEFAULTS.accessories.code },
           amount: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.accessories.amount },
           minBill: { type: Number, min: 0, default: WELCOME_VOUCHER_DEFAULTS.accessories.minBill },

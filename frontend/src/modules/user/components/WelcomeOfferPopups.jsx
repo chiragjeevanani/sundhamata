@@ -175,7 +175,9 @@ export const WelcomeOfferPopups = () => {
                   )}
 
                   <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10.5px] text-stone-500 px-1">
-                    <li>• Valid for {vouchers[0]?.validityDays ?? 30} days after claiming</li>
+                    <li>
+                      • {vouchers[0]?.validityDays ? `Valid for ${vouchers[0].validityDays} days after claiming` : 'Validity shown after claiming'}
+                    </li>
                     <li>• One voucher per customer</li>
                     <li>• Registered mobile number required</li>
                     <li>• Valid at Sundhamata Mobile only</li>

@@ -117,14 +117,16 @@ describe('Welcome vouchers: one on joining, one for a 100% complete profile', ()
     await claim(auth, 'glass').expect(403);
   });
 
-  it('the admin can change the terms, switch a voucher off, or switch both off', async () => {
+  it('the admin can change the terms, give nothing at a step, or switch both off', async () => {
     const { auth } = await registerNewUser('9000000034');
-    const res = await patchVouchers({ validityDays: 15, glass: { value: 399, itemName: '9D Glass' }, accessories: { enabled: false } }).expect(200);
+    const res = await patchVouchers({ validityDays: 15, glass: { value: 399, itemName: '9D Glass' }, onProfile: 'none' }).expect(200);
     expect(res.body.data.settings.offers.welcomeVouchers).toMatchObject({
       enabled: true,
+      onRegister: 'glass',
+      onProfile: 'none',
       validityDays: 15,
       glass: { code: 'WELCOME6D', itemName: '9D Glass', value: 399 },
-      accessories: { enabled: false, code: 'SAVE200' },
+      accessories: { code: 'SAVE200' },
     });
     const offer = (await offerOf(auth)).body.data;
     expect(offer.vouchers.map((v) => [v.key, v.title])).toEqual([['glass', 'Free 9D Glass']]);
@@ -138,15 +140,35 @@ describe('Welcome vouchers: one on joining, one for a 100% complete profile', ()
     await patchVouchers({ glass: { code: 'no spaces' } }).expect(422);
   });
 
-  it('the admin can choose when each voucher unlocks', async () => {
-    await patchVouchers({ glass: { unlock: 'profile' }, accessories: { unlock: 'register' } }).expect(200);
+  it('the admin chooses which voucher is given after registering and after completing the profile', async () => {
+    await patchVouchers({ onRegister: 'accessories', onProfile: 'glass' }).expect(200);
     const { auth } = await registerNewUser('9000000036');
     const offer = (await offerOf(auth)).body.data;
-    expect(offer.vouchers.map((v) => [v.key, v.status])).toEqual([
-      ['glass', 'locked'],
-      ['accessories', 'ready'],
+    expect(offer.vouchers.map((v) => [v.key, v.unlock, v.status])).toEqual([
+      ['accessories', 'register', 'ready'],
+      ['glass', 'profile', 'locked'],
     ]);
-    await patchVouchers({ glass: { unlock: 'later' } }).expect(422);
+    await claim(auth, 'glass').expect(422);
+    await claim(auth, 'accessories').expect(201);
+
+    await patchVouchers({ onRegister: 'later' }).expect(422);
+    await patchVouchers({ onProfile: 'accessories' }).expect(422); // same voucher for both steps
+    await patchVouchers({ onRegister: 'offer:0123456789abcdef01234567' }).expect(422); // no such coupon
+  });
+
+  it('settings saved with the older per-voucher switches still work', async () => {
+    await api().get('/api/v1/admin/settings').set('Authorization', adminAuth).expect(200);
+    await StoreSettings.collection.updateOne(
+      {},
+      {
+        $set: {
+          'offers.welcomeVouchers.glass': { enabled: true, unlock: 'profile', code: 'WELCOME6D', itemName: '6D Glass', value: 299 },
+          'offers.welcomeVouchers.accessories': { enabled: false, unlock: 'profile', code: 'SAVE200', amount: 200, minBill: 2000 },
+        },
+      }
+    );
+    const settings = await api().get('/api/v1/admin/settings').set('Authorization', adminAuth).expect(200);
+    expect(settings.body.data.settings.offers.welcomeVouchers).toMatchObject({ onRegister: 'none', onProfile: 'glass' });
   });
 
   it('stores whose settings predate the vouchers use the defaults', async () => {
@@ -155,6 +177,75 @@ describe('Welcome vouchers: one on joining, one for a 100% complete profile', ()
     const { auth } = await registerNewUser('9000000035');
     const offer = (await offerOf(auth)).body.data;
     expect(offer.vouchers.map((v) => v.campaignCode)).toEqual(['WELCOME6D', 'SAVE200']);
+  });
+});
+
+describe('Welcome vouchers from Admin → Coupons', () => {
+  const createOffer = (body) => api().post('/api/v1/admin/offers').set('Authorization', adminAuth).send(body).expect(201);
+  const storeOffers = async (auth) => (await api().get('/api/v1/customer/offers').set('Authorization', auth).expect(200)).body.data.offers;
+  const PHONE = { category: 'phones', product: { name: 'Redmi Note 14', imei: '358921104829104' }, price: 18000 };
+
+  it('an offer picked for a step is given there instead of in "Offers for you"', async () => {
+    const offer = (await createOffer({ code: 'JOIN500', discount: { type: 'flat', value: 500 }, appliesTo: ['phones'], validityDays: 10 })).body.data.offer;
+    await patchVouchers({ onRegister: `offer:${offer.id}`, onProfile: 'glass' }).expect(200);
+
+    const { auth, id } = await registerNewUser('9000000051');
+    const welcome = (await offerOf(auth)).body.data;
+    expect(welcome.vouchers).toMatchObject([
+      { key: offer.id, campaignCode: 'JOIN500', title: '₹500 off Mobiles', unlock: 'register', status: 'ready', validityDays: 10 },
+      { key: 'glass', unlock: 'profile', status: 'locked' },
+    ]);
+    expect((await storeOffers(auth)).map((o) => o.campaignCode)).not.toContain('JOIN500');
+
+    const coupon = (await claim(auth, offer.id).expect(201)).body.data.coupon;
+    expect(coupon).toMatchObject({ campaignCode: 'JOIN500', offerId: offer.id, status: 'active' });
+    expect((await claim(auth, offer.id).expect(200)).body.data.coupon.code).toBe(coupon.code);
+    expect((await offerOf(auth)).body.data.vouchers[0]).toMatchObject({ status: 'claimed', coupon: { code: coupon.code } });
+
+    // Used at the counter like any offer
+    let invoice = 0;
+    const res = await api()
+      .post('/api/v1/admin/purchases')
+      .set('Authorization', adminAuth)
+      .send({ customerId: id, invoiceNumber: `WO/${(invoice += 1)}`, items: [PHONE], payment: { method: 'Cash' }, pricing: { discount: 0 }, couponCode: 'JOIN500' })
+      .expect(201);
+    expect(res.body.data.order.totals.couponDiscount).toBe(500);
+
+    // Customers who are not new app users still see it in "Offers for you"
+    const old = await createTestCustomer();
+    await Customer.updateOne({ _id: old._id }, { $set: { mobileVerifiedAt: new Date('2025-01-01') } });
+    await api().post('/api/v1/auth/customer/send-otp').send({ mobile: '9876543210' }).expect(200);
+    const login = await api().post('/api/v1/auth/customer/verify-otp').send({ mobile: '9876543210', otp: DEV_OTP }).expect(200);
+    const oldAuth = `Bearer ${login.body.data.token}`;
+    expect((await storeOffers(oldAuth)).map((o) => o.campaignCode)).toContain('JOIN500');
+    expect((await offerOf(oldAuth)).body.data.vouchers).toEqual([]);
+    await claim(oldAuth, offer.id).expect(403);
+  });
+
+  it('an offer for a complete profile stays locked until then; a paused one is not shown', async () => {
+    const offer = (await createOffer({ code: 'PROFILE10', discount: { type: 'percent', value: 10, maxAmount: 300 } })).body.data.offer;
+    await patchVouchers({ onProfile: `offer:${offer.id}` }).expect(200);
+    const { auth } = await registerNewUser('9000000052');
+    expect((await offerOf(auth)).body.data.vouchers.map((v) => [v.campaignCode, v.status])).toEqual([
+      ['WELCOME6D', 'ready'],
+      ['PROFILE10', 'locked'],
+    ]);
+    const early = await claim(auth, offer.id).expect(422);
+    expect(early.body.errors.map((e) => e.field)).toContain('email');
+    await updateProfile(auth, FULL_PROFILE).expect(200);
+    expect((await offerOf(auth)).body.data.vouchers[1].status).toBe('ready');
+
+    await api().patch(`/api/v1/admin/offers/${offer.id}`).set('Authorization', adminAuth).send({ isActive: false }).expect(200);
+    expect((await offerOf(auth)).body.data.vouchers.map((v) => v.campaignCode)).toEqual(['WELCOME6D']);
+    await claim(auth, offer.id).expect(422);
+  });
+
+  it('an offer given as a welcome voucher cannot be deleted', async () => {
+    const offer = (await createOffer({ code: 'JOIN100', discount: { type: 'flat', value: 100 } })).body.data.offer;
+    await patchVouchers({ onRegister: `offer:${offer.id}` }).expect(200);
+    await api().delete(`/api/v1/admin/offers/${offer.id}`).set('Authorization', adminAuth).expect(409);
+    await patchVouchers({ onRegister: 'glass' }).expect(200);
+    await api().delete(`/api/v1/admin/offers/${offer.id}`).set('Authorization', adminAuth).expect(200);
   });
 });
 

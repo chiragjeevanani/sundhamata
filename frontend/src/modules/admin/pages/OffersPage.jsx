@@ -465,8 +465,8 @@ export const OffersPage = () => {
           ))}
         </div>
         <p className="text-[11px] text-stone-400">
-          Welcome vouchers (WELCOME6D, SAVE200) are set in{' '}
-          <Link to="/admin/settings" className="text-brand-700 hover:underline">Settings</Link>.
+          What new app users get after registering and after completing their profile (WELCOME6D, SAVE200 or any coupon
+          here) is chosen in <Link to="/admin/settings" className="text-brand-700 hover:underline">Settings</Link>.
         </p>
       </div>
 
