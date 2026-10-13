@@ -6,6 +6,7 @@ import * as analyticsService from '../services/analytics.service.js';
 import * as billService from '../services/bill.service.js';
 import * as productImageService from '../services/productImage.service.js';
 import * as customerService from '../services/customer.service.js';
+import * as inquiryService from '../services/inquiry.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
 import * as settingsService from '../services/settings.service.js';
@@ -222,4 +223,20 @@ export const updateOffer = async (req, res) => {
 export const deleteOffer = async (req, res) => {
   await offerService.deleteOffer(req.valid.params.id, req.admin);
   sendSuccess(res, { message: 'Offer deleted' });
+};
+
+// ---- Inquiries sent by customers from the app
+
+export const listInquiries = async (req, res) => {
+  sendSuccess(res, { data: await inquiryService.listInquiries(req.valid.query) });
+};
+
+export const updateInquiry = async (req, res) => {
+  const inquiry = await inquiryService.updateInquiry(req.valid.params.id, req.valid.body, req.admin);
+  sendSuccess(res, { data: { inquiry }, message: 'Inquiry updated' });
+};
+
+export const deleteInquiry = async (req, res) => {
+  await inquiryService.deleteInquiry(req.valid.params.id);
+  sendSuccess(res, { message: 'Inquiry deleted' });
 };

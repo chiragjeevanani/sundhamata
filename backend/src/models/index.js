@@ -8,3 +8,4 @@ export { StoreSettings } from './StoreSettings.js';
 export { Coupon } from './Coupon.js';
 export { Product } from './Product.js';
 export { Offer } from './Offer.js';
+export { Inquiry } from './Inquiry.js';

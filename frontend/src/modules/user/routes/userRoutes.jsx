@@ -10,6 +10,7 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { EditProfilePage } from '../pages/EditProfilePage';
 import { CouponsPage } from '../pages/CouponsPage';
 import { LoyaltyPage } from '../pages/LoyaltyPage';
+import { InquiryPage } from '../pages/InquiryPage';
 
 /**
  * Guard for protected customer screens
@@ -96,6 +97,10 @@ export const userRoutes = [
           {
             path: 'coupons',
             element: <CouponsPage />,
+          },
+          {
+            path: 'inquiry',
+            element: <InquiryPage />,
           },
         ],
       },

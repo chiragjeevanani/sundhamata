@@ -18,6 +18,7 @@ import {
   Home,
   TicketPercent,
   Gift,
+  MessageSquareText,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
@@ -261,6 +262,25 @@ export const ProfilePage = () => {
                 <span className="font-semibold text-stone-800 group-hover:text-brand-700 transition-colors">
                   My Coupons
                 </span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+
+            {/* Make an Inquiry (mobile / accessories / service) → Admin → Inquiries */}
+            <button
+              onClick={() => navigate('/inquiry')}
+              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-6.5 h-6.5 rounded bg-brand-50 text-brand-700 flex items-center justify-center">
+                  <MessageSquareText className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <span className="font-semibold text-stone-800 group-hover:text-brand-700 transition-colors block leading-tight">
+                    Make an Inquiry
+                  </span>
+                  <span className="text-[9.5px] text-stone-400">Mobile, accessories or service</span>
+                </div>
               </div>
               <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>

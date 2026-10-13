@@ -22,6 +22,7 @@ import {
 import { createProductSchema, listProductsQuerySchema, updateProductSchema } from '../validators/product.validators.js';
 import { createOfferSchema, updateOfferSchema } from '../validators/offer.validators.js';
 import { updateSettingsSchema } from '../validators/settings.validators.js';
+import { listInquiriesQuerySchema, updateInquirySchema } from '../validators/inquiry.validators.js';
 
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const billUploadQuerySchema = z.object({ filename: z.string().trim().max(255).optional() });
@@ -135,6 +136,16 @@ export const createAdminRouter = () => {
   );
   router.get('/loyalty/summary', can(P.LOYALTY_READ), admin.getLoyaltySummary);
   router.post('/loyalty/adjust', can(P.LOYALTY_ADJUST), validate({ body: adjustPointsSchema }), admin.adjustLoyalty);
+
+  // Inquiries sent by customers from the app
+  router.get('/inquiries', can(P.CUSTOMERS_READ), validate({ query: listInquiriesQuerySchema }), admin.listInquiries);
+  router.patch(
+    '/inquiries/:id',
+    can(P.CUSTOMERS_WRITE),
+    validate({ params: idParamsSchema, body: updateInquirySchema }),
+    admin.updateInquiry
+  );
+  router.delete('/inquiries/:id', can(P.CUSTOMERS_WRITE), validate({ params: idParamsSchema }), admin.deleteInquiry);
 
   router.get('/settings', can(P.SETTINGS_READ), admin.getSettings);
   router.patch('/settings', can(P.SETTINGS_WRITE), validate({ body: updateSettingsSchema }), admin.updateSettings);

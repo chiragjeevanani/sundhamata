@@ -6,6 +6,7 @@ import { rawImageUpload } from '../middleware/uploads.js';
 import { validate } from '../middleware/validate.js';
 import { idParamsSchema } from '../validators/common.js';
 import { updateMyProfileSchema } from '../validators/customer.validators.js';
+import { createInquirySchema } from '../validators/inquiry.validators.js';
 import { listTransactionsQuerySchema } from '../validators/loyalty.validators.js';
 import { customerPurchasesQuerySchema } from '../validators/purchase.validators.js';
 
@@ -43,6 +44,10 @@ export const createCustomerRouter = () => {
   router.get('/offers', customer.listMyOffers);
   router.post('/offers/:id/claim', validate({ params: idParamsSchema }), customer.claimMyOffer);
   router.get('/coupons', customer.listMyCoupons);
+
+  // Inquiries (mobile / accessories / service) sent to the store
+  router.get('/inquiries', customer.listMyInquiries);
+  router.post('/inquiries', validate({ body: createInquirySchema }), customer.createMyInquiry);
 
   return router;
 };

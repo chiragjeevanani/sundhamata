@@ -3,10 +3,11 @@ import * as couponService from '../services/coupon.service.js';
 import * as offerService from '../services/offer.service.js';
 import * as billService from '../services/bill.service.js';
 import * as customerService from '../services/customer.service.js';
+import * as inquiryService from '../services/inquiry.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
 import { getSettings } from '../services/settings.service.js';
-import { sendSuccess } from '../utils/apiResponse.js';
+import { sendCreated, sendSuccess } from '../utils/apiResponse.js';
 import { serializeCustomer, serializePublicStore } from '../utils/serializers.js';
 
 // Every handler scopes queries to req.customer._id — customers can only ever
@@ -112,4 +113,15 @@ export const claimMyOffer = async (req, res) => {
     data: { coupon },
     message: created ? 'Offer claimed' : 'Offer already claimed',
   });
+};
+
+// ---- Inquiries (Profile → Make an Inquiry; the staff see them on Admin → Inquiries)
+
+export const createMyInquiry = async (req, res) => {
+  const inquiry = await inquiryService.createInquiry(req.customer._id, req.valid.body);
+  sendCreated(res, { data: { inquiry }, message: 'Inquiry sent' });
+};
+
+export const listMyInquiries = async (req, res) => {
+  sendSuccess(res, { data: { items: await inquiryService.listCustomerInquiries(req.customer._id) } });
 };
