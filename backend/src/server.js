@@ -24,6 +24,9 @@ const start = async () => {
   if (env.isProduction && env.SMS_PROVIDER === 'console') {
     logger.error('No SMS provider configured: customer OTPs cannot be delivered in production.');
   }
+  if (env.isProduction && env.SMS_PROVIDER === 'mock') {
+    logger.warn('Mock SMS provider: every customer OTP is the fixed code, so anyone can sign in as any customer. Demos only.');
+  }
 
   await runMigrations();
   await getSettings(); // create default store settings on first boot

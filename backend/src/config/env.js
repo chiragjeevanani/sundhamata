@@ -31,12 +31,14 @@ const envSchema = z.object({
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(30),
   OTP_MAX_SENDS_PER_HOUR: z.coerce.number().int().positive().default(5),
-  // Fixed code used only outside production. Ignored when NODE_ENV=production.
+  // Fixed code used outside production, and in production only with SMS_PROVIDER=mock.
   DEV_OTP_CODE: z
     .string()
     .regex(/^\d{6}$/, 'DEV_OTP_CODE must be 6 digits')
     .default('123456'),
-  SMS_PROVIDER: z.enum(['console']).default('console'),
+  // console: prints the code (development only). mock: sends nothing and every code is
+  // DEV_OTP_CODE, even in production, so anyone can sign in as any customer: demos only.
+  SMS_PROVIDER: z.enum(['console', 'mock']).default('console'),
 
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
 
@@ -72,6 +74,8 @@ export const env = Object.freeze({
   ...raw,
   isProduction: raw.NODE_ENV === 'production',
   isTest: raw.NODE_ENV === 'test',
+  // Every OTP is DEV_OTP_CODE: always outside production, in production only with the mock provider
+  useFixedOtp: raw.NODE_ENV !== 'production' || raw.SMS_PROVIDER === 'mock',
   corsOrigins: splitOrigins(raw.CUSTOMER_FRONTEND_URL, raw.ADMIN_FRONTEND_URL),
   logLevel: raw.LOG_LEVEL ?? (raw.NODE_ENV === 'test' ? 'silent' : raw.NODE_ENV === 'production' ? 'info' : 'debug'),
 });

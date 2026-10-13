@@ -25,6 +25,15 @@ const consoleProvider = {
   },
 };
 
-const providers = { console: consoleProvider };
+// Demo mode until a real provider is set up: nothing is sent and the code is always
+// DEV_OTP_CODE (see env.useFixedOtp), so the code is never logged here.
+const mockProvider = {
+  name: 'mock',
+  async sendOtp(mobile) {
+    logger.warn({ mobile: maskMobile(mobile) }, 'OTP not sent: mock SMS provider (fixed code)');
+  },
+};
+
+const providers = { console: consoleProvider, mock: mockProvider };
 
 export const smsProvider = providers[env.SMS_PROVIDER];

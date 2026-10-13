@@ -9,7 +9,7 @@ import { smsProvider } from './sms/index.js';
 const SEND_WINDOW_MS = 60 * 60 * 1000;
 
 const generateCode = () =>
-  env.isProduction ? crypto.randomInt(0, 1_000_000).toString().padStart(6, '0') : env.DEV_OTP_CODE;
+  env.useFixedOtp ? env.DEV_OTP_CODE : crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
 
 const hashCode = (mobile, code) =>
   crypto.createHmac('sha256', env.JWT_SECRET).update(`otp:${mobile}:${code}`).digest('hex');
