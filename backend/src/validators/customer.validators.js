@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PUSH_PLATFORMS } from '../models/Customer.js';
 import {
   interestSchema,
   mobileSchema,
@@ -65,4 +66,10 @@ export const listCustomersQuerySchema = z.object({
   sort: z
     .enum(CUSTOMER_SORT_FIELDS.flatMap((f) => [f, `-${f}`]))
     .default('-createdAt'),
+});
+
+// Firebase Cloud Messaging device token from the browser ("web") or the mobile app ("app")
+export const fcmTokenSchema = z.strictObject({
+  token: z.string().trim().min(20, 'Invalid notification token').max(4096, 'Invalid notification token'),
+  platform: z.enum(PUSH_PLATFORMS, { error: `Platform must be one of: ${PUSH_PLATFORMS.join(', ')}` }),
 });

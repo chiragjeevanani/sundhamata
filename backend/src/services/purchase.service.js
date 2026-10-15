@@ -18,6 +18,7 @@ import {
 } from './coupon.service.js';
 import { applyPointsChange } from './loyalty.service.js';
 import { learnFromPurchaseLines } from './product.service.js';
+import { notifyCustomer } from './push.service.js';
 import { verifyAfterPurchase } from './customerVerification.js';
 import { getSettings } from './settings.service.js';
 
@@ -351,6 +352,7 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
 
     return {
       orderId,
+      customerId: customer._id,
       purchaseIds: lines.map((line) => line._id),
       lines: docs,
       pointsEarned,
@@ -375,6 +377,19 @@ export const createPurchase = async (input, admin, { occurredAt } = {}) => {
 
   // Remember the products for next time (after the bill is safely saved)
   await learnFromPurchaseLines(result.lines);
+
+  // Backdated imports (seed) are history, not news
+  if (!occurredAt) {
+    const { finalAmount } = result.totals;
+    notifyCustomer(result.customerId, {
+      title: 'Thank you for shopping with us!',
+      body:
+        `Your bill of ₹${finalAmount.toLocaleString('en-IN')} is ready in the app` +
+        (result.pointsEarned > 0 ? ` and you earned ${result.pointsEarned.toLocaleString('en-IN')} loyalty points.` : '.'),
+      link: `/purchases/${result.purchaseIds[0]}`,
+      data: { type: 'purchase', purchaseId: result.purchaseIds[0] },
+    });
+  }
 
   const purchases = await Purchase.find({ _id: { $in: result.purchaseIds } })
     .sort({ 'order.lineNo': 1 })

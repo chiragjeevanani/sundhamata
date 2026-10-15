@@ -6,6 +6,7 @@ import * as customerService from '../services/customer.service.js';
 import * as inquiryService from '../services/inquiry.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
+import * as pushService from '../services/push.service.js';
 import { getSettings } from '../services/settings.service.js';
 import { sendCreated, sendSuccess } from '../utils/apiResponse.js';
 import { serializeCustomer, serializePublicStore } from '../utils/serializers.js';
@@ -98,6 +99,18 @@ export const uploadMyPhoto = async (req, res) => {
 export const deleteMyPhoto = async (req, res) => {
   const customer = await customerPhotoService.removeCustomerPhoto(req.customer._id, { by: 'customer', actorId: req.customer.id });
   sendSuccess(res, { data: { customer: serializeCustomer(customer) }, message: 'Photo removed' });
+};
+
+// ---- Push notifications (Firebase Cloud Messaging device tokens)
+
+export const registerMyFcmToken = async (req, res) => {
+  await pushService.registerToken(req.customer._id, req.valid.body);
+  sendSuccess(res, { message: 'Notifications enabled on this device' });
+};
+
+export const removeMyFcmToken = async (req, res) => {
+  await pushService.unregisterToken(req.customer._id, req.valid.body);
+  sendSuccess(res, { message: 'Notifications turned off on this device' });
 };
 
 // ---- Offers created by the store (scratch to claim)

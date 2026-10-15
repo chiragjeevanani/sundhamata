@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomNav } from '../components/BottomNav';
 import { StoreContactDrawer } from '../components/StoreContactDrawer';
 import { Smartphone, Monitor } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
 import { WelcomeOfferPopups } from '../components/WelcomeOfferPopups';
+import { pushService } from '../../../services/pushService';
 
 export const UserLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isStoreOpen, setIsStoreOpen] = useState(false);
   const [deviceMode, setDeviceMode] = useState('mobile');
 
@@ -18,6 +20,9 @@ export const UserLayout = () => {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [location.pathname]);
+
+  // A notification tapped while the app is open: show what it is about
+  useEffect(() => pushService.onOpenLink((link) => navigate(link)), [navigate]);
 
   const isLoginPage = location.pathname === '/login';
 

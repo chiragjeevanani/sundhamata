@@ -9,6 +9,7 @@ import { buildPagination, paginated } from '../utils/query.js';
 import { serializeLoyaltyBalance, serializeLoyaltyTransaction } from '../utils/serializers.js';
 import { runAtomic } from '../utils/transaction.js';
 import { getPointsIssuedTrends } from './analytics.service.js';
+import { notifyCustomer } from './push.service.js';
 import { getSettings } from './settings.service.js';
 
 /**
@@ -104,6 +105,13 @@ export const adjustPoints = async ({ customerId, type, points, reason }, admin) 
     { customerId: String(customerId), adminId: admin.id, type, points, balance: result.balance },
     'Loyalty adjustment'
   );
+
+  notifyCustomer(customerId, {
+    title: type === 'add' ? `${points.toLocaleString('en-IN')} points added!` : `${points.toLocaleString('en-IN')} points deducted`,
+    body: `${reason.replace(/[.!\s]+$/, '')}. Your balance is now ${result.balance.toLocaleString('en-IN')} points.`,
+    link: '/loyalty',
+    data: { type: 'loyalty', transactionId: result.transaction._id },
+  });
 
   const transaction = await LoyaltyTransaction.findById(result.transaction._id)
     .populate('customerId', 'name mobile customerCode')

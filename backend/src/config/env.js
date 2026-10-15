@@ -40,6 +40,10 @@ const envSchema = z.object({
   // DEV_OTP_CODE, even in production, so anyone can sign in as any customer: demos only.
   SMS_PROVIDER: z.enum(['console', 'mock']).default('console'),
 
+  // Push notifications (Firebase Cloud Messaging): path to the service account JSON key.
+  // Empty = push is off (nothing is sent; device tokens are still saved).
+  FIREBASE_SERVICE_ACCOUNT_PATH: z.string().default(''),
+
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
 
   RATE_LIMIT_ENABLED: booleanFromString.default(true),

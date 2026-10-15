@@ -5,7 +5,7 @@ import { requireCustomerAuth } from '../middleware/auth.js';
 import { rawImageUpload } from '../middleware/uploads.js';
 import { validate } from '../middleware/validate.js';
 import { idParamsSchema } from '../validators/common.js';
-import { updateMyProfileSchema } from '../validators/customer.validators.js';
+import { fcmTokenSchema, updateMyProfileSchema } from '../validators/customer.validators.js';
 import { createInquirySchema } from '../validators/inquiry.validators.js';
 import { listTransactionsQuerySchema } from '../validators/loyalty.validators.js';
 import { customerPurchasesQuerySchema } from '../validators/purchase.validators.js';
@@ -22,6 +22,9 @@ export const createCustomerRouter = () => {
   // Profile photo: raw image body (the app sends a resized JPEG)
   router.post('/me/photo', rawImageUpload, customer.uploadMyPhoto);
   router.delete('/me/photo', customer.deleteMyPhoto);
+  // Push notifications: this device's Firebase token (separate lists for web and app)
+  router.post('/me/fcm-tokens', validate({ body: fcmTokenSchema }), customer.registerMyFcmToken);
+  router.delete('/me/fcm-tokens', validate({ body: fcmTokenSchema }), customer.removeMyFcmToken);
 
   router.get('/purchases', validate({ query: customerPurchasesQuerySchema }), customer.listMyPurchases);
   router.get('/purchases/:id', validate({ params: idParamsSchema }), customer.getMyPurchase);

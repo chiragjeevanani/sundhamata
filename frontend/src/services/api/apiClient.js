@@ -76,7 +76,7 @@ const createApiClient = (session) => ({
   get: (path, query) => request(session, path, { query }),
   post: (path, body = {}) => request(session, path, { method: 'POST', body }),
   patch: (path, body = {}) => request(session, path, { method: 'PATCH', body }),
-  delete: (path) => request(session, path, { method: 'DELETE' }),
+  delete: (path, body) => request(session, path, { method: 'DELETE', body }),
   /** POST a File/Blob as the raw request body */
   upload: (path, file, query) => request(session, path, { method: 'POST', file, query }),
   /** GET a binary response as a Blob */

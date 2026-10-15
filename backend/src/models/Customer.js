@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export const CUSTOMER_INTERESTS = Object.freeze(['Mobile', 'Accessories', 'Service']);
+export const PUSH_PLATFORMS = Object.freeze(['web', 'app']);
 export const CUSTOMER_GENDERS = Object.freeze(['male', 'female', 'other', 'prefer_not_to_say']);
 
 const customerSchema = new mongoose.Schema(
@@ -47,6 +48,13 @@ const customerSchema = new mongoose.Schema(
     // always together with a LoyaltyTransaction (the source of truth).
     loyaltyPoints: { type: Number, default: 0, min: 0, validate: Number.isInteger },
 
+    // Firebase Cloud Messaging tokens, a separate list per platform (browser / mobile app),
+    // one token per device. Never sent to clients; see services/push.service.js.
+    fcmTokens: {
+      web: { type: [String], default: [] },
+      app: { type: [String], default: [] },
+    },
+
     isActive: { type: Boolean, default: true },
     mobileVerifiedAt: { type: Date, default: null },
     lastLoginAt: { type: Date, default: null },
@@ -61,5 +69,8 @@ customerSchema.index({ name: 1 });
 customerSchema.index({ createdAt: -1 });
 customerSchema.index({ loyaltyPoints: -1 });
 customerSchema.index({ 'photo.key': 1 }, { sparse: true });
+// A device belongs to whoever signed in on it last (lookups by token)
+customerSchema.index({ 'fcmTokens.web': 1 });
+customerSchema.index({ 'fcmTokens.app': 1 });
 
 export const Customer = mongoose.model('Customer', customerSchema);

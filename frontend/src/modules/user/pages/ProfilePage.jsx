@@ -21,6 +21,7 @@ import {
   MessageSquareText,
 } from 'lucide-react';
 import { Header } from '../components/Header';
+import { NotificationSettingRow } from '../components/NotificationSettingRow';
 import { useAuth } from '../context/AuthContext';
 import { useStoreInfo } from '../hooks/useStoreInfo';
 import { GENDER_LABELS, formatCalendarDate } from '../../../utils/formatters';
@@ -284,6 +285,9 @@ export const ProfilePage = () => {
               </div>
               <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
+
+            {/* Push notifications on this browser */}
+            <NotificationSettingRow />
 
             {/* Help & Support */}
             <button

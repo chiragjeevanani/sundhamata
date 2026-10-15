@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../../../services/authService';
 import { customerSession } from '../../../services/api/session';
+import { pushService } from '../../../services/pushService';
 
 const AuthContext = createContext(null);
 
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }) => {
   // Validate a restored session and pick up the latest profile (e.g. loyalty balance)
   useEffect(() => {
     if (!authService.getCurrentSession()) return;
+    pushService.syncDevice();
     authService
       .refreshCurrentUser()
       .then((fresh) => setSession((prev) => (prev ? { ...prev, user: fresh } : prev)))
@@ -48,6 +50,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const newSession = await authService.verifyOtp(phoneNumber, otp);
       setSession(newSession);
+      // Push notifications for this device (only asks for permission from the profile toggle)
+      pushService.syncDevice();
       return newSession;
     } finally {
       setIsLoading(false);
@@ -69,6 +73,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
+      // Stop this device's notifications while the token still works (don't wait on a slow network)
+      await Promise.race([pushService.unregisterDevice(), new Promise((resolve) => setTimeout(resolve, 3000))]);
       await authService.logout();
       setSession(null);
     } finally {

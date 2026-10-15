@@ -19,3 +19,6 @@ coverage/
 .DS_Store
 Thumbs.db
 .idea/
+
+# Firebase service account keys (private): point FIREBASE_SERVICE_ACCOUNT_PATH at them
+*service-account*.json
