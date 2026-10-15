@@ -18,6 +18,8 @@ const SW_URL = '/firebase-messaging-sw.js';
 const SW_SCOPE = '/firebase-cloud-messaging-push-scope';
 // The browser token registered for the signed-in customer
 const WEB_TOKEN_KEY = 'sm_push_web_token';
+// Set when the customer switched notifications off on this browser (Profile toggle)
+const WEB_OFF_KEY = 'sm_push_web_off';
 // The token handed over by the mobile app
 const APP_TOKEN_KEY = 'sm_push_app_token';
 
@@ -60,9 +62,26 @@ const webMessaging = () => {
   return messagingPromise;
 };
 
+// A push subscription needs an active worker; on the first visit it is still installing
+const whenActive = (registration) =>
+  new Promise((resolve, reject) => {
+    const worker = registration.installing || registration.waiting;
+    if (!worker) return resolve(registration);
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'activated') resolve(registration);
+      if (worker.state === 'redundant') reject(new Error('The notification service worker failed to install'));
+    });
+  });
+
 let registrationPromise;
 const workerRegistration = () => {
-  registrationPromise ??= navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
+  registrationPromise ??= navigator.serviceWorker
+    .register(SW_URL, { scope: SW_SCOPE })
+    .then(whenActive)
+    .catch((err) => {
+      registrationPromise = undefined; // try again next time
+      throw err;
+    });
   return registrationPromise;
 };
 
@@ -116,19 +135,26 @@ export const pushService = {
   },
 
   /**
-   * After sign-in and on app start: (re)registers this device. Never asks for permission;
-   * the browser token is only registered when the customer allowed notifications before.
+   * After sign-in and on app start: (re)registers this device, asking for notification
+   * permission if the customer has not answered yet (unless they switched notifications off).
    */
   async syncDevice() {
     if (!isSignedIn()) return;
     const appToken = storage.get(APP_TOKEN_KEY);
     if (appToken) await quietly(register(appToken, 'app'));
+    if (storage.get(WEB_OFF_KEY)) return;
+    // Not asked yet: ask now. Browsers that only allow this from a tap (Safari, Firefox) leave it
+    // unanswered; the Profile toggle covers those.
+    if ((await webMessaging()) && Notification.permission === 'default') {
+      await quietly(Notification.requestPermission());
+    }
     await quietly(syncWebToken());
   },
 
   /** Asks the browser for permission (call from a tap) and registers this browser. */
   async enableWebPush() {
     if (!(await webMessaging())) throw new Error('This browser does not support notifications.');
+    storage.remove(WEB_OFF_KEY);
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
       throw new Error('Notifications are blocked. Allow them for this site in your browser settings.');
@@ -140,6 +166,7 @@ export const pushService = {
   async disableWebPush() {
     const token = storage.get(WEB_TOKEN_KEY);
     storage.remove(WEB_TOKEN_KEY);
+    storage.set(WEB_OFF_KEY, '1');
     if (token) await unregister(token, 'web');
     const messaging = await webMessaging();
     if (messaging) await quietly(deleteToken(messaging));
