@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Headphones, MessageSquareText, Smartphone, Wrench } from 'lucide-react';
 import { INQUIRY_CATEGORY_LABELS, inquiryService } from '../../../services/inquiryService';
 import { formatDate, formatINR } from '../../../utils/formatters';
@@ -22,7 +22,12 @@ const inputClass =
 /** Make an Inquiry: pick Mobile / Accessories / Service, add a budget and the reason; the store sees it on Admin → Inquiries */
 export const InquiryPage = () => {
   const navigate = useNavigate();
-  const [category, setCategory] = useState('');
+  const location = useLocation();
+  // Opened from a Home shortcut: /inquiry?type=mobile
+  const [searchParams] = useSearchParams();
+  const [category, setCategory] = useState(() =>
+    CATEGORIES.some((c) => c.key === searchParams.get('type')) ? searchParams.get('type') : ''
+  );
   const [budget, setBudget] = useState('');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -70,8 +75,8 @@ export const InquiryPage = () => {
       <div className="sticky top-0 z-20 bg-cream-50/95 backdrop-blur-sm border-b border-stone-200/80 px-3 py-2.5 flex items-center gap-2">
         <button
           type="button"
-          onClick={() => navigate('/profile')}
-          aria-label="Back to profile"
+          onClick={() => (location.key !== 'default' ? navigate(-1) : navigate('/home'))}
+          aria-label="Go back"
           className="w-8 h-8 rounded-lg hover:bg-stone-100 flex items-center justify-center text-stone-700 cursor-pointer"
         >
           <ArrowLeft className="w-4.5 h-4.5" />

@@ -8,6 +8,10 @@ import {
   PhoneCall,
   Sparkles,
   TicketPercent,
+  MessageSquareText,
+  Smartphone,
+  Headphones,
+  Wrench,
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { PurchaseCard } from '../components/PurchaseCard';
@@ -20,6 +24,13 @@ import { purchaseService } from '../../../services/purchaseService';
 import { loyaltyService } from '../../../services/loyaltyService';
 import { offerService } from '../../../services/offerService';
 import { formatINR, formatDate } from '../../../utils/formatters';
+
+// Shortcuts into Make an Inquiry with the type already picked
+const INQUIRY_SHORTCUTS = [
+  { key: 'mobile', label: 'Mobile', icon: Smartphone },
+  { key: 'accessories', label: 'Accessories', icon: Headphones },
+  { key: 'service', label: 'Service', icon: Wrench },
+];
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -148,6 +159,35 @@ export const HomePage = () => {
                 <ChevronRight className="relative w-4 h-4 text-white/70 group-hover:translate-x-0.5 transition-transform" />
               </button>
             )}
+
+            {/* Make an Inquiry (same form as Profile → Make an Inquiry) */}
+            <section className="bg-white rounded-xl p-3 border border-stone-200/90 shadow-[0_1px_2px_rgba(15,32,66,0.03)] space-y-2.5">
+              <button
+                onClick={() => navigate('/inquiry')}
+                className="w-full flex items-center gap-2.5 text-left cursor-pointer group"
+              >
+                <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                  <MessageSquareText className="w-4 h-4" />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[13px] font-black text-ink-900 leading-tight">Looking for something?</span>
+                  <span className="block text-[11px] text-stone-500 mt-0.5">Send an inquiry with your budget, we'll call you</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+              <div className="grid grid-cols-3 gap-2">
+                {INQUIRY_SHORTCUTS.map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => navigate(`/inquiry?type=${key}`)}
+                    className="rounded-lg border border-stone-200 hover:border-brand-300 hover:bg-brand-50/50 py-2 flex flex-col items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Icon className="w-4 h-4 text-brand-600" />
+                    <span className="text-[11px] font-bold text-stone-800">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
 
             {/* Latest Purchase Highlight */}
             {latestPurchase && (

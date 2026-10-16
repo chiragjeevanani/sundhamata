@@ -22,3 +22,6 @@ Thumbs.db
 
 # Firebase service account keys (private): point FIREBASE_SERVICE_ACCOUNT_PATH at them
 *service-account*.json
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
