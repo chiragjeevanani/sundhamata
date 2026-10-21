@@ -46,7 +46,7 @@ export const BottomNav = () => {
       <div className="w-full max-w-md pointer-events-auto">
         <nav
           aria-label="Bottom Navigation"
-          className="bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-[0_-1px_6px_rgba(15,32,66,0.04)] px-4 pt-1 pb-1.5 sm:pb-2 flex items-center justify-around select-none"
+          className="bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-[0_-1px_6px_rgba(15,32,66,0.04)] px-4 pt-1 pb-[calc(0.375rem+var(--app-safe-bottom))] sm:pb-[calc(0.5rem+var(--app-safe-bottom))] flex items-center justify-around select-none"
         >
           {navItems.map((item) => {
             const Icon = item.icon;

@@ -68,7 +68,7 @@ export const UserLayout = () => {
         }`}
       >
         {/* Page Content Container with subtle page transition and compact bottom padding */}
-        <main className={`flex-1 flex flex-col ${isLoginPage ? 'pb-3' : 'pb-18'}`}>
+        <main className={`flex-1 flex flex-col ${isLoginPage ? 'pb-[calc(0.75rem+var(--app-safe-bottom))]' : 'pb-[calc(4.5rem+var(--app-safe-bottom))]'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

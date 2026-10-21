@@ -25,7 +25,7 @@ export const StoreContactDrawer = ({ isOpen, onClose }) => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 z-10 overflow-hidden max-h-[88vh] flex flex-col"
+          className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-stone-200 z-10 overflow-hidden max-h-[88vh] flex flex-col max-sm:pb-(--app-safe-bottom)"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-100 bg-stone-50/70 select-none">

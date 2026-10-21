@@ -75,7 +75,7 @@ const Viewer = ({ onClose, purchase }) => {
         exit={{ y: 24, opacity: 0 }}
         transition={{ duration: 0.18 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg h-[92vh] sm:h-[85vh] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl"
+        className="w-full sm:max-w-lg h-[92vh] sm:h-[85vh] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl max-sm:pb-(--app-safe-bottom)"
       >
         {/* Title bar */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200 bg-stone-50 shrink-0">

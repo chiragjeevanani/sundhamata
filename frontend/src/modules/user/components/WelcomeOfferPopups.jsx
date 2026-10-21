@@ -113,7 +113,7 @@ export const WelcomeOfferPopups = () => {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 40, opacity: 0 }}
                 transition={{ type: 'spring', damping: 24, stiffness: 280 }}
-                className="relative w-full sm:max-w-sm max-h-[92vh] overflow-y-auto bg-cream-100 rounded-t-3xl sm:rounded-3xl shadow-2xl"
+                className="relative w-full sm:max-w-sm max-h-[92vh] overflow-y-auto bg-cream-100 max-sm:pb-(--app-safe-bottom) rounded-t-3xl sm:rounded-3xl shadow-2xl"
               >
                 {/* Celebration header */}
                 <div className="relative bg-ink-900 text-white px-5 pt-6 pb-7 text-center overflow-hidden">

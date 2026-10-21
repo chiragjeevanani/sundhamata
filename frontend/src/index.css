@@ -101,6 +101,12 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Space taken by the phone's navigation bar (0 on desktop and with most gesture navigation).
+   --app-nav-fallback is set by utils/safeArea.js for WebViews that do not report the inset. */
+:root {
+  --app-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--app-nav-fallback, 0px));
+}
+
 /* Safe area padding utilities for mobile devices */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 16px);

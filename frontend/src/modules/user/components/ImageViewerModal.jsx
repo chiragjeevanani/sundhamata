@@ -105,7 +105,7 @@ const Viewer = ({ onClose, src, alt, caption }) => {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-center gap-4 px-4 py-3 text-xs text-white/70 shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-center gap-4 px-4 pt-3 pb-[calc(0.75rem+var(--app-safe-bottom))] text-xs text-white/70 shrink-0" onClick={(e) => e.stopPropagation()}>
         <span>{zoomed ? 'Drag to move · tap to zoom out' : 'Tap the photo to zoom'}</span>
         <a href={src} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-white hover:underline">
           <ExternalLink className="w-3.5 h-3.5" />
