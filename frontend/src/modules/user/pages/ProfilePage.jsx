@@ -9,7 +9,6 @@ import {
   FileCheck,
   LogOut,
   ChevronRight,
-  X,
   Pencil,
   Mail,
   Cake,
@@ -43,7 +42,6 @@ export const ProfilePage = () => {
 
   const [loggingOut, setLoggingOut] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [activeModal, setActiveModal] = useState(null);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -328,7 +326,7 @@ export const ProfilePage = () => {
 
             {/* Privacy Policy */}
             <button
-              onClick={() => setActiveModal('privacy')}
+              onClick={() => navigate('/privacy')}
               className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
@@ -344,7 +342,7 @@ export const ProfilePage = () => {
 
             {/* Terms & Conditions */}
             <button
-              onClick={() => setActiveModal('terms')}
+              onClick={() => navigate('/terms')}
               className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-stone-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
@@ -402,52 +400,6 @@ export const ProfilePage = () => {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Policy Modal */}
-      {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-white rounded-xl p-4 border border-stone-200 shadow-xl space-y-2.5 max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between pb-1.5 border-b border-stone-100">
-              <h4 className="text-xs font-bold text-stone-900">
-                {activeModal === 'privacy' ? 'Customer Privacy Policy' : 'Terms & Conditions'}
-              </h4>
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto text-[11px] text-stone-600 space-y-2 leading-relaxed pr-1 font-normal">
-              {activeModal === 'privacy' ? (
-                <>
-                  <p>
-                    At Sundhamata Mobile, customer data privacy is our utmost priority. Mobile numbers and purchase records are stored strictly for billing, warranty verification, and customer identification purposes.
-                  </p>
-                  <p>
-                    Your contact information will never be shared with third parties. All device IMEIs and serial numbers are linked directly to GST tax invoices generated at our retail store in Narol, Ahmedabad.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p>
-                    All electronic goods sold through Sundhamata Mobile carry manufacturer brand warranties as specified on official retail tax invoices.
-                  </p>
-                  <p>
-                    Invoices stored in this customer portal are valid proof of purchase across all authorized service centers (Samsung, Apple, OnePlus) in India. Physical verification of IMEI may be requested at the time of repair.
-                  </p>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-full py-1.5 rounded-lg bg-stone-900 text-white font-bold text-xs hover:bg-stone-800 transition-colors cursor-pointer"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}

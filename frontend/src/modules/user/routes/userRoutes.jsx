@@ -11,6 +11,7 @@ import { EditProfilePage } from '../pages/EditProfilePage';
 import { CouponsPage } from '../pages/CouponsPage';
 import { LoyaltyPage } from '../pages/LoyaltyPage';
 import { InquiryPage } from '../pages/InquiryPage';
+import { PrivacyPage, TermsPage } from '../pages/LegalPages';
 
 /**
  * Guard for protected customer screens
@@ -65,6 +66,15 @@ export const userRoutes = [
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      // Public: readable without signing in
+      {
+        path: 'terms',
+        element: <TermsPage />,
+      },
+      {
+        path: 'privacy',
+        element: <PrivacyPage />,
       },
       // Protected Customer Routes
       {
