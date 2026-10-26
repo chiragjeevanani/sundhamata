@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
@@ -421,8 +421,8 @@ export const LoginPage = () => {
               {/* Subtle Legal Notice */}
               <p className="text-[11px] text-stone-500 text-center leading-relaxed pt-1">
                 By continuing, you agree to our{' '}
-                <span className="text-stone-300 font-medium">Terms</span> &{' '}
-                <span className="text-stone-300 font-medium">Privacy Policy</span>.
+                <Link to="/terms" className="text-stone-300 font-medium underline underline-offset-2 hover:text-white">Terms</Link> &{' '}
+                <Link to="/privacy" className="text-stone-300 font-medium underline underline-offset-2 hover:text-white">Privacy Policy</Link>.
               </p>
 
               {/* Discreet Testing Shortcut Strip (development builds only) */}

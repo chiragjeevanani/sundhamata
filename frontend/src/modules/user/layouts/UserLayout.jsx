@@ -25,6 +25,8 @@ export const UserLayout = () => {
   useEffect(() => pushService.onOpenLink((link) => navigate(link)), [navigate]);
 
   const isLoginPage = location.pathname === '/login';
+  // Public legal pages: no bottom nav (it leads to signed-in screens)
+  const isLegalPage = ['/terms', '/privacy'].includes(location.pathname);
 
 
   return (
@@ -68,7 +70,7 @@ export const UserLayout = () => {
         }`}
       >
         {/* Page Content Container with subtle page transition and compact bottom padding */}
-        <main className={`flex-1 flex flex-col ${isLoginPage ? 'pb-[calc(0.75rem+var(--app-safe-bottom))]' : 'pb-[calc(4.5rem+var(--app-safe-bottom))]'}`}>
+        <main className={`flex-1 flex flex-col ${isLoginPage || isLegalPage ? 'pb-[calc(0.75rem+var(--app-safe-bottom))]' : 'pb-[calc(4.5rem+var(--app-safe-bottom))]'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -84,7 +86,7 @@ export const UserLayout = () => {
         </main>
 
         {/* Mobile Bottom Navigation (Visible on authenticated pages) */}
-        {!isLoginPage && <BottomNav />}
+        {!isLoginPage && !isLegalPage && <BottomNav />}
       </div>
 
       {/* Official Retail Store Contact Bottom Drawer */}
