@@ -214,7 +214,8 @@ export const CustomerDetailPage = () => {
             ['Email', customer.email],
             ['Date of Birth', formatCalendarDate(customer.dob)],
             ['Gender', GENDER_LABELS[customer.gender]],
-            ['Anniversary', formatCalendarDate(customer.anniversaryDate)],
+            ['Marital Status', customer.isMarried === true ? 'Married' : customer.isMarried === false ? 'Not married' : customer.anniversaryDate ? 'Married' : null],
+            ...(customer.isMarried === false ? [] : [['Anniversary', formatCalendarDate(customer.anniversaryDate)]]),
             ['Interest', customer.interest],
             ['Address', [customer.address, customer.city, customer.pincode].filter(Boolean).join(', ')],
           ].map(([label, value]) => (

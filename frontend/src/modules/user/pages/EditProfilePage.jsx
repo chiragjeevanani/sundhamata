@@ -8,6 +8,10 @@ import { PhotoEditor } from '../../../components/PhotoEditor';
 import { describeDiscount, offerService } from '../../../services/offerService';
 
 const GENDERS = Object.entries(GENDER_LABELS).map(([id, label]) => ({ id, label }));
+const MARITAL_OPTIONS = [
+  { value: true, label: 'Yes' },
+  { value: false, label: 'No' },
+];
 
 // Today as "YYYY-MM-DD" in the phone's time zone — the latest selectable birthday / anniversary
 const todayLocal = () => {
@@ -20,6 +24,8 @@ const toForm = (user) => ({
   email: user?.email ?? '',
   dob: user?.dob ?? '',
   gender: user?.gender ?? '',
+  // true = married, false = not married, null = not answered (a saved anniversary means married)
+  isMarried: user?.isMarried ?? (user?.anniversaryDate ? true : null),
   anniversaryDate: user?.anniversaryDate ?? '',
   address: user?.address ?? '',
   city: user?.city ?? '',
@@ -37,7 +43,7 @@ const validate = (form) => {
   }
   const today = todayLocal();
   if (form.dob && form.dob > today) errors.dob = 'Date of birth cannot be in the future';
-  if (form.anniversaryDate && form.anniversaryDate > today) {
+  if (form.isMarried === true && form.anniversaryDate && form.anniversaryDate > today) {
     errors.anniversaryDate = 'Anniversary date cannot be in the future';
   }
   return errors;
@@ -103,7 +109,8 @@ export const EditProfilePage = () => {
   const today = todayLocal();
 
   const set = (field) => (e) => {
-    const value = typeof e === 'string' ? e : e.target.value;
+    // An input event, or the value itself (gender chips, marital status yes / no / null)
+    const value = e?.target ? e.target.value : e;
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
@@ -129,7 +136,9 @@ export const EditProfilePage = () => {
         email: form.email.trim(),
         dob: form.dob,
         gender: form.gender,
-        anniversaryDate: form.anniversaryDate,
+        isMarried: form.isMarried,
+        // Only married customers have an anniversary
+        anniversaryDate: form.isMarried === true ? form.anniversaryDate : '',
         address: form.address.trim(),
         city: form.city.trim(),
         pincode: form.pincode.trim(),
@@ -293,16 +302,45 @@ export const EditProfilePage = () => {
             {errors.gender && <span className="block text-[10.5px] font-medium text-rose-600">{errors.gender}</span>}
           </div>
 
-          <Field label="Anniversary Date" hint="optional" error={errors.anniversaryDate}>
-            <input
-              type="date"
-              value={form.anniversaryDate}
-              onChange={set('anniversaryDate')}
-              min="1900-01-01"
-              max={today}
-              className={inputClass(errors.anniversaryDate)}
-            />
-          </Field>
+          <div className="space-y-1">
+            <span className="block text-[11px] font-bold text-stone-600">
+              Marital Status <span className="font-medium text-stone-400">· optional</span>
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {MARITAL_OPTIONS.map((option) => {
+                const selected = form.isMarried === option.value;
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => set('isMarried')(selected ? null : option.value)}
+                    className={`px-3 py-1.5 rounded-full border text-[11.5px] font-semibold transition-colors cursor-pointer ${
+                      selected
+                        ? 'bg-brand-600 border-brand-600 text-white'
+                        : 'bg-white border-stone-200 text-stone-700 hover:border-brand-300'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Asked only after "Yes" */}
+          {form.isMarried === true && (
+            <Field label="Anniversary Date" hint="optional" error={errors.anniversaryDate}>
+              <input
+                type="date"
+                value={form.anniversaryDate}
+                onChange={set('anniversaryDate')}
+                min="1900-01-01"
+                max={today}
+                className={inputClass(errors.anniversaryDate)}
+              />
+            </Field>
+          )}
         </Section>
 
         <Section title="Address">

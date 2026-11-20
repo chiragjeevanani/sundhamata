@@ -59,12 +59,15 @@ export const ProfilePage = () => {
   const email = user?.email || '';
   const points = user?.loyaltyPoints ?? 0;
 
+  // A saved anniversary means married (accounts from before marital status was asked)
+  const isMarried = user?.isMarried ?? (user?.anniversaryDate ? true : null);
   const fullAddress = [user?.address, user?.city, user?.pincode].filter(Boolean).join(', ');
   const details = [
     { icon: Mail, label: 'Email', value: email },
     { icon: Cake, label: 'Date of Birth', value: formatCalendarDate(user?.dob) },
     { icon: User, label: 'Gender', value: GENDER_LABELS[user?.gender] },
-    { icon: Heart, label: 'Anniversary', value: formatCalendarDate(user?.anniversaryDate) },
+    { icon: Heart, label: 'Marital Status', value: isMarried === true ? 'Married' : isMarried === false ? 'Not married' : '' },
+    ...(isMarried === true ? [{ icon: Heart, label: 'Anniversary', value: formatCalendarDate(user?.anniversaryDate) }] : []),
     { icon: Home, label: 'Address', value: fullAddress },
   ];
 

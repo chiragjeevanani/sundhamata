@@ -23,6 +23,7 @@ const profileFields = {
   pincode: optionalPincodeSchema.optional(),
   budget: optionalBudgetSchema.optional(),
   dob: optionalPastDateSchema('Date of birth').optional(),
+  isMarried: z.preprocess((v) => (v === '' ? null : v), z.boolean({ error: 'Marital status must be yes or no' }).nullable()).optional(),
   anniversaryDate: optionalPastDateSchema('Anniversary date').optional(),
   gender: optionalGenderSchema.optional(),
 };

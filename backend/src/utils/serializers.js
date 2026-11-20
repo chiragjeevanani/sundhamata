@@ -27,6 +27,7 @@ export const serializeCustomer = (c) => ({
   pincode: c.pincode ?? null,
   profileImage: c.profileImage ?? null,
   dob: toDateOnly(c.dob),
+  isMarried: c.isMarried ?? null,
   anniversaryDate: toDateOnly(c.anniversaryDate),
   gender: c.gender ?? null,
   // Blue tick: uses the app and has bought at the store

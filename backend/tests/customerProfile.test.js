@@ -49,6 +49,18 @@ describe('Customer edits their profile', () => {
     expect(me.body.data.customer).toMatchObject({ dob: '1994-08-17', anniversaryDate: '2020-02-29', gender: 'male' });
   });
 
+  it('keeps the anniversary only for married customers', async () => {
+    let res = await update({ isMarried: true, anniversaryDate: '2020-02-29' }).expect(200);
+    expect(res.body.data.customer).toMatchObject({ isMarried: true, anniversaryDate: '2020-02-29' });
+
+    // "No" clears the anniversary, even if one is sent along
+    res = await update({ isMarried: false, anniversaryDate: '2021-05-10' }).expect(200);
+    expect(res.body.data.customer).toMatchObject({ isMarried: false, anniversaryDate: null });
+    expect((await Customer.findById(rohit._id)).anniversaryDate).toBeNull();
+
+    await update({ isMarried: 'maybe' }).expect(422);
+  });
+
   it('clears optional fields with empty values', async () => {
     await update({ dob: '1994-08-17', gender: 'female', email: 'a@b.co' }).expect(200);
     const res = await update({ dob: '', gender: '', email: '' }).expect(200);

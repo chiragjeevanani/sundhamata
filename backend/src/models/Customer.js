@@ -20,6 +20,9 @@ const customerSchema = new mongoose.Schema(
     profileImage: { type: String, trim: true, maxlength: 500, default: null },
     // Calendar dates stored at 00:00 UTC; always read/written as "YYYY-MM-DD".
     dob: { type: Date, default: null },
+    // Marital status: true = married, false = not married, null = not answered.
+    // The anniversary is only kept for married customers (see the pre-validate hook below).
+    isMarried: { type: Boolean, default: null },
     anniversaryDate: { type: Date, default: null },
     gender: { type: String, enum: [...CUSTOMER_GENDERS, null], default: null },
 
@@ -72,5 +75,10 @@ customerSchema.index({ 'photo.key': 1 }, { sparse: true });
 // A device belongs to whoever signed in on it last (lookups by token)
 customerSchema.index({ 'fcmTokens.web': 1 });
 customerSchema.index({ 'fcmTokens.app': 1 });
+
+// "Not married" never keeps an anniversary date
+customerSchema.pre('validate', function clearAnniversaryIfNotMarried() {
+  if (this.isMarried === false) this.anniversaryDate = null;
+});
 
 export const Customer = mongoose.model('Customer', customerSchema);
