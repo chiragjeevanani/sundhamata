@@ -6,6 +6,7 @@ import { StoreContactDrawer } from '../components/StoreContactDrawer';
 import { Smartphone, Monitor } from 'lucide-react';
 import { BrandLogo } from '../components/BrandLogo';
 import { WelcomeOfferPopups } from '../components/WelcomeOfferPopups';
+import { StartupAd } from '../components/StartupAd';
 import { pushService } from '../../../services/pushService';
 
 export const UserLayout = () => {
@@ -92,6 +93,9 @@ export const UserLayout = () => {
       {/* Official Retail Store Contact Bottom Drawer */}
       {/* New-customer offer: complete profile → coupon */}
       <WelcomeOfferPopups />
+
+      {/* Advertisement poster when the app opens (Admin → Advertisement) */}
+      <StartupAd />
 
       <StoreContactDrawer
         isOpen={isStoreOpen}

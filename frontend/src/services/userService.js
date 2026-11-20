@@ -48,6 +48,16 @@ export const userService = {
     return user;
   },
 
+  /** Address auto-fill: 6-digit pincode → { pincode, city, state, areas[] } (404 when unknown) */
+  lookupPincode(pincode) {
+    return customerApi.get(`/customer/address/pincode/${encodeURIComponent(pincode)}`);
+  },
+
+  /** Address auto-fill: GPS position → { address, city, state, pincode } (any may be null) */
+  addressFromLocation(lat, lng) {
+    return customerApi.get('/customer/address/reverse', { lat, lng });
+  },
+
   /** PATCH /customer/me — name, email, dob, gender, anniversaryDate, address, city, pincode, interest, budget */
   async updateProfile(updates) {
     const data = await customerApi.patch('/customer/me', updates);

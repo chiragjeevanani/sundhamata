@@ -10,6 +10,7 @@ import * as inquiryService from '../services/inquiry.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
 import * as settingsService from '../services/settings.service.js';
+import * as startupAdService from '../services/startupAd.service.js';
 import { sendCreated, sendSuccess } from '../utils/apiResponse.js';
 import { serializeSettings } from '../utils/serializers.js';
 
@@ -239,4 +240,22 @@ export const updateInquiry = async (req, res) => {
 export const deleteInquiry = async (req, res) => {
   await inquiryService.deleteInquiry(req.valid.params.id);
   sendSuccess(res, { message: 'Inquiry deleted' });
+};
+
+// ---- Advertisement poster shown when the customer app opens
+
+export const getStartupAd = async (_req, res) => {
+  sendSuccess(res, { data: { ad: await startupAdService.getAdminAd() } });
+};
+
+export const updateStartupAd = async (req, res) => {
+  sendSuccess(res, { data: { ad: await startupAdService.updateAd(req.valid.body, req.admin) }, message: 'Advertisement updated' });
+};
+
+export const uploadStartupAdPoster = async (req, res) => {
+  sendSuccess(res, { data: { ad: await startupAdService.setPoster(req.body, req.admin) }, message: 'Poster uploaded' });
+};
+
+export const removeStartupAdPoster = async (req, res) => {
+  sendSuccess(res, { data: { ad: await startupAdService.removePoster(req.admin) }, message: 'Poster removed' });
 };

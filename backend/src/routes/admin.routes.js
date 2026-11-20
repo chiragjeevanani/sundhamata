@@ -23,6 +23,7 @@ import { createProductSchema, listProductsQuerySchema, updateProductSchema } fro
 import { createOfferSchema, updateOfferSchema } from '../validators/offer.validators.js';
 import { updateSettingsSchema } from '../validators/settings.validators.js';
 import { listInquiriesQuerySchema, updateInquirySchema } from '../validators/inquiry.validators.js';
+import { updateStartupAdSchema } from '../validators/startupAd.validators.js';
 
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const billUploadQuerySchema = z.object({ filename: z.string().trim().max(255).optional() });
@@ -146,6 +147,12 @@ export const createAdminRouter = () => {
     admin.updateInquiry
   );
   router.delete('/inquiries/:id', can(P.CUSTOMERS_WRITE), validate({ params: idParamsSchema }), admin.deleteInquiry);
+
+  // Advertisement poster shown when the customer app opens
+  router.get('/startup-ad', can(P.SETTINGS_READ), admin.getStartupAd);
+  router.patch('/startup-ad', can(P.SETTINGS_WRITE), validate({ body: updateStartupAdSchema }), admin.updateStartupAd);
+  router.post('/startup-ad/poster', can(P.SETTINGS_WRITE), rawImageUpload, admin.uploadStartupAdPoster);
+  router.delete('/startup-ad/poster', can(P.SETTINGS_WRITE), admin.removeStartupAdPoster);
 
   router.get('/settings', can(P.SETTINGS_READ), admin.getSettings);
   router.patch('/settings', can(P.SETTINGS_WRITE), validate({ body: updateSettingsSchema }), admin.updateSettings);

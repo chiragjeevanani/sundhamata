@@ -48,9 +48,28 @@ export const createCustomerRouter = () => {
   router.post('/offers/:id/claim', validate({ params: idParamsSchema }), customer.claimMyOffer);
   router.get('/coupons', customer.listMyCoupons);
 
+  // Address auto-fill on Edit Profile: pincode → city / state, current location → address
+  router.get(
+    '/address/pincode/:pincode',
+    validate({ params: z.object({ pincode: z.string().regex(/^[1-9]\d{5}$/,'Enter a valid 6-digit pincode') }) }),
+    customer.lookupPincode
+  );
+  router.get(
+    '/address/reverse',
+    validate({
+      query: z.object({
+        lat: z.coerce.number().min(-90).max(90),
+        lng: z.coerce.number().min(-180).max(180),
+      }),
+    }),
+    customer.reverseGeocode
+  );
+
   // Inquiries (mobile / accessories / service) sent to the store
   router.get('/inquiries', customer.listMyInquiries);
   router.post('/inquiries', validate({ body: createInquirySchema }), customer.createMyInquiry);
+  // Service inquiry: photo of the problem (raw image body)
+  router.post('/inquiries/:id/photo', validate({ params: idParamsSchema }), rawImageUpload, customer.uploadMyInquiryPhoto);
 
   return router;
 };

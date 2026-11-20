@@ -1,9 +1,11 @@
 import * as customerPhotoService from '../services/customerPhoto.service.js';
 import * as couponService from '../services/coupon.service.js';
 import * as offerService from '../services/offer.service.js';
+import * as addressService from '../services/address.service.js';
 import * as billService from '../services/bill.service.js';
 import * as customerService from '../services/customer.service.js';
 import * as inquiryService from '../services/inquiry.service.js';
+import * as inquiryPhotoService from '../services/inquiryPhoto.service.js';
 import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
 import * as pushService from '../services/push.service.js';
@@ -137,4 +139,20 @@ export const createMyInquiry = async (req, res) => {
 
 export const listMyInquiries = async (req, res) => {
   sendSuccess(res, { data: { items: await inquiryService.listCustomerInquiries(req.customer._id) } });
+};
+
+/** Photo of the problem on the customer's own service inquiry (raw image body) */
+export const uploadMyInquiryPhoto = async (req, res) => {
+  const updated = await inquiryPhotoService.setInquiryPhoto(req.customer._id, req.valid.params.id, req.body);
+  sendSuccess(res, { data: { inquiry: inquiryService.serializeInquiry(updated, { audience: 'customer' }) }, message: 'Photo added' });
+};
+
+// ---- Address auto-fill (Edit Profile)
+
+export const lookupPincode = async (req, res) => {
+  sendSuccess(res, { data: await addressService.lookupPincode(req.valid.params.pincode) });
+};
+
+export const reverseGeocode = async (req, res) => {
+  sendSuccess(res, { data: await addressService.reverseGeocode(req.valid.query.lat, req.valid.query.lng) });
 };
