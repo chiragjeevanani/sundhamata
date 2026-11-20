@@ -2,6 +2,8 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import { getStore } from '../controllers/customer.controller.js';
 import { sendCustomerPhoto } from '../services/customerPhoto.service.js';
+import { sendInquiryPhoto } from '../services/inquiryPhoto.service.js';
+import { getPublicAd, sendPoster } from '../services/startupAd.service.js';
 import { sendProductImage } from '../services/productImage.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
@@ -23,6 +25,12 @@ export const createApiRouter = (limiters) => {
 
   router.use('/auth', createAuthRouter(limiters));
   router.get('/store', getStore); // public: store contact details + loyalty rules
+  // public: advertisement shown when the customer app opens (null = none), and its poster image
+  router.get('/startup-ad', async (_req, res) => sendSuccess(res, { data: { ad: await getPublicAd() } }));
+  router.get('/startup-ad/posters/:key', (req, res) => {
+    if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Poster not found');
+    return sendPoster(res, req.params.key);
+  });
   // public: product photos by unguessable key (see services/productImage.service.js)
   router.get('/product-images/:key', (req, res) => {
     if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Image not found');
@@ -32,6 +40,11 @@ export const createApiRouter = (limiters) => {
   router.get('/customer-photos/:key', (req, res) => {
     if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Photo not found');
     return sendCustomerPhoto(res, req.params.key);
+  });
+  // service inquiry photos by unguessable key (see services/inquiryPhoto.service.js)
+  router.get('/inquiry-photos/:key', (req, res) => {
+    if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Photo not found');
+    return sendInquiryPhoto(res, req.params.key);
   });
   router.use('/customer', createCustomerRouter());
   router.use('/admin', createAdminRouter());

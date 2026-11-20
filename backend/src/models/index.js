@@ -9,3 +9,4 @@ export { Coupon } from './Coupon.js';
 export { Product } from './Product.js';
 export { Offer } from './Offer.js';
 export { Inquiry } from './Inquiry.js';
+export { StartupAd } from './StartupAd.js';

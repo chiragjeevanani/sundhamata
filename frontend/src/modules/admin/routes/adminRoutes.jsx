@@ -15,6 +15,7 @@ import { SettingsPage } from '../pages/SettingsPage';
 import { ProductsPage } from '../pages/ProductsPage';
 import { OffersPage } from '../pages/OffersPage';
 import { InquiriesPage } from '../pages/InquiriesPage';
+import { AdvertisementPage } from '../pages/AdvertisementPage';
 
 export const adminRoutes = [
   {
@@ -64,6 +65,10 @@ export const adminRoutes = [
       {
         path: 'inquiries',
         element: <InquiriesPage />,
+      },
+      {
+        path: 'advertisement',
+        element: <AdvertisementPage />,
       },
       {
         path: 'loyalty',

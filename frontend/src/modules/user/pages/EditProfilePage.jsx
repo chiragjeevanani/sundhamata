@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Gift, Lock, PartyPopper } from 'lucide-react';
+import { ArrowLeft, Check, Gift, LocateFixed, Lock, MapPin, PartyPopper } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../../../services/userService';
 import { GENDER_LABELS } from '../../../utils/formatters';
@@ -113,6 +113,99 @@ export const EditProfilePage = () => {
     const value = e?.target ? e.target.value : e;
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  // ---- Address auto-fill: pincode → city, current location → address / city / pincode
+  // { city, state, areas } for the pincode in the form, or null
+  const [pinInfo, setPinInfo] = useState(null);
+  const [pinNote, setPinNote] = useState('');
+  // Latest pincode asked about (older answers that arrive late are ignored)
+  const pinAsked = useRef('');
+  // City filled in automatically (so a new pincode may replace it, but a typed city is kept)
+  const autoCity = useRef(null);
+  const [locating, setLocating] = useState(false);
+  const [locateNote, setLocateNote] = useState(null); // { ok: boolean, text }
+
+  const fillFromPincode = async (pincode) => {
+    pinAsked.current = pincode;
+    setPinInfo(null);
+    setPinNote('');
+    try {
+      const info = await userService.lookupPincode(pincode);
+      if (pinAsked.current !== pincode) return;
+      setPinInfo(info);
+      if (info.city) {
+        setForm((prev) => {
+          const typedCity = prev.city.trim() && prev.city !== autoCity.current;
+          if (typedCity) return prev;
+          autoCity.current = info.city;
+          return { ...prev, city: info.city };
+        });
+        setErrors((prev) => ({ ...prev, city: '' }));
+      }
+    } catch (err) {
+      if (pinAsked.current !== pincode) return;
+      setPinNote(err.status === 404 ? 'No area found for this pincode. Please check it.' : '');
+    }
+  };
+
+  const changePincode = (e) => {
+    const pincode = e.target.value.replace(/\D/g, '').slice(0, 6);
+    set('pincode')(pincode);
+    if (/^[1-9]\d{5}$/.test(pincode)) fillFromPincode(pincode);
+    else {
+      pinAsked.current = '';
+      setPinInfo(null);
+      setPinNote('');
+    }
+  };
+
+  /** Adds a locality from the pincode's list to the address line, once */
+  const addArea = (area) =>
+    setForm((prev) => {
+      if (prev.address.toLowerCase().includes(area.toLowerCase())) return prev;
+      return { ...prev, address: prev.address.trim() ? `${prev.address.trim()}, ${area}` : area };
+    });
+
+  const fillFromLocation = () => {
+    setLocateNote(null);
+    if (!navigator.geolocation) {
+      setLocateNote({ ok: false, text: 'Location is not available on this device. Please type your address.' });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const found = await userService.addressFromLocation(coords.latitude, coords.longitude);
+          if (found.city) autoCity.current = found.city;
+          setForm((prev) => ({
+            ...prev,
+            address: found.address ?? prev.address,
+            city: found.city ?? prev.city,
+            pincode: found.pincode ?? prev.pincode,
+          }));
+          setErrors((prev) => ({ ...prev, address: '', city: '', pincode: '' }));
+          if (found.pincode) fillFromPincode(found.pincode);
+          setLocateNote({ ok: true, text: 'Filled from your location. Please add your house / flat number and check it.' });
+        } catch (err) {
+          setLocateNote({ ok: false, text: err.message || 'Could not find your address. Please type it.' });
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        setLocateNote({
+          ok: false,
+          text:
+            err.code === err.PERMISSION_DENIED
+              ? 'Location permission is off. Allow it for this app, or type your address.'
+              : 'Could not get your location. Please try again or type your address.',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 }
+    );
   };
 
   const goBack = () => {
@@ -344,6 +437,20 @@ export const EditProfilePage = () => {
         </Section>
 
         <Section title="Address">
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={fillFromLocation}
+              disabled={locating}
+              className="w-full py-2 rounded-lg border border-brand-200 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-[12px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+            >
+              <LocateFixed className={`w-3.5 h-3.5 ${locating ? 'animate-pulse' : ''}`} />
+              {locating ? 'Finding your address...' : 'Use my current location'}
+            </button>
+            {locateNote && (
+              <p className={`text-[10.5px] font-medium ${locateNote.ok ? 'text-emerald-700' : 'text-rose-600'}`}>{locateNote.text}</p>
+            )}
+          </div>
           <Field label="Address" hint={hint('address')} error={errors.address}>
             <textarea
               value={form.address}
@@ -371,13 +478,37 @@ export const EditProfilePage = () => {
                 type="text"
                 inputMode="numeric"
                 value={form.pincode}
-                onChange={(e) => set('pincode')(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={changePincode}
                 placeholder="382405"
                 autoComplete="postal-code"
                 className={`${inputClass(errors.pincode)} font-mono tabular-nums`}
               />
             </Field>
           </div>
+          {/* What the pincode belongs to; tap an area to add it to the address */}
+          {pinInfo && (
+            <div className="space-y-1.5">
+              <p className="text-[10.5px] font-semibold text-emerald-700 flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {[pinInfo.city, pinInfo.state].filter(Boolean).join(', ')}
+              </p>
+              {pinInfo.areas.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {pinInfo.areas.map((area) => (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() => addArea(area)}
+                      className="px-2 py-0.5 rounded-full border border-stone-200 bg-white text-[10.5px] font-semibold text-stone-600 hover:border-brand-300 cursor-pointer"
+                    >
+                      + {area}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {pinNote && <p className="text-[10.5px] font-medium text-amber-700">{pinNote}</p>}
         </Section>
 
         {formError && (

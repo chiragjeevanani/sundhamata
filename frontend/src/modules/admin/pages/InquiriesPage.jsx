@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquareText, Phone, Search, StickyNote, Trash2, X } from 'lucide-react';
 import { adminInquiryService } from '../../../services/adminInquiryService';
+import {
+  ACCESSORY_TYPE_LABELS,
+  SERVICE_DEVICE_LABELS,
+  SERVICE_PREFERENCE_LABELS,
+  describeAccessoriesInquiry,
+  describeServiceInquiry,
+  inquiryPhotoUrl,
+} from '../../../services/inquiryService';
 import { formatINR, formatPhone, formatRelativeTime } from '../../../utils/formatters';
 import { useToast } from '../context/ToastContext';
 
@@ -55,7 +63,14 @@ const NoteForm = ({ inquiry, onClose, onSaved }) => {
             <X className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-stone-500 bg-stone-50 rounded-lg p-2.5 border border-stone-100">{inquiry.message}</p>
+        <p className="text-stone-500 bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+          {[
+            inquiry.mobile && `${inquiry.mobile.brand} · ${inquiry.mobile.ramRom}`,
+            inquiry.accessories && describeAccessoriesInquiry(inquiry.accessories),
+            inquiry.service && describeServiceInquiry(inquiry.service),
+            inquiry.message,
+          ].filter(Boolean).join(' · ')}
+        </p>
         <textarea
           rows={4}
           maxLength={500}
@@ -166,7 +181,7 @@ export const InquiriesPage = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by customer name, mobile or message..."
+            placeholder="Search by customer, mobile, brand, model, problem..."
             className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
           />
         </div>
@@ -191,7 +206,7 @@ export const InquiriesPage = () => {
                 <th className="py-2.5 px-5 font-medium">Customer</th>
                 <th className="py-2.5 px-4 font-medium">Type</th>
                 <th className="py-2.5 px-4 font-medium text-right">Budget</th>
-                <th className="py-2.5 px-4 font-medium">Reason</th>
+                <th className="py-2.5 px-4 font-medium">Details</th>
                 <th className="py-2.5 px-4 font-medium">Received</th>
                 <th className="py-2.5 px-4 font-medium">Status</th>
                 <th className="py-2.5 px-5 font-medium text-right">Actions</th>
@@ -242,7 +257,68 @@ export const InquiriesPage = () => {
                     {inq.budget != null ? formatINR(inq.budget) : '—'}
                   </td>
                   <td className="py-3 px-4 text-stone-700 min-w-[220px] max-w-[360px]">
-                    <p className="whitespace-pre-line break-words">{inq.message}</p>
+                    {inq.mobile && (
+                      <div className="mb-1 space-y-1">
+                        <p>
+                          <span className="text-stone-400">Brand:</span> <span className="font-semibold text-stone-900">{inq.mobile.brand}</span>
+                          <span className="text-stone-300"> · </span>
+                          <span className="text-stone-400">RAM & ROM:</span> <span className="font-semibold text-stone-900">{inq.mobile.ramRom}</span>
+                        </p>
+                        {inq.mobile.features.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {inq.mobile.features.map((f) => (
+                              <span key={f} className="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[10.5px] font-medium">{f}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {inq.accessories && (
+                      <dl className="mb-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                        {[
+                          ['Type', ACCESSORY_TYPE_LABELS[inq.accessories.type]],
+                          ['Needs', inq.accessories.item],
+                          ['Quantity', inq.accessories.quantity],
+                          ['Brand', inq.accessories.brandPreference],
+                          ['Device', inq.accessories.device],
+                        ]
+                          .filter(([, value]) => value)
+                          .map(([label, value]) => (
+                            <div key={label} className="contents">
+                              <dt className="text-stone-400">{label}:</dt>
+                              <dd className="font-semibold text-stone-900 break-words">{value}</dd>
+                            </div>
+                          ))}
+                      </dl>
+                    )}
+                    {inq.service && (
+                      <dl className="mb-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
+                        {[
+                          ['Device', SERVICE_DEVICE_LABELS[inq.service.device]],
+                          ['Model', inq.service.brandModel],
+                          ['Problem', inq.service.problem],
+                          ['Details', inq.service.details],
+                          ['Service', SERVICE_PREFERENCE_LABELS[inq.service.preference]],
+                        ]
+                          .filter(([, value]) => value)
+                          .map(([label, value]) => (
+                            <div key={label} className="contents">
+                              <dt className="text-stone-400">{label}:</dt>
+                              <dd className="font-semibold text-stone-900 break-words whitespace-pre-line">{value}</dd>
+                            </div>
+                          ))}
+                      </dl>
+                    )}
+                    {inq.message && <p className="whitespace-pre-line break-words">{inq.message}</p>}
+                    {inq.photo && (
+                      <a href={inquiryPhotoUrl(inq.photo)} target="_blank" rel="noreferrer" className="inline-block mt-1" title="Open photo">
+                        <img
+                          src={inquiryPhotoUrl(inq.photo)}
+                          alt="Photo of the problem"
+                          className="w-20 h-20 rounded-lg object-cover border border-stone-200 hover:opacity-90"
+                        />
+                      </a>
+                    )}
                     {inq.adminNote && (
                       <p className="mt-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5 break-words">
                         Note: {inq.adminNote}
