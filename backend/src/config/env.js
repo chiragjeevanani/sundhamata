@@ -38,7 +38,11 @@ const envSchema = z.object({
     .default('123456'),
   // console: prints the code (development only). mock: sends nothing and every code is
   // DEV_OTP_CODE, even in production, so anyone can sign in as any customer: demos only.
-  SMS_PROVIDER: z.enum(['console', 'mock']).default('console'),
+  // msg91: real SMS through MSG91 (needs MSG91_AUTH_KEY and MSG91_OTP_TEMPLATE_ID).
+  SMS_PROVIDER: z.enum(['console', 'mock', 'msg91']).default('console'),
+  MSG91_AUTH_KEY: z.string().trim().default(''),
+  // OTP template from MSG91 → OTP section (DLT-approved, contains ##OTP##)
+  MSG91_OTP_TEMPLATE_ID: z.string().trim().default(''),
 
   // Push notifications (Firebase Cloud Messaging): path to the service account JSON key.
   // Empty = push is off (nothing is sent; device tokens are still saved).
@@ -53,7 +57,14 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
 });
 
-const parsed = envSchema.safeParse(process.env);
+const parsed = envSchema
+  .superRefine((v, ctx) => {
+    if (v.SMS_PROVIDER !== 'msg91') return;
+    for (const key of ['MSG91_AUTH_KEY', 'MSG91_OTP_TEMPLATE_ID']) {
+      if (!v[key]) ctx.addIssue({ code: 'custom', path: [key], message: `${key} is required when SMS_PROVIDER=msg91` });
+    }
+  })
+  .safeParse(process.env);
 
 if (!parsed.success) {
   const details = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
@@ -78,8 +89,9 @@ export const env = Object.freeze({
   ...raw,
   isProduction: raw.NODE_ENV === 'production',
   isTest: raw.NODE_ENV === 'test',
-  // Every OTP is DEV_OTP_CODE: always outside production, in production only with the mock provider
-  useFixedOtp: raw.NODE_ENV !== 'production' || raw.SMS_PROVIDER === 'mock',
+  // Every OTP is DEV_OTP_CODE with the mock provider, and outside production unless real SMS
+  // (MSG91) is on: a real SMS always carries a random code.
+  useFixedOtp: raw.SMS_PROVIDER === 'mock' || (raw.NODE_ENV !== 'production' && raw.SMS_PROVIDER !== 'msg91'),
   corsOrigins: splitOrigins(raw.CUSTOMER_FRONTEND_URL, raw.ADMIN_FRONTEND_URL),
   logLevel: raw.LOG_LEVEL ?? (raw.NODE_ENV === 'test' ? 'silent' : raw.NODE_ENV === 'production' ? 'info' : 'debug'),
 });

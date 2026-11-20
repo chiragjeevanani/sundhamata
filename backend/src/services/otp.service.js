@@ -89,7 +89,13 @@ export const sendOtp = async (mobile, { purpose, registration = undefined }) => 
     throw err;
   }
 
-  await smsProvider.sendOtp(mobile, code, { expiresInSeconds: env.OTP_EXPIRY_SECONDS });
+  try {
+    await smsProvider.sendOtp(mobile, code, { expiresInSeconds: env.OTP_EXPIRY_SECONDS });
+  } catch (err) {
+    // Not delivered: forget this code so the customer can try again straight away
+    await OtpChallenge.deleteOne({ mobile, codeHash: update.codeHash }).catch(() => {});
+    throw err;
+  }
   logger.info({ mobile: maskMobile(mobile), purpose, sendCount }, 'Customer OTP requested');
 
   return {
