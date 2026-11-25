@@ -24,6 +24,13 @@ import { createOfferSchema, updateOfferSchema } from '../validators/offer.valida
 import { updateSettingsSchema } from '../validators/settings.validators.js';
 import { listInquiriesQuerySchema, updateInquirySchema } from '../validators/inquiry.validators.js';
 import { updateStartupAdSchema } from '../validators/startupAd.validators.js';
+import { legalKeyParamsSchema, updateLegalSchema } from '../validators/legal.validators.js';
+import {
+  bannerImageQuerySchema,
+  createBannerQuerySchema,
+  reorderBannersSchema,
+  updateBannerSchema,
+} from '../validators/banner.validators.js';
 
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const billUploadQuerySchema = z.object({ filename: z.string().trim().max(255).optional() });
@@ -153,6 +160,27 @@ export const createAdminRouter = () => {
   router.patch('/startup-ad', can(P.SETTINGS_WRITE), validate({ body: updateStartupAdSchema }), admin.updateStartupAd);
   router.post('/startup-ad/poster', can(P.SETTINGS_WRITE), rawImageUpload, admin.uploadStartupAdPoster);
   router.delete('/startup-ad/poster', can(P.SETTINGS_WRITE), admin.removeStartupAdPoster);
+
+  router.get('/banners', can(P.SETTINGS_READ), admin.listBanners);
+  router.post('/banners', can(P.SETTINGS_WRITE), validate({ query: createBannerQuerySchema }), rawImageUpload, admin.createBanner);
+  router.post('/banners/reorder', can(P.SETTINGS_WRITE), validate({ body: reorderBannersSchema }), admin.reorderBanners);
+  router.patch('/banners/:id', can(P.SETTINGS_WRITE), validate({ params: idParamsSchema, body: updateBannerSchema }), admin.updateBanner);
+  router.post(
+    '/banners/:id/image',
+    can(P.SETTINGS_WRITE),
+    validate({ params: idParamsSchema, query: bannerImageQuerySchema }),
+    rawImageUpload,
+    admin.replaceBannerImage
+  );
+  router.delete('/banners/:id', can(P.SETTINGS_WRITE), validate({ params: idParamsSchema }), admin.deleteBanner);
+
+  router.get('/legal', can(P.SETTINGS_READ), admin.listLegalDocuments);
+  router.patch(
+    '/legal/:key',
+    can(P.SETTINGS_WRITE),
+    validate({ params: legalKeyParamsSchema, body: updateLegalSchema }),
+    admin.updateLegalDocument
+  );
 
   router.get('/settings', can(P.SETTINGS_READ), admin.getSettings);
   router.patch('/settings', can(P.SETTINGS_WRITE), validate({ body: updateSettingsSchema }), admin.updateSettings);

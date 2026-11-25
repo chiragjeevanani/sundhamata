@@ -10,3 +10,5 @@ export { Product } from './Product.js';
 export { Offer } from './Offer.js';
 export { Inquiry } from './Inquiry.js';
 export { StartupAd } from './StartupAd.js';
+export { LegalDocument } from './LegalDocument.js';
+export { Banner } from './Banner.js';

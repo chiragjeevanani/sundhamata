@@ -23,6 +23,8 @@ import { VerifiedTick } from '../../../components/CustomerAvatar';
 import { purchaseService } from '../../../services/purchaseService';
 import { loyaltyService } from '../../../services/loyaltyService';
 import { offerService } from '../../../services/offerService';
+import { bannerService } from '../../../services/bannerService';
+import { BannerCarousel } from '../components/BannerCarousel';
 import { formatINR, formatDate } from '../../../utils/formatters';
 
 // Shortcuts into Make an Inquiry with the type already picked
@@ -44,6 +46,8 @@ export const HomePage = () => {
   const [loyaltySummary, setLoyaltySummary] = useState(null);
   // Store offers waiting to be scratched (Admin → Coupons); never blocks the page
   const [newOffers, setNewOffers] = useState([]);
+  // Promotional banners (Admin → Banners); never blocks the page
+  const [banners, setBanners] = useState([]);
 
   const loadHomeData = async () => {
     setLoading(true);
@@ -70,7 +74,14 @@ export const HomePage = () => {
       .getOffers()
       .then((data) => setNewOffers(data.offers.filter((o) => o.status === 'ready')))
       .catch(() => {});
+    bannerService
+      .getLive()
+      .then(setBanners)
+      .catch(() => {});
   }, []);
+
+  const topBanners = banners.filter((b) => b.placement === 'top');
+  const middleBanners = banners.filter((b) => b.placement === 'middle');
 
   const customerFirstName = user?.name ? user.name.split(' ')[0] : '';
   const latestPurchase = summary?.latestPurchase;
@@ -102,6 +113,9 @@ export const HomePage = () => {
                 {user?.isVerified && <VerifiedTick className="w-5 h-5" />}
               </h1>
             </div>
+
+            {/* Offer banners (top slot) */}
+            <BannerCarousel banners={topBanners} />
 
             {/* Quick 2-Column Overview (Purchases & Points) */}
             <div className="grid grid-cols-2 gap-2.5">
@@ -188,6 +202,9 @@ export const HomePage = () => {
                 ))}
               </div>
             </section>
+
+            {/* Offer banners (middle slot) */}
+            <BannerCarousel banners={middleBanners} />
 
             {/* Latest Purchase Highlight */}
             {latestPurchase && (

@@ -11,6 +11,8 @@ import * as loyaltyService from '../services/loyalty.service.js';
 import * as purchaseService from '../services/purchase.service.js';
 import * as settingsService from '../services/settings.service.js';
 import * as startupAdService from '../services/startupAd.service.js';
+import * as legalService from '../services/legal.service.js';
+import * as bannerService from '../services/banner.service.js';
 import { sendCreated, sendSuccess } from '../utils/apiResponse.js';
 import { serializeSettings } from '../utils/serializers.js';
 
@@ -258,4 +260,46 @@ export const uploadStartupAdPoster = async (req, res) => {
 
 export const removeStartupAdPoster = async (req, res) => {
   sendSuccess(res, { data: { ad: await startupAdService.removePoster(req.admin) }, message: 'Poster removed' });
+};
+
+// ---- Terms & Privacy pages ---------------------------------------------
+
+export const listLegalDocuments = async (_req, res) => {
+  sendSuccess(res, { data: { documents: await legalService.listLegalDocuments() } });
+};
+
+export const updateLegalDocument = async (req, res) => {
+  const document = await legalService.saveLegalDocument(req.valid.params.key, req.valid.body.content, req.admin);
+  sendSuccess(res, { data: { document }, message: document.content === null ? 'Reset to the default text' : 'Page saved' });
+};
+
+// ---- Home banners --------------------------------------------------------
+
+export const listBanners = async (_req, res) => {
+  sendSuccess(res, { data: { banners: await bannerService.listAdminBanners() } });
+};
+
+export const createBanner = async (req, res) => {
+  const banner = await bannerService.createBanner(req.body, req.valid.query, req.admin);
+  sendCreated(res, { data: { banner }, message: 'Banner added' });
+};
+
+export const updateBanner = async (req, res) => {
+  const banner = await bannerService.updateBanner(req.valid.params.id, req.valid.body, req.admin);
+  sendSuccess(res, { data: { banner }, message: 'Banner saved' });
+};
+
+export const replaceBannerImage = async (req, res) => {
+  const banner = await bannerService.replaceBannerImage(req.valid.params.id, req.body, req.valid.query, req.admin);
+  sendSuccess(res, { data: { banner }, message: 'Banner image replaced' });
+};
+
+export const deleteBanner = async (req, res) => {
+  await bannerService.deleteBanner(req.valid.params.id, req.admin);
+  sendSuccess(res, { message: 'Banner deleted' });
+};
+
+export const reorderBanners = async (req, res) => {
+  const { placement, ids } = req.valid.body;
+  sendSuccess(res, { data: { banners: await bannerService.reorderBanners(placement, ids, req.admin) }, message: 'Order saved' });
 };

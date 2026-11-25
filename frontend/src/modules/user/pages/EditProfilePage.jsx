@@ -187,7 +187,13 @@ export const EditProfilePage = () => {
           }));
           setErrors((prev) => ({ ...prev, address: '', city: '', pincode: '' }));
           if (found.pincode) fillFromPincode(found.pincode);
-          setLocateNote({ ok: true, text: 'Filled from your location. Please add your house / flat number and check it.' });
+          setLocateNote({
+            ok: true,
+            // Map data often has no street for Indian localities: then only city and pincode are filled
+            text: found.address
+              ? 'Filled from your location. Please add your house / flat number and check it.'
+              : 'City and pincode filled from your location. Please type your house, street and area.',
+          });
         } catch (err) {
           setLocateNote({ ok: false, text: err.message || 'Could not find your address. Please type it.' });
         } finally {

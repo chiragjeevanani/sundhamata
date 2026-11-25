@@ -4,6 +4,9 @@ import { getStore } from '../controllers/customer.controller.js';
 import { sendCustomerPhoto } from '../services/customerPhoto.service.js';
 import { sendInquiryPhoto } from '../services/inquiryPhoto.service.js';
 import { getPublicAd, sendPoster } from '../services/startupAd.service.js';
+import { getLegalDocument } from '../services/legal.service.js';
+import { listLiveBanners, sendBannerImage } from '../services/banner.service.js';
+import { LEGAL_KEYS } from '../models/LegalDocument.js';
 import { sendProductImage } from '../services/productImage.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
@@ -27,6 +30,17 @@ export const createApiRouter = (limiters) => {
   router.get('/store', getStore); // public: store contact details + loyalty rules
   // public: advertisement shown when the customer app opens (null = none), and its poster image
   router.get('/startup-ad', async (_req, res) => sendSuccess(res, { data: { ad: await getPublicAd() } }));
+  // public: Home screen banners showing now, and their images
+  router.get('/banners', async (_req, res) => sendSuccess(res, { data: { banners: await listLiveBanners() } }));
+  router.get('/banners/images/:key', (req, res) => {
+    if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Banner not found');
+    return sendBannerImage(res, req.params.key);
+  });
+  // public: Terms & Conditions / Privacy Policy text edited in the admin panel (content null = default)
+  router.get('/legal/:key', async (req, res) => {
+    if (!LEGAL_KEYS.includes(req.params.key)) throw ApiError.notFound('Page not found');
+    sendSuccess(res, { data: { document: await getLegalDocument(req.params.key) } });
+  });
   router.get('/startup-ad/posters/:key', (req, res) => {
     if (!/^[a-f0-9]{32}$/.test(req.params.key)) throw ApiError.notFound('Poster not found');
     return sendPoster(res, req.params.key);

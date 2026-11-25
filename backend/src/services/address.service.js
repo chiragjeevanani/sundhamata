@@ -101,13 +101,17 @@ export const reverseGeocode = (lat, lng) =>
     const a = data?.address;
     if (!a) throw ApiError.notFound('Could not find an address for your location. Please type it.');
 
-    const city = a.city ?? a.town ?? a.village ?? a.state_district ?? a.county ?? null;
+    // In India a village / hamlet is a locality inside a district (e.g. Lambha, Ahmedabad):
+    // the district is the city, the village goes on the address line
+    const city = a.city ?? a.town ?? a.state_district ?? a.county ?? a.village ?? null;
     // Street-level parts, without the city / state / pincode (they have their own fields)
     const lines = [
       [a.house_number, a.building ?? a.amenity].filter(Boolean).join(', '),
       a.road,
       a.neighbourhood ?? a.quarter,
       a.suburb,
+      a.hamlet,
+      a.village,
     ]
       .filter((part) => part && part !== city)
       .filter((part, i, all) => all.indexOf(part) === i);

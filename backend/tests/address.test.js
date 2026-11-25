@@ -73,6 +73,16 @@ describe('Address auto-fill', () => {
     await api().get('/api/v1/customer/address/reverse?lat=200&lng=72').set('Authorization', auth).expect(422);
   });
 
+  it('uses the district as the city when the place is a village', async () => {
+    vi.stubGlobal('fetch', reply(200, { address: { village: 'Lambha', county: 'Vatva Taluka', state_district: 'Ahmedabad', state: 'Gujarat', postcode: '382405' } }));
+    const res = await api().get('/api/v1/customer/address/reverse?lat=22.948&lng=72.576').set('Authorization', auth).expect(200);
+    expect(res.body.data).toEqual({ address: 'Lambha', city: 'Ahmedabad', state: 'Gujarat', pincode: '382405' });
+
+    vi.stubGlobal('fetch', reply(200, { address: { county: 'Maninagar Taluka', state_district: 'Ahmedabad', state: 'Gujarat', postcode: '382405' } }));
+    const sparse = await api().get('/api/v1/customer/address/reverse?lat=22.9606&lng=72.5853').set('Authorization', auth).expect(200);
+    expect(sparse.body.data).toEqual({ address: null, city: 'Ahmedabad', state: 'Gujarat', pincode: '382405' });
+  });
+
   it('requires sign-in', async () => {
     await api().get('/api/v1/customer/address/pincode/382405').expect(401);
     await api().get('/api/v1/customer/address/reverse?lat=22.9&lng=72.5').expect(401);
