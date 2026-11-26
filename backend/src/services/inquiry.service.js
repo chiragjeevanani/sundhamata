@@ -1,5 +1,5 @@
-import { Customer, Inquiry } from '../models/index.js';
-import { OPEN_STATUSES } from '../models/Inquiry.js';
+import { Customer, Inquiry, nextSequence } from '../models/index.js';
+import { LEAD_SEQUENCE, OPEN_STATUSES, formatLeadCode, parseLeadCode } from '../models/Inquiry.js';
 import { ApiError } from '../utils/ApiError.js';
 import { buildPagination, containsRegex, paginated } from '../utils/query.js';
 import { deleteInquiryPhotoFile } from './inquiryPhoto.service.js';
@@ -7,6 +7,8 @@ import { deleteInquiryPhotoFile } from './inquiryPhoto.service.js';
 export const serializeInquiry = (i, { audience = 'admin' } = {}) => {
   const base = {
     id: i._id.toString(),
+    // "SM-001": the lead's serial number, to quote on the phone
+    leadCode: formatLeadCode(i.leadNumber),
     category: i.category,
     budget: i.budget ?? null,
     message: i.message ?? null,
@@ -52,6 +54,7 @@ const CUSTOMER_FIELDS = 'name mobile customerCode';
 
 export const createInquiry = async (customerId, { category, budget, message, mobile, accessories, service }) => {
   const inquiry = await Inquiry.create({
+    leadNumber: await nextSequence(LEAD_SEQUENCE),
     customerId,
     category,
     budget: budget ?? null,
@@ -79,7 +82,9 @@ export const listInquiries = async ({ page, limit, search, status, category }) =
     const customers = await Customer.find({ $or: [{ name: regex }, { mobile: regex }, { customerCode: regex }] }, { _id: 1 })
       .limit(200)
       .lean();
-    filter.$or = [{ message: regex }, { 'mobile.brand': regex }, { 'mobile.ramRom': regex }, { 'accessories.item': regex }, { 'accessories.brandPreference': regex }, { 'accessories.device': regex }, { 'service.brandModel': regex }, { 'service.problem': regex }, { 'service.details': regex }, { customerId: { $in: customers.map((c) => c._id) } }];
+    // "SM-004" / "sm4" finds that lead by its number
+    const leadNumber = parseLeadCode(search);
+    filter.$or = [...(leadNumber ? [{ leadNumber }] : []), { message: regex }, { 'mobile.brand': regex }, { 'mobile.ramRom': regex }, { 'accessories.item': regex }, { 'accessories.brandPreference': regex }, { 'accessories.device': regex }, { 'service.brandModel': regex }, { 'service.problem': regex }, { 'service.details': regex }, { customerId: { $in: customers.map((c) => c._id) } }];
   }
   const { skip } = buildPagination({ page, limit });
   const [items, total, counts] = await Promise.all([

@@ -74,6 +74,10 @@ const inquirySchema = new mongoose.Schema(
       uploadedAt: { type: Date },
     },
 
+    // Lead serial number, shown as "SM-001" (see formatLeadCode). Given on creation; older leads are
+    // numbered by createdAt in config/migrations.js
+    leadNumber: { type: Number, min: 1, immutable: true },
+
     status: { type: String, enum: INQUIRY_STATUSES, default: 'new' },
     // Staff note, e.g. "Called, will visit on Sunday"
     adminNote: { type: String, trim: true, default: null },
@@ -85,5 +89,17 @@ const inquirySchema = new mongoose.Schema(
 inquirySchema.index({ status: 1, createdAt: -1 });
 inquirySchema.index({ customerId: 1, createdAt: -1 });
 inquirySchema.index({ 'photo.key': 1 }, { sparse: true });
+inquirySchema.index({ leadNumber: 1 }, { unique: true, sparse: true });
+
+export const LEAD_SEQUENCE = 'leadNumber';
+
+/** 1 → "SM-001", 1234 → "SM-1234" */
+export const formatLeadCode = (n) => (n ? `SM-${String(n).padStart(3, '0')}` : null);
+
+/** "SM-004", "sm 4", "sm004", "#4" → 4; anything else → null */
+export const parseLeadCode = (text) => {
+  const m = /^\s*(?:sm[\s-]*|#)(\d{1,9})\s*$/i.exec(text ?? '');
+  return m ? Number(m[1]) : null;
+};
 
 export const Inquiry = mongoose.model('Inquiry', inquirySchema);

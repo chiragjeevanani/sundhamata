@@ -25,6 +25,48 @@ beforeEach(async () => {
   ({ auth: customerAuth } = await loginAsCustomer(app, '+919876543210'));
 });
 
+describe('Lead numbers', () => {
+  const send = () =>
+    api()
+      .post('/api/v1/customer/inquiries')
+      .set('Authorization', customerAuth)
+      .send({ category: 'service', service: SCREEN_REPAIR })
+      .expect(201);
+
+  it('numbers every lead SM-001, SM-002… and finds a lead by its number', async () => {
+    expect((await send()).body.data.inquiry.leadCode).toBe('SM-001');
+    expect((await send()).body.data.inquiry.leadCode).toBe('SM-002');
+
+    const list = await api().get('/api/v1/admin/inquiries').set('Authorization', adminAuth).expect(200);
+    expect(list.body.data.items.map((i) => i.leadCode)).toEqual(['SM-002', 'SM-001']);
+    const mine = await api().get('/api/v1/customer/inquiries').set('Authorization', customerAuth).expect(200);
+    expect(mine.body.data.items[0].leadCode).toBe('SM-002');
+
+    for (const query of ['SM-001', 'sm 1', 'sm001']) {
+      const found = await api().get('/api/v1/admin/inquiries').query({ search: query }).set('Authorization', adminAuth).expect(200);
+      expect(found.body.data.items.map((i) => i.leadCode)).toEqual(['SM-001']);
+    }
+  });
+
+  it('numbers leads sent before numbering existed, oldest first, then carries on', async () => {
+    const { Inquiry } = await import('../src/models/Inquiry.js');
+    const { Customer } = await import('../src/models/Customer.js');
+    const { backfillLeadNumbers } = await import('../src/config/migrations.js');
+    const customer = await Customer.findOne({ mobile: '+919876543210' });
+    const base = { customerId: customer._id, category: 'service', service: SCREEN_REPAIR };
+    await Inquiry.collection.insertMany([
+      { ...base, status: 'new', createdAt: new Date('2026-11-02'), updatedAt: new Date() },
+      { ...base, status: 'closed', createdAt: new Date('2026-11-01'), updatedAt: new Date() },
+    ]);
+
+    await backfillLeadNumbers();
+    await backfillLeadNumbers(); // running again changes nothing
+    const old = await Inquiry.find().sort({ createdAt: 1 }).lean();
+    expect(old.map((i) => i.leadNumber)).toEqual([1, 2]);
+    expect((await send()).body.data.inquiry.leadCode).toBe('SM-003');
+  });
+});
+
 describe('Inquiries', () => {
   it('a customer sends an inquiry and the admin sees and updates it', async () => {
     const res = await api()

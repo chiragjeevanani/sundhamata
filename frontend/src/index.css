@@ -61,6 +61,13 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Admin panel: no elastic "bounce" when the page is pulled past its top or bottom (trackpad,
+   touch screen or mouse drag), which slid the whole panel down and showed an empty band */
+html:has(.admin-shell),
+html:has(.admin-shell) body {
+  overscroll-behavior: none;
+}
+
 /* Native checkboxes, radios, range sliders and progress bars in the brand orange
    (browsers default to blue) */
 :root {

@@ -1,5 +1,6 @@
 import { logger } from './logger.js';
-import { Purchase } from '../models/index.js';
+import { Inquiry, Purchase, nextSequence } from '../models/index.js';
+import { LEAD_SEQUENCE } from '../models/Inquiry.js';
 import { backfillVerifiedCustomers } from '../services/customerVerification.js';
 
 /**
@@ -23,4 +24,21 @@ export const runMigrations = async () => {
 
   // Verified customers (blue tick): customers who already qualify get it straight away
   await backfillVerifiedCustomers();
+
+  // Lead serial numbers ("SM-001"): number leads sent before numbering existed, oldest first
+  await backfillLeadNumbers();
+};
+
+export const backfillLeadNumbers = async () => {
+  const unnumbered = await Inquiry.find({ leadNumber: { $exists: false } }, { _id: 1 })
+    .sort({ createdAt: 1, _id: 1 })
+    .lean();
+  for (const { _id } of unnumbered) {
+    // Straight to the collection: Mongoose drops updates to immutable fields (leadNumber is one)
+    await Inquiry.collection.updateOne(
+      { _id, leadNumber: { $exists: false } },
+      { $set: { leadNumber: await nextSequence(LEAD_SEQUENCE) } }
+    );
+  }
+  if (unnumbered.length) logger.info({ count: unnumbered.length }, 'Migration: numbered existing leads');
 };

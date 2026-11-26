@@ -55,7 +55,10 @@ const NoteForm = ({ inquiry, onClose, onSaved }) => {
         aria-label="Lead note"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-stone-900">Note for {inquiry.customer?.name ?? 'this lead'}</h3>
+          <h3 className="text-sm font-semibold text-stone-900">
+            Note for {inquiry.leadCode ? `${inquiry.leadCode} · ` : ''}
+            {inquiry.customer?.name ?? 'this lead'}
+          </h3>
           <button type="button" onClick={onClose} className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer" aria-label="Close">
             <X className="w-4 h-4" />
           </button>
@@ -186,7 +189,7 @@ export const LeadsPage = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by customer, mobile, brand, model, problem..."
+            placeholder="Search by lead no. (SM-001), customer, mobile, brand, model, problem..."
             className="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-900 focus:outline-hidden focus:border-brand-600 shadow-2xs"
           />
         </div>
@@ -208,7 +211,8 @@ export const LeadsPage = () => {
           <table className="w-full text-xs text-left">
             <thead className="bg-stone-50/80 text-stone-500 border-b border-stone-100">
               <tr>
-                <th className="py-2.5 px-5 font-medium">Customer</th>
+                <th className="py-2.5 pl-5 pr-2 font-medium whitespace-nowrap">Lead No.</th>
+                <th className="py-2.5 px-4 font-medium">Customer</th>
                 <th className="py-2.5 px-4 font-medium">Type</th>
                 <th className="py-2.5 px-4 font-medium text-right">Budget</th>
                 <th className="py-2.5 px-4 font-medium">Details</th>
@@ -221,14 +225,14 @@ export const LeadsPage = () => {
               {!data &&
                 [0, 1, 2].map((i) => (
                   <tr key={i}>
-                    <td colSpan={7} className="px-5 py-3">
+                    <td colSpan={8} className="px-5 py-3">
                       <div className="h-4 bg-stone-100 rounded animate-pulse" />
                     </td>
                   </tr>
                 ))}
               {data?.items.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-stone-400">
+                  <td colSpan={8} className="px-5 py-12 text-center text-stone-400">
                     <MessageSquareText className="w-7 h-7 mx-auto mb-2 opacity-60" />
                     {search || category !== 'all'
                       ? 'No leads match these filters.'
@@ -242,7 +246,12 @@ export const LeadsPage = () => {
               )}
               {data?.items.map((inq) => (
                 <tr key={inq.id} className={`hover:bg-stone-50/60 align-top ${isOpen(inq) ? '' : 'bg-stone-50/50 text-stone-500'}`}>
-                  <td className="py-3 px-5 whitespace-nowrap">
+                  <td className="py-3 pl-5 pr-2 whitespace-nowrap">
+                    <span className="font-mono text-[11.5px] font-semibold text-stone-800 bg-stone-100 border border-stone-200 rounded px-1.5 py-0.5">
+                      {inq.leadCode ?? '—'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 whitespace-nowrap">
                     {inq.customer ? (
                       <>
                         <Link to={`/admin/customers/${inq.customer.id}`} className="font-medium text-stone-900 hover:text-brand-700 block">
@@ -400,7 +409,7 @@ export const LeadsPage = () => {
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-xs" onClick={() => setDeleting(null)}>
           <div className="w-full max-w-sm bg-white rounded-xl border border-stone-200 shadow-xl p-5 space-y-3 text-xs" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-sm font-semibold text-stone-900">Delete this lead?</h3>
+            <h3 className="text-sm font-semibold text-stone-900">Delete lead {deleting.leadCode ?? ''}?</h3>
             <p className="text-stone-500">
               The inquiry is removed for the customer too, and this cannot be undone. To keep it, mark it closed instead.
             </p>

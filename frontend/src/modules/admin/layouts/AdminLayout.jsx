@@ -83,7 +83,7 @@ export const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-cream-50 text-stone-900 font-sans antialiased selection:bg-brand-100 selection:text-brand-900">
+    <div className="admin-shell min-h-screen flex bg-cream-50 text-stone-900 font-sans antialiased selection:bg-brand-100 selection:text-brand-900">
       {/* Sidebar (Desktop Sticky Collapsible + Mobile Drawer) */}
       <AdminSidebar
         isMobileOpen={mobileSidebarOpen}

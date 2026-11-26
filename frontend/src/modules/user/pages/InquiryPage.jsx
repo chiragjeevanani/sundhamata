@@ -432,7 +432,8 @@ export const InquiryPage = () => {
       }
       setHistory((prev) => [inquiry, ...(prev ?? [])]);
       setPhotoFailed(photoUploadFailed);
-      setSent(true);
+      // Remember the lead number ("SM-007") to show in the confirmation
+      setSent(inquiry.leadCode || true);
       setCategory('');
       setAnswers(EMPTY_ANSWERS);
       setPhotoPreview(null);
@@ -654,6 +655,11 @@ export const InquiryPage = () => {
             <div>
               <p className="font-bold text-emerald-900">Inquiry sent</p>
               <p className="text-emerald-800">The store team will contact you soon.</p>
+              {typeof sent === 'string' && (
+                <p className="text-emerald-800 mt-0.5">
+                  Your inquiry number is <span className="font-mono font-bold text-emerald-900">{sent}</span>
+                </p>
+              )}
               {photoFailed && (
                 <p className="text-amber-800 mt-0.5">
                   The photo could not be uploaded, but your inquiry was sent. You can show the problem at the store.
@@ -794,6 +800,7 @@ export const InquiryPage = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-stone-800">
+                          {inq.leadCode && <span className="font-mono text-stone-500 mr-1.5">{inq.leadCode}</span>}
                           {INQUIRY_CATEGORY_LABELS[inq.category]}
                           {inq.budget != null && (
                             <span className="font-semibold text-stone-500"> · {formatINR(inq.budget)}</span>
