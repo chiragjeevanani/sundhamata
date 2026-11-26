@@ -1,4 +1,5 @@
 import { Customer, Inquiry } from '../models/index.js';
+import { OPEN_STATUSES } from '../models/Inquiry.js';
 import { ApiError } from '../utils/ApiError.js';
 import { buildPagination, containsRegex, paginated } from '../utils/query.js';
 import { deleteInquiryPhotoFile } from './inquiryPhoto.service.js';
@@ -67,10 +68,11 @@ export const listCustomerInquiries = async (customerId) => {
   return items.map((i) => serializeInquiry(i, { audience: 'customer' }));
 };
 
-/** Admin → Inquiries: newest first, with counts per status for the tabs */
+/** Admin → Leads: newest first, with counts per status for the tabs. "open" = not closed yet (new or contacted) */
 export const listInquiries = async ({ page, limit, search, status, category }) => {
   const filter = {};
-  if (status !== 'all') filter.status = status;
+  if (status === 'open') filter.status = { $in: OPEN_STATUSES };
+  else if (status !== 'all') filter.status = status;
   if (category !== 'all') filter.category = category;
   if (search) {
     const regex = containsRegex(search);
@@ -85,9 +87,11 @@ export const listInquiries = async ({ page, limit, search, status, category }) =
     Inquiry.countDocuments(filter),
     Inquiry.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
   ]);
+  const byStatus = Object.fromEntries(counts.map((c) => [c._id, c.count]));
+  byStatus.open = OPEN_STATUSES.reduce((sum, key) => sum + (byStatus[key] ?? 0), 0);
   return {
     ...paginated(items.map((i) => serializeInquiry(i)), { page, limit }, total),
-    counts: Object.fromEntries(counts.map((c) => [c._id, c.count])),
+    counts: byStatus,
   };
 };
 

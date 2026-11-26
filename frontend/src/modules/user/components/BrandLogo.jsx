@@ -13,6 +13,8 @@ const MOBILE_LETTERS = 'MOBILE'.split('');
 export const BrandLogo = ({
   size = 'md',
   showTagline = true,
+  // Short line centred under the name instead of the default tagline (e.g. the app header)
+  tagline,
   light = false,
   logoSrc,
   animated = true,
@@ -148,7 +150,15 @@ export const BrandLogo = ({
           </span>
         </div>
 
-        {showTagline && (
+        {tagline ? (
+          <span
+            className={`self-center text-center font-medium tracking-wide mt-0.5 ${light ? 'text-stone-300' : 'text-stone-600'} ${
+              isSm ? 'text-[9.5px]' : isLg ? 'text-[12px]' : 'text-[10.5px]'
+            }`}
+          >
+            {tagline}
+          </span>
+        ) : showTagline && (
           <span
             className={`font-semibold tracking-[0.14em] uppercase mt-1 ${
               light ? 'text-stone-300' : 'text-stone-500'

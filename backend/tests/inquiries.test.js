@@ -50,7 +50,7 @@ describe('Inquiries', () => {
     const list = await api().get('/api/v1/admin/inquiries').set('Authorization', adminAuth).expect(200);
     expect(list.body.data.items).toHaveLength(1);
     expect(list.body.data.items[0].customer).toMatchObject({ name: 'Rohit Sharma', mobile: '+919876543210' });
-    expect(list.body.data.counts).toEqual({ new: 1 });
+    expect(list.body.data.counts).toEqual({ new: 1, open: 1 });
 
     const byBrand = await api().get('/api/v1/admin/inquiries?search=samsung').set('Authorization', adminAuth).expect(200);
     expect(byBrand.body.data.items[0].mobile.brand).toBe('Samsung');
@@ -65,6 +65,16 @@ describe('Inquiries', () => {
       .send({ status: 'contacted', adminNote: 'Called, visiting Sunday' })
       .expect(200);
     expect(updated.body.data.inquiry).toMatchObject({ status: 'contacted', adminNote: 'Called, visiting Sunday' });
+
+    // Leads: "open" = new or contacted; closing moves it to the Closed tab
+    const open = async () => (await api().get('/api/v1/admin/inquiries?status=open').set('Authorization', adminAuth).expect(200)).body.data;
+    expect((await open()).items).toHaveLength(1);
+    await api().patch(`/api/v1/admin/inquiries/${id}`).set('Authorization', adminAuth).send({ status: 'closed' }).expect(200);
+    const afterClose = await open();
+    expect(afterClose.items).toHaveLength(0);
+    expect(afterClose.counts).toEqual({ closed: 1, open: 0 });
+    await api().patch(`/api/v1/admin/inquiries/${id}`).set('Authorization', adminAuth).send({ status: 'contacted' }).expect(200);
+    expect((await open()).items).toHaveLength(1);
 
     await api().delete(`/api/v1/admin/inquiries/${id}`).set('Authorization', adminAuth).expect(200);
     const after = await api().get('/api/v1/admin/inquiries').set('Authorization', adminAuth).expect(200);

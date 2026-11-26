@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 export const INQUIRY_CATEGORIES = Object.freeze(['mobile', 'accessories', 'service']);
 export const INQUIRY_STATUSES = Object.freeze(['new', 'contacted', 'closed']);
+// Admin → Leads shows these as "Open"; "closed" as "Closed"
+export const OPEN_STATUSES = Object.freeze(['new', 'contacted']);
 // Quick picks for "Additional requirements" on a mobile inquiry
 export const MOBILE_FEATURES = Object.freeze(['Camera', 'Battery', 'Gaming', 'Display', '5G', 'Processor', 'Fast Charging']);
 // Accessories inquiry: which kind of device the accessory is for

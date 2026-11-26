@@ -88,6 +88,7 @@ export const updateInquirySchema = z
 export const listInquiriesQuerySchema = z.object({
   ...paginationSchema,
   search: searchSchema,
-  status: z.enum(['all', ...INQUIRY_STATUSES]).default('all'),
+  // "open" = new or contacted (Admin → Leads)
+  status: z.enum(['all', 'open', ...INQUIRY_STATUSES]).default('all'),
   category: z.enum(['all', ...INQUIRY_CATEGORIES]).default('all'),
 });

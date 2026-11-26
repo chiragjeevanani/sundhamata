@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquareText, Phone, Search, StickyNote, Trash2, X } from 'lucide-react';
+import { CheckCircle2, MessageSquareText, Phone, RotateCcw, Search, StickyNote, Trash2, X } from 'lucide-react';
 import { adminInquiryService } from '../../../services/adminInquiryService';
 import {
   ACCESSORY_TYPE_LABELS,
@@ -19,19 +19,16 @@ const CATEGORY_BADGE = {
   accessories: 'bg-amber-50 text-amber-800 border-amber-200/70',
   service: 'bg-violet-50 text-violet-700 border-violet-200/70',
 };
+// A lead is Open until staff close it. (Stored as new / contacted / closed: the customer app
+// shows those as "Sent", "Store contacted you" and "Closed".)
 const STATUS_TABS = [
-  { key: 'all', label: 'All' },
-  { key: 'new', label: 'New' },
-  { key: 'contacted', label: 'Contacted' },
+  { key: 'open', label: 'Open' },
   { key: 'closed', label: 'Closed' },
+  { key: 'all', label: 'All' },
 ];
-const STATUS_SELECT = {
-  new: 'bg-brand-50 text-brand-700 border-brand-200',
-  contacted: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-  closed: 'bg-stone-100 text-stone-600 border-stone-200',
-};
+const isOpen = (lead) => lead.status !== 'closed';
 
-/** Staff note on an inquiry, e.g. "Called, will visit on Sunday" */
+/** Staff note on a lead, e.g. "Called, will visit on Sunday" */
 const NoteForm = ({ inquiry, onClose, onSaved }) => {
   const { showError } = useToast();
   const [note, setNote] = useState(inquiry.adminNote ?? '');
@@ -55,10 +52,10 @@ const NoteForm = ({ inquiry, onClose, onSaved }) => {
         onSubmit={submit}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md bg-white rounded-xl border border-stone-200 shadow-xl p-5 space-y-3 text-xs"
-        aria-label="Inquiry note"
+        aria-label="Lead note"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-stone-900">Note for {inquiry.customer?.name ?? 'this inquiry'}</h3>
+          <h3 className="text-sm font-semibold text-stone-900">Note for {inquiry.customer?.name ?? 'this lead'}</h3>
           <button type="button" onClick={onClose} className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer" aria-label="Close">
             <X className="w-4 h-4" />
           </button>
@@ -97,11 +94,12 @@ const NoteForm = ({ inquiry, onClose, onSaved }) => {
   );
 };
 
-/** Inquiries sent by customers from the app (Profile → Make an Inquiry) */
-export const InquiriesPage = () => {
+/** Leads: inquiries customers send from the app (Home / Profile → Make an Inquiry) */
+export const LeadsPage = () => {
   const { showSuccess, showError } = useToast();
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
+  const [status, setStatus] = useState('open');
+  const [updating, setUpdating] = useState(null);
   const [category, setCategory] = useState('all');
   const [data, setData] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -114,7 +112,7 @@ export const InquiriesPage = () => {
       adminInquiryService
         .list({ search, status, category, limit: 100 })
         .then((res) => active && setData(res))
-        .catch((err) => active && showError('Error', err.message || 'Could not load inquiries.'));
+        .catch((err) => active && showError('Error', err.message || 'Could not load leads.'));
     }, 200);
     return () => {
       active = false;
@@ -123,40 +121,47 @@ export const InquiriesPage = () => {
   }, [search, status, category, reloadKey, showError]);
 
   const counts = data?.counts ?? {};
-  const total = (counts.new ?? 0) + (counts.contacted ?? 0) + (counts.closed ?? 0);
+  const tabCount = { open: counts.open ?? 0, closed: counts.closed ?? 0, all: (counts.open ?? 0) + (counts.closed ?? 0) };
 
-  const changeStatus = async (inquiry, next) => {
+  /** Close an open lead, or reopen a closed one (a reopened lead counts as contacted) */
+  const toggleOpen = async (lead) => {
+    const closing = isOpen(lead);
+    setUpdating(lead.id);
     try {
-      await adminInquiryService.update(inquiry.id, { status: next });
+      await adminInquiryService.update(lead.id, { status: closing ? 'closed' : 'contacted' });
+      showSuccess(closing ? 'Lead closed' : 'Lead reopened');
       setReloadKey((k) => k + 1);
     } catch (err) {
-      showError('Error', err.message || 'Could not update the inquiry.');
+      showError('Error', err.message || 'Could not update the lead.');
+    } finally {
+      setUpdating(null);
     }
   };
 
   const confirmDelete = async () => {
     try {
       await adminInquiryService.remove(deleting.id);
-      showSuccess('Inquiry deleted');
+      showSuccess('Lead deleted');
       setDeleting(null);
       setReloadKey((k) => k + 1);
     } catch (err) {
-      showError('Error', err.message || 'Could not delete the inquiry.');
+      showError('Error', err.message || 'Could not delete the lead.');
     }
   };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="pb-4 border-b border-stone-200/80">
-        <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Inquiries</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight">Leads</h1>
         <p className="text-xs text-stone-500 mt-0.5">
-          Requests customers send from the app for a mobile, accessories or a service, with their budget.
+          Inquiries customers send from the app for a mobile, accessories or a service. Mark a lead closed once it is
+          dealt with.
         </p>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
         {STATUS_TABS.map((tab) => {
-          const count = tab.key === 'all' ? total : counts[tab.key] ?? 0;
+          const count = tabCount[tab.key];
           const selected = status === tab.key;
           return (
             <button
@@ -189,7 +194,7 @@ export const InquiriesPage = () => {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-800 focus:outline-hidden focus:border-brand-600 shadow-2xs cursor-pointer"
-          aria-label="Inquiry type"
+          aria-label="Lead type"
         >
           <option value="all">All types</option>
           {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
@@ -225,14 +230,18 @@ export const InquiriesPage = () => {
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-stone-400">
                     <MessageSquareText className="w-7 h-7 mx-auto mb-2 opacity-60" />
-                    {search || status !== 'all' || category !== 'all'
-                      ? 'No inquiries match these filters.'
-                      : 'No inquiries yet. They appear here when customers send one from the app.'}
+                    {search || category !== 'all'
+                      ? 'No leads match these filters.'
+                      : status === 'open'
+                        ? 'No open leads. New inquiries from the app appear here.'
+                        : status === 'closed'
+                          ? 'No closed leads yet.'
+                          : 'No leads yet. They appear here when customers send an inquiry from the app.'}
                   </td>
                 </tr>
               )}
               {data?.items.map((inq) => (
-                <tr key={inq.id} className="hover:bg-stone-50/60 align-top">
+                <tr key={inq.id} className={`hover:bg-stone-50/60 align-top ${isOpen(inq) ? '' : 'bg-stone-50/50 text-stone-500'}`}>
                   <td className="py-3 px-5 whitespace-nowrap">
                     {inq.customer ? (
                       <>
@@ -327,16 +336,24 @@ export const InquiriesPage = () => {
                   </td>
                   <td className="py-3 px-4 text-stone-500 whitespace-nowrap">{formatRelativeTime(inq.createdAt)}</td>
                   <td className="py-3 px-4">
-                    <select
-                      value={inq.status}
-                      onChange={(e) => changeStatus(inq, e.target.value)}
-                      className={`px-2 py-1 rounded-md border text-[11px] font-medium cursor-pointer focus:outline-hidden ${STATUS_SELECT[inq.status]}`}
-                      aria-label="Status"
-                    >
-                      <option value="new">New</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="closed">Closed</option>
-                    </select>
+                    <div className="flex flex-col items-start gap-1.5">
+                      <span
+                        className={`px-2 py-0.5 rounded-full border text-[11px] font-semibold ${
+                          isOpen(inq) ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-stone-100 text-stone-600 border-stone-200'
+                        }`}
+                      >
+                        {isOpen(inq) ? 'Open' : 'Closed'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleOpen(inq)}
+                        disabled={updating === inq.id}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-stone-200 bg-white text-[11px] font-medium text-stone-700 hover:bg-stone-50 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {isOpen(inq) ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : <RotateCcw className="w-3 h-3" />}
+                        {isOpen(inq) ? 'Mark closed' : 'Reopen'}
+                      </button>
+                    </div>
                   </td>
                   <td className="py-3 px-5 text-right whitespace-nowrap">
                     <button
@@ -350,7 +367,7 @@ export const InquiriesPage = () => {
                     <button
                       onClick={() => setDeleting(inq)}
                       className="p-1.5 text-stone-400 hover:text-rose-600 rounded-md hover:bg-stone-100 cursor-pointer"
-                      aria-label="Delete inquiry"
+                      aria-label="Delete lead"
                       title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -383,8 +400,10 @@ export const InquiriesPage = () => {
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-xs" onClick={() => setDeleting(null)}>
           <div className="w-full max-w-sm bg-white rounded-xl border border-stone-200 shadow-xl p-5 space-y-3 text-xs" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-sm font-semibold text-stone-900">Delete this inquiry?</h3>
-            <p className="text-stone-500">It is removed for the customer too. This cannot be undone.</p>
+            <h3 className="text-sm font-semibold text-stone-900">Delete this lead?</h3>
+            <p className="text-stone-500">
+              The inquiry is removed for the customer too, and this cannot be undone. To keep it, mark it closed instead.
+            </p>
             <div className="flex justify-end gap-2">
               <button onClick={() => setDeleting(null)} className="py-2 px-3.5 rounded-lg border border-stone-300 text-stone-700 font-medium hover:bg-stone-50 cursor-pointer">
                 Cancel

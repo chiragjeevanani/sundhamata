@@ -55,7 +55,7 @@ export const Header = ({
             className="flex items-center gap-1.5 cursor-pointer text-left focus:outline-hidden transition-transform active:scale-[0.98]"
             aria-label="Sundhamata Mobile Home"
           >
-            <BrandLogo size="sm" showTagline={false} animated={true} />
+            <BrandLogo size="sm" tagline="Trust meets Technology." animated={true} />
           </button>
         )}
 

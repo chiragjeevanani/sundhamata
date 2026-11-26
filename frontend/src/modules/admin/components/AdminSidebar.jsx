@@ -39,7 +39,7 @@ export const AdminSidebar = ({
     { to: '/admin/purchases', label: 'Sales', icon: ShoppingBag },
     { to: '/admin/products', label: 'Products', icon: Package },
     { to: '/admin/coupons', label: 'Coupons', icon: TicketPercent },
-    { to: '/admin/inquiries', label: 'Inquiries', icon: MessageSquareText },
+    { to: '/admin/leads', label: 'Leads', icon: MessageSquareText },
     { to: '/admin/banners', label: 'Banners', icon: GalleryHorizontal },
     { to: '/admin/advertisement', label: 'Advertisement', icon: Megaphone },
     { to: '/admin/legal', label: 'Terms & Privacy', icon: FileText },

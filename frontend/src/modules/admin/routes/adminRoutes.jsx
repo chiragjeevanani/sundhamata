@@ -14,7 +14,7 @@ import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { ProductsPage } from '../pages/ProductsPage';
 import { OffersPage } from '../pages/OffersPage';
-import { InquiriesPage } from '../pages/InquiriesPage';
+import { LeadsPage } from '../pages/LeadsPage';
 import { AdvertisementPage } from '../pages/AdvertisementPage';
 import { LegalContentPage } from '../pages/LegalContentPage';
 import { BannersPage } from '../pages/BannersPage';
@@ -65,8 +65,13 @@ export const adminRoutes = [
         element: <OffersPage />,
       },
       {
+        path: 'leads',
+        element: <LeadsPage />,
+      },
+      {
+        // Old address of Leads
         path: 'inquiries',
-        element: <InquiriesPage />,
+        element: <Navigate to="/admin/leads" replace />,
       },
       {
         path: 'advertisement',
