@@ -1,4 +1,4 @@
-import { loginAdmin } from '../services/adminAuth.service.js';
+import { changeOwnPassword, loginAdmin, updateOwnProfile } from '../services/adminAuth.service.js';
 import { sendSuccess } from '../utils/apiResponse.js';
 import { serializeAdmin } from '../utils/serializers.js';
 
@@ -19,4 +19,16 @@ export const logout = async (req, res) => {
     data: { serverSideInvalidation: false },
     message: 'Signed out. Discard the token on the client; it is not revoked server-side.',
   });
+};
+
+/** My Account: name, email, mobile */
+export const updateMe = async (req, res) => {
+  const admin = await updateOwnProfile(req.admin, req.valid.body);
+  sendSuccess(res, { data: { admin }, message: 'Account details saved' });
+};
+
+/** My Account: new password (signs out other devices; returns a fresh token for this one) */
+export const changePassword = async (req, res) => {
+  const data = await changeOwnPassword(req.admin, req.valid.body);
+  sendSuccess(res, { data, message: 'Password changed' });
 };

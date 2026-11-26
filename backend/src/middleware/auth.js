@@ -39,6 +39,10 @@ export const requireAdminAuth = async (req, _res, next) => {
   if (!admin || !admin.isActive) {
     throw ApiError.unauthorized('Your session is no longer valid. Please sign in again.');
   }
+  // Changing the password signs out every other device (tokens issued before the change)
+  if (admin.passwordChangedAt && claims.iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) {
+    throw ApiError.unauthorized('Your password was changed. Please sign in again.');
+  }
   req.admin = admin;
   next();
 };

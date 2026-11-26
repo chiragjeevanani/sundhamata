@@ -22,6 +22,7 @@ import {
 import { createProductSchema, listProductsQuerySchema, updateProductSchema } from '../validators/product.validators.js';
 import { createOfferSchema, updateOfferSchema } from '../validators/offer.validators.js';
 import { updateSettingsSchema } from '../validators/settings.validators.js';
+import { changeOwnPasswordSchema, updateOwnAdminSchema } from '../validators/auth.validators.js';
 import { listInquiriesQuerySchema, updateInquirySchema } from '../validators/inquiry.validators.js';
 import { updateStartupAdSchema } from '../validators/startupAd.validators.js';
 import { legalKeyParamsSchema, updateLegalSchema } from '../validators/legal.validators.js';
@@ -41,6 +42,9 @@ export const createAdminRouter = () => {
   router.use(requireAdminAuth);
 
   router.get('/me', adminAuth.me);
+  // My Account: every admin can change their own details and password
+  router.patch('/me', validate({ body: updateOwnAdminSchema }), adminAuth.updateMe);
+  router.post('/me/password', validate({ body: changeOwnPasswordSchema }), adminAuth.changePassword);
 
   router.get('/dashboard', can(P.DASHBOARD_READ), admin.getDashboard);
   router.get('/activity', can(P.DASHBOARD_READ), validate({ query: activityQuerySchema }), admin.getActivity);

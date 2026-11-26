@@ -55,6 +55,18 @@ export const AdminAuthProvider = ({ children }) => {
     return login(DEV_ADMIN_CREDENTIALS);
   };
 
+  // My Account: save changes, then show them everywhere (header, menu) straight away
+  const updateProfile = async (patch) => {
+    const fresh = await adminAuthService.updateProfile(patch);
+    setSession(adminAuthService.getCurrentSession());
+    return fresh;
+  };
+  const changePassword = async (passwords) => {
+    const fresh = await adminAuthService.changePassword(passwords);
+    setSession(adminAuthService.getCurrentSession());
+    return fresh;
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -75,6 +87,8 @@ export const AdminAuthProvider = ({ children }) => {
         login,
         quickDemo,
         logout,
+        updateProfile,
+        changePassword,
       }}
     >
       {children}

@@ -10,6 +10,7 @@ import {
   LogOut,
   ExternalLink,
   ChevronDown,
+  UserCog,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -152,6 +153,17 @@ export const AdminHeader = ({
               </div>
 
               <div className="py-1">
+                <button
+                  onClick={() => {
+                    setProfileDropdownOpen(false);
+                    navigate('/admin/account');
+                  }}
+                  className="w-full px-3 py-2 text-left hover:bg-stone-50 text-stone-700 flex items-center gap-2 cursor-pointer font-medium"
+                >
+                  <UserCog className="w-4 h-4 text-stone-400" />
+                  <span>My Account</span>
+                </button>
+
                 <button
                   onClick={() => {
                     setProfileDropdownOpen(false);

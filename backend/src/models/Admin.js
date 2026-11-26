@@ -11,6 +11,8 @@ const adminSchema = new mongoose.Schema(
     role: { type: String, enum: Object.values(ROLES), default: ROLES.MANAGER },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date, default: null },
+    // Sign-ins (tokens) from before this moment stop working: set when the password changes
+    passwordChangedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

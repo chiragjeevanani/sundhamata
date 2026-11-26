@@ -33,3 +33,28 @@ export const adminLoginSchema = z
     message: 'Email or mobile number is required',
     path: ['identifier'],
   });
+
+// ---- My Account (signed-in admin) -------------------------------------------
+
+const currentPasswordSchema = z.string({ error: 'Current password is required' }).max(128);
+
+export const updateOwnAdminSchema = z
+  .strictObject({
+    name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80, 'Name must be at most 80 characters').optional(),
+    email: z.preprocess((v) => (typeof v === 'string' ? v.trim() : v), z.email('Enter a valid email address').max(254).toLowerCase()).optional(),
+    // "" / null = remove the mobile number (then sign in with the email)
+    mobile: z.preprocess((v) => (v === '' ? null : v), mobileSchema.nullable()).optional(),
+    currentPassword: currentPasswordSchema.optional(),
+  })
+  .refine((o) => o.name !== undefined || o.email !== undefined || o.mobile !== undefined, {
+    message: 'Provide at least one field to update',
+  });
+
+export const changeOwnPasswordSchema = z.strictObject({
+  currentPassword: currentPasswordSchema.min(1, 'Current password is required'),
+  newPassword: z
+    .string({ error: 'New password is required' })
+    .min(8, 'Use at least 8 characters')
+    .max(128, 'Use at most 128 characters')
+    .refine((v) => /[A-Za-z]/.test(v) && /\d/.test(v), 'Use letters and at least one number'),
+});

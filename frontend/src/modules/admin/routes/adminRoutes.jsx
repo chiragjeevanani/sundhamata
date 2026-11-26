@@ -18,6 +18,7 @@ import { LeadsPage } from '../pages/LeadsPage';
 import { AdvertisementPage } from '../pages/AdvertisementPage';
 import { LegalContentPage } from '../pages/LegalContentPage';
 import { BannersPage } from '../pages/BannersPage';
+import { AccountPage } from '../pages/AccountPage';
 
 export const adminRoutes = [
   {
@@ -96,6 +97,11 @@ export const adminRoutes = [
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        // Every admin: their own name, email, mobile and password
+        path: 'account',
+        element: <AccountPage />,
       },
       {
         path: '*',

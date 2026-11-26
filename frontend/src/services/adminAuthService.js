@@ -35,6 +35,20 @@ export const adminAuthService = {
     return data.admin;
   },
 
+  /** My Account: { name?, email?, mobile? (null = remove), currentPassword? (needed for email / mobile) } */
+  async updateProfile(patch) {
+    const data = await adminApi.patch('/admin/me', patch);
+    adminSession.update({ admin: data.admin });
+    return data.admin;
+  },
+
+  /** My Account: other devices are signed out; this one continues with the fresh token */
+  async changePassword({ currentPassword, newPassword }) {
+    const data = await adminApi.post('/admin/me/password', { currentPassword, newPassword });
+    adminSession.update({ token: data.token, expiresAt: Date.parse(data.expiresAt), admin: data.admin });
+    return data.admin;
+  },
+
   /**
    * JWTs are stateless: the server acknowledges logout but cannot revoke the token,
    * so the client always discards it — even if the API call fails.
