@@ -13,6 +13,10 @@ export const describeDiscount = ({ type, value, maxAmount, itemName } = {}) => {
 
 const CATEGORY_WORDS = { phones: 'mobiles', accessories: 'accessories', service: 'services' };
 
+/** "accessories" / "mobiles / accessories", or null when the coupon is for the whole bill */
+export const couponScope = (coupon) =>
+  coupon?.appliesTo?.length ? coupon.appliesTo.map((c) => CATEGORY_WORDS[c] ?? c).join(' / ') : null;
+
 /** "on ₹2,000 of accessories" / "on a bill of ₹1,000 or more" / "" */
 export const describeMinimum = (coupon) => {
   const scope = coupon?.appliesTo?.length ? coupon.appliesTo.map((c) => CATEGORY_WORDS[c] ?? c).join(' / ') : null;

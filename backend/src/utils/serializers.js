@@ -296,6 +296,8 @@ export const serializeCoupon = (c, now = new Date()) => ({
   status: c.status === 'redeemed' ? 'redeemed' : new Date(c.expiresAt) <= now ? 'expired' : 'active',
   redeemedAt: c.redeemedAt ?? null,
   purchaseId: c.purchaseId ? idOf(c.purchaseId) : null,
+  // Used by scanning at the counter: { amount, discount }
+  counterSale: c.counterSale ? { amount: c.counterSale.amount, discount: c.counterSale.discount } : null,
   createdAt: c.createdAt,
 });
 

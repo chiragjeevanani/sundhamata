@@ -36,6 +36,13 @@ import {
 const activityQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const billUploadQuerySchema = z.object({ filename: z.string().trim().max(255).optional() });
 const couponCodeParamsSchema = z.object({ code: z.string().trim().min(1).max(40) });
+const redeemCouponBodySchema = z.strictObject({
+  amount: z.coerce
+    .number({ error: 'Enter the amount the customer is buying' })
+    .positive('Enter the amount the customer is buying')
+    .max(10_000_000)
+    .transform((n) => Math.round(n * 100) / 100),
+});
 
 export const createAdminRouter = () => {
   const router = Router();
@@ -93,6 +100,21 @@ export const createAdminRouter = () => {
     can(P.PURCHASES_WRITE),
     validate({ params: couponCodeParamsSchema, query: z.object({ customerId: objectIdSchema.optional() }) }),
     admin.lookupCoupon
+  );
+  // Scan Coupon: use a customer's own coupon (their QR) at the counter without recording a bill,
+  // and give it back within a day if that was a mistake
+  // amount: what the customer is buying (of the products the coupon is for); checked against its conditions
+  router.post(
+    '/coupons/:code/redeem',
+    can(P.PURCHASES_WRITE),
+    validate({ params: couponCodeParamsSchema, body: redeemCouponBodySchema }),
+    admin.redeemCoupon
+  );
+  router.post(
+    '/coupons/by-id/:id/undo-redeem',
+    can(P.PURCHASES_WRITE),
+    validate({ params: idParamsSchema }),
+    admin.undoCouponRedemption
   );
   // Offers: coupon campaigns the staff create (codes like DIWALI500; claimed in the app or used at the counter)
   router.get('/offers', can(P.SETTINGS_READ), admin.listOffers);

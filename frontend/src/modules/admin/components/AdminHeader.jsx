@@ -11,6 +11,7 @@ import {
   ExternalLink,
   ChevronDown,
   UserCog,
+  ScanLine,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -58,7 +59,7 @@ export const AdminHeader = ({
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 h-14 flex items-center justify-between px-3 sm:px-6 select-none">
       {/* Left Section: Sidebar Toggle Buttons & Global Search */}
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-lg">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-lg">
         {/* Mobile Hamburger */}
         <button
           onClick={onMobileMenuToggle}
@@ -85,7 +86,7 @@ export const AdminHeader = ({
         {/* Global Search Bar Trigger */}
         <button
           onClick={onOpenSearchModal}
-          className="flex-1 max-w-sm sm:max-w-md py-1.5 px-3 bg-stone-50 hover:bg-stone-100/90 border border-stone-200 rounded-lg text-left text-xs text-stone-400 flex items-center justify-between transition-colors cursor-pointer group"
+          className="flex-1 min-w-0 max-w-sm sm:max-w-md py-1.5 px-3 bg-stone-50 hover:bg-stone-100/90 border border-stone-200 rounded-lg text-left text-xs text-stone-400 flex items-center justify-between transition-colors cursor-pointer group"
         >
           <div className="flex items-center gap-2 truncate">
             <Search className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 shrink-0" />
@@ -98,7 +99,18 @@ export const AdminHeader = ({
       </div>
 
       {/* Right Section: Actions & Admin Profile */}
-      <div className="flex items-center gap-1.5 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-2">
+        {/* Scan a customer's coupon QR (icon only on phones) */}
+        <button
+          onClick={() => navigate('/admin/scan')}
+          className="inline-flex items-center gap-1.5 p-2 sm:py-1.5 sm:px-3 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-medium text-xs cursor-pointer transition-colors"
+          aria-label="Scan coupon"
+          title="Scan coupon"
+        >
+          <ScanLine className="w-4.5 h-4.5 sm:w-3.5 sm:h-3.5 text-brand-600" />
+          <span className="hidden sm:inline">Scan Coupon</span>
+        </button>
+
         {/* Quick Add Sale Button */}
         <button
           onClick={() => navigate('/admin/purchases/new')}

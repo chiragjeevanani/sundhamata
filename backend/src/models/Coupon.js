@@ -51,6 +51,15 @@ const couponSchema = new mongoose.Schema(
     redeemedAt: { type: Date, default: null },
     purchaseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Purchase', default: null },
     redeemedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', default: null },
+    // Used by scanning at the counter (no bill): what the customer bought of the products it
+    // applies to (its conditions were checked against this) and the discount it gave (₹)
+    counterSale: {
+      type: new mongoose.Schema(
+        { amount: { type: Number, min: 0, required: true }, discount: { type: Number, min: 0, required: true } },
+        { _id: false }
+      ),
+      default: null,
+    },
   },
   { timestamps: true }
 );

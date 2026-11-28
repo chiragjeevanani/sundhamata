@@ -166,6 +166,17 @@ export const lookupCoupon = async (req, res) => {
   sendSuccess(res, { data });
 };
 
+// Scan Coupon: used at the counter without a bill
+export const redeemCoupon = async (req, res) => {
+  const data = await couponService.redeemCouponDirectly(req.valid.params.code, req.valid.body.amount, req.admin);
+  sendSuccess(res, { data, message: 'Coupon redeemed' });
+};
+
+export const undoCouponRedemption = async (req, res) => {
+  const data = await couponService.undoDirectRedemption(req.valid.params.id);
+  sendSuccess(res, { data, message: 'Coupon given back to the customer' });
+};
+
 export const listCustomerCoupons = async (req, res) => {
   const coupons = await couponService.listCustomerCoupons(req.valid.params.id);
   sendSuccess(res, { data: { items: coupons } });

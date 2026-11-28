@@ -7,6 +7,7 @@ import { PURCHASE_STATUSES } from '../models/Purchase.js';
 import { offerIdOfChoice, welcomeVouchersOf } from '../models/StoreSettings.js';
 import { ApiError } from '../utils/ApiError.js';
 import { serializeCoupon } from '../utils/serializers.js';
+import { runAtomic } from '../utils/transaction.js';
 import { getSettings } from './settings.service.js';
 
 // ---- welcome vouchers: unlocked when a new customer joins the app, claimed one by one
@@ -559,6 +560,14 @@ export const prepareCouponForPurchase = async ({ code, customerId, lines }, { se
 
   const eligible = lines.map((line) => !coupon.appliesTo?.length || coupon.appliesTo.includes(line.category));
   const amount = Math.round(lines.reduce((sum, line, i) => sum + (eligible[i] ? line.amount : 0), 0) * 100) / 100;
+  return { coupon, discount: discountForAmount(coupon, amount), eligible };
+};
+
+/**
+ * The coupon's conditions (minimum amount, which products) checked against `amount`: what the
+ * customer buys of the products it applies to. Returns the discount, or throws why it cannot be used.
+ */
+const discountForAmount = (coupon, amount) => {
   const scope = appliesToLabel(coupon);
   if (!(amount > 0)) {
     throw couponProblem(`This voucher is for ${scope}: add ${coupon.discount.itemName ? `the ${coupon.discount.itemName}` : scope} to the bill`);
@@ -570,17 +579,17 @@ export const prepareCouponForPurchase = async ({ code, customerId, lines }, { se
   }
   const discount = couponDiscountFor(coupon, amount);
   if (!(discount > 0)) throw couponProblem('This voucher gives no discount on this bill');
-  return { coupon, discount, eligible };
+  return discount;
 };
 
 /**
  * Atomically marks the coupon used by this purchase; fails if someone used it a moment earlier.
  * An offer coupon issued at the counter (`pendingIssue`) is created here, already used.
  */
-export const markCouponRedeemed = async ({ coupon, purchaseId, admin }, ctx) => {
+export const markCouponRedeemed = async ({ coupon, purchaseId, admin, counterSale = null }, ctx) => {
   const { session, onRollback } = ctx;
   const now = new Date();
-  const used = { status: COUPON_STATUSES.REDEEMED, redeemedAt: now, purchaseId, redeemedBy: admin._id };
+  const used = { status: COUPON_STATUSES.REDEEMED, redeemedAt: now, purchaseId, redeemedBy: admin._id, counterSale };
   if (coupon.offerId) await countOfferUse(coupon.offerId, 1, ctx);
 
   if (coupon.pendingIssue) {
@@ -637,4 +646,84 @@ export const restoreCouponOfPurchase = async (purchase, ctx) => {
     if (restored.offerId) await countOfferUse(restored.offerId, -1, ctx);
   }
   return restored;
+};
+
+// ---- scanning a coupon at the counter (Admin → Scan Coupon), without recording a bill
+
+// A redemption without a bill can be undone for this long (a wrong scan, a mistaken tap)
+export const DIRECT_REDEEM_UNDO_MS = 24 * 60 * 60 * 1000;
+
+const scanResult = async (coupon) => {
+  const customer = await Customer.findById(coupon.customerId).lean();
+  const reason = unusableReason(coupon);
+  return {
+    coupon: { ...serializeCoupon(coupon), issuedOnBill: false },
+    customer: customer ? adminCustomerSummary(customer) : null,
+    usable: !reason,
+    reason,
+  };
+};
+
+/**
+ * Uses up a customer's own coupon (the code inside their QR) straight away, without a bill.
+ * `amount`: what the customer is buying of the products the coupon applies to; its conditions
+ * (minimum amount) are checked against it, and the discount it gives is worked out and kept.
+ */
+export const redeemCouponDirectly = async (rawCode, amount, admin) => {
+  const code = normalizeCouponCode(rawCode);
+  if (!(await Coupon.exists({ code }))) {
+    if ((await Offer.exists({ code })) || (await Coupon.exists({ campaignCode: code }))) {
+      throw couponProblem(
+        `${code} is a shared code, not a customer's own coupon. Scan the QR in the customer's app (My Coupons), or apply ${code} on Add Sale.`
+      );
+    }
+    throw ApiError.notFound('No voucher found with this code');
+  }
+
+  const redeemed = await runAtomic(async (ctx) => {
+    const coupon = await findCoupon(code, null, ctx.session);
+    const reason = unusableReason(coupon);
+    if (reason) throw couponProblem(reason);
+    const discount = discountForAmount(coupon, amount);
+    return markCouponRedeemed({ coupon, purchaseId: null, admin, counterSale: { amount, discount } }, ctx);
+  });
+  logger.info({ couponId: redeemed._id.toString(), adminId: admin._id.toString() }, 'Coupon redeemed by scan');
+  return scanResult(redeemed);
+};
+
+/** Gives back a coupon used by scanning (not on a bill), within a day of using it. */
+export const undoDirectRedemption = async (couponId) => {
+  const coupon = await Coupon.findById(couponId).lean();
+  if (!coupon) throw ApiError.notFound('Coupon not found');
+  if (coupon.status !== COUPON_STATUSES.REDEEMED) throw couponProblem('This coupon has not been used');
+  if (coupon.purchaseId) throw couponProblem('This coupon was used on a bill: cancel that bill to give it back');
+  if (Date.now() - new Date(coupon.redeemedAt).getTime() > DIRECT_REDEEM_UNDO_MS) {
+    throw couponProblem('This coupon was used more than a day ago and can no longer be given back');
+  }
+
+  const restored = await runAtomic(async (ctx) => {
+    const updated = await Coupon.findOneAndUpdate(
+      { _id: coupon._id, status: COUPON_STATUSES.REDEEMED, purchaseId: null },
+      { $set: { status: COUPON_STATUSES.ACTIVE, redeemedAt: null, redeemedBy: null, counterSale: null } },
+      { session: ctx.session, returnDocument: 'after' }
+    ).lean();
+    if (!updated) throw couponProblem('This coupon has just been changed, please scan it again');
+    ctx.onRollback(() =>
+      Coupon.updateOne(
+        { _id: coupon._id },
+        {
+          $set: {
+            status: COUPON_STATUSES.REDEEMED,
+            redeemedAt: coupon.redeemedAt,
+            redeemedBy: coupon.redeemedBy,
+            counterSale: coupon.counterSale ?? null,
+          },
+        }
+      )
+    );
+    if (updated.offerId) await countOfferUse(updated.offerId, -1, ctx);
+    return updated;
+  });
+  logger.info({ couponId: restored._id.toString() }, 'Scanned coupon given back');
+  return scanResult(restored);
 };

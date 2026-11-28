@@ -19,6 +19,7 @@ import { AdvertisementPage } from '../pages/AdvertisementPage';
 import { LegalContentPage } from '../pages/LegalContentPage';
 import { BannersPage } from '../pages/BannersPage';
 import { AccountPage } from '../pages/AccountPage';
+import { ScanCouponPage } from '../pages/ScanCouponPage';
 
 export const adminRoutes = [
   {
@@ -64,6 +65,11 @@ export const adminRoutes = [
       {
         path: 'coupons',
         element: <OffersPage />,
+      },
+      {
+        // Scan the customer's coupon QR at the counter and redeem it (works from a phone)
+        path: 'scan',
+        element: <ScanCouponPage />,
       },
       {
         path: 'leads',
